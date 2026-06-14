@@ -1,0 +1,17 @@
+{
+  "camera": {
+    "forward_offset": 0.25,
+    "horizon_stabilization": true,
+    "mode": "stabilized_chase",
+    "pitch_deg": 35,
+    "roll_limit_deg": 12,
+    "smoothing_factor": 0.16,
+    "vertical_offset": 0.4
+  },
+  "cubemap_size": 768,
+  "domemaster_size": 1536,
+  "output": "syphon",
+  "projection": "fisheye_domemaster",
+  "render_profile": "fulldome_safe",
+  "syphon_server_name": "SuperTuxKart Immersive Relay Domemaster"
+}

@@ -1,0 +1,6 @@
+{
+  "event": "operator_configured",
+  "ok": true,
+  "state": "ready_for_players",
+  "state_version": 11
+}

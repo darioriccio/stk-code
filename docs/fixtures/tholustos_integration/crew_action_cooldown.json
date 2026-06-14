@@ -1,0 +1,6 @@
+{
+  "error": "cooldown",
+  "ok": false,
+  "retry_after_ms": 7000,
+  "state_version": 26
+}

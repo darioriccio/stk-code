@@ -1,0 +1,18 @@
+{
+  "actions": [],
+  "active_driver": {
+    "index": 5,
+    "player_id": "p6"
+  },
+  "encounter_id": "blue_gate_hack_lap12",
+  "lap": 12,
+  "message": "Stand by - Blue gate hack",
+  "next_encounter_id": "blue_gate_hack_lap12",
+  "player_id": "p5",
+  "primary": false,
+  "remaining_ms": 0,
+  "resource_text": "boost=0 heat=0 armor=100",
+  "role": "gunner",
+  "title": "gunner console",
+  "total_laps": 12
+}

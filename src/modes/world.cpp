@@ -45,6 +45,12 @@
 #include "karts/controller/soccer_ai.hpp"
 #include "karts/controller/spare_tire_ai.hpp"
 #include "karts/controller/test_ai.hpp"
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay player controller include
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/relay_player_controller.hpp"
+#include "modes/immersive_relay/relay_session_controller.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 #include "karts/controller/network_ai_controller.hpp"
 #include "karts/controller/network_player_controller.hpp"
 #include "karts/kart.hpp"
@@ -531,8 +537,16 @@ std::shared_ptr<AbstractKart> World::createKart
         }
         else
         {
-            controller = new LocalPlayerController(new_kart.get(),
-                local_player_id, handicap);
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: use relay player controller when enabled
+#ifdef ENABLE_IMMERSIVE_RELAY
+            if (RelaySessionController::get()->isRuntimeEnabled())
+                controller = new RelayPlayerController(new_kart.get(),
+                    local_player_id, handicap);
+            else
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+                controller = new LocalPlayerController(new_kart.get(),
+                    local_player_id, handicap);
             const PlayerProfile* p = StateManager::get()
                 ->getActivePlayer(local_player_id)->getConstProfile();
             if (p && p->getDefaultKartColor() > 0.0f)

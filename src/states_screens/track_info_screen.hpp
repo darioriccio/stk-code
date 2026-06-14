@@ -104,6 +104,11 @@ class TrackInfoScreen : public GUIEngine::Screen,
     int m_icon_unknown_kart;
 
     void updateHighScores();
+    bool isRelayRuntimeEnabled() const;
+    bool isRelayArcadeUIEnabled() const;
+    int getRelayPlayerCount() const;
+    int getRelayLapCount() const;
+    int getRelayAIKartCount(int local_players) const;
     void setSoccerWidgets(bool has_AI);
     void setSoccerTarget(bool time_limit);
     void soccerSpinnerUpdate(bool blue_spinner);

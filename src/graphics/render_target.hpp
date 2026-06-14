@@ -22,6 +22,8 @@
 #include <rect.h>
 #include <string>
 
+typedef unsigned int GLuint;
+
 class FrameBuffer;
 class RTT;
 class ShaderBasedRenderer;
@@ -44,6 +46,12 @@ public:
     virtual ~RenderTarget() {}
 
     virtual irr::core::dimension2du  getTextureSize()          const = 0;
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose RTT texture for domemaster projection
+    virtual GLuint getColorTexture() const = 0;
+    virtual GLuint getDepthTexture() const = 0;
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
 
     virtual void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt) = 0;
     virtual void draw2DImage(const irr::core::rect<irr::s32>& dest_rect,
@@ -68,6 +76,12 @@ public:
     ~GL1RenderTarget();
 
     irr::core::dimension2du getTextureSize() const;
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose RTT texture for domemaster projection
+    GLuint getColorTexture() const;
+    GLuint getDepthTexture() const;
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
 
     void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt);
     void draw2DImage(const irr::core::rect<irr::s32>& dest_rect,
@@ -95,6 +109,12 @@ public:
                      const irr::video::SColor &colors,
                      bool use_alpha_channel_of_texture) const;
     irr::core::dimension2du getTextureSize() const;
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose RTT texture for domemaster projection
+    GLuint getColorTexture() const;
+    GLuint getDepthTexture() const;
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
     void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt);
     void setFrameBuffer(FrameBuffer* fb) { m_frame_buffer = fb; }
 

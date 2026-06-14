@@ -1,0 +1,32 @@
+{
+  "actions_by_role": {
+    "navigator": 1
+  },
+  "combo_count": 0,
+  "completed_laps": 12,
+  "crew_actions_accepted": 1,
+  "crew_actions_enabled": true,
+  "crew_mode_enabled": true,
+  "driver_turns_by_player": {
+    "p1": 2,
+    "p2": 2,
+    "p3": 2,
+    "p4": 2,
+    "p5": 2,
+    "p6": 2
+  },
+  "duration_seconds": 0,
+  "encounters_failed": 41,
+  "encounters_started": 56,
+  "encounters_succeeded": 1,
+  "final_result": "finished_bronze",
+  "output": "syphon",
+  "player_count": 6,
+  "projection": "fisheye_domemaster",
+  "rank": "bronze",
+  "render_profile": "fulldome_safe",
+  "score": 375,
+  "session_id": "relay-local",
+  "total_laps": 12,
+  "track_id": "snowtuxpeak"
+}

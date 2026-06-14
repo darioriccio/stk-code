@@ -1,0 +1,856 @@
+{
+  "actions_accepted_by_role": {
+    "navigator": 1
+  },
+  "active_driver": {
+    "display_name": "Player 6",
+    "index": 5,
+    "player_id": "p6"
+  },
+  "active_encounter": {
+    "active": true,
+    "combo_tag": "",
+    "completed_actions": 0,
+    "dome_callout": "ACTIVE Final sprint sync",
+    "id": "blue_gate_hack_lap12",
+    "remaining_ms": 200,
+    "required_actions": 1,
+    "roles": [
+      "hacker"
+    ],
+    "stage": "encounter_active",
+    "state": "active",
+    "title": "Blue gate hack",
+    "trigger_type": "lap_checkpoint"
+  },
+  "active_pilot_id": "p6",
+  "active_pilot_index": 5,
+  "active_pilot_name": "Player 6",
+  "active_route_id": "ridge_left",
+  "adaptive_difficulty": {
+    "ai_pace_level": 0,
+    "assist_level": 0,
+    "enabled": false,
+    "final_lap_lock": false,
+    "handoff_grace": false,
+    "human_gap_ms": 0,
+    "human_position": 6,
+    "intensity": 0,
+    "leaderboard_bucket": "arcade_fixed",
+    "max_intensity": 100,
+    "min_intensity": 0,
+    "pressure": "neutral",
+    "profile": "arcade_balanced",
+    "visibility": "leaderboard_bucket"
+  },
+  "adaptive_difficulty_enabled": false,
+  "adaptive_difficulty_intensity": 0,
+  "adaptive_difficulty_profile": "arcade_balanced",
+  "adaptive_pressure": "neutral",
+  "ai_pace_level": 0,
+  "arcade_session": {
+    "active_driver": 6,
+    "active_driver_id": "p6",
+    "allowed_transitions": [
+      "resetting",
+      "ready_for_players",
+      "attract",
+      "error_recoverable"
+    ],
+    "can_abort": false,
+    "can_force_finish": false,
+    "can_pause": false,
+    "can_reset": true,
+    "can_resume": false,
+    "can_start": true,
+    "config": {
+      "ai_karts": 5,
+      "allow_abort": true,
+      "allow_force_finish": true,
+      "allow_pause": true,
+      "auto_confirm_handoff": true,
+      "crew_mode": "enabled",
+      "difficulty": "easy",
+      "encounter_script": "snowtuxpeak_relay_encounters",
+      "handoff_operator_confirm": false,
+      "handoff_policy": "lap_based_handoff",
+      "kart_id": "tux",
+      "lap_policy": "player_count_based",
+      "operator_mode": "arcade",
+      "output": "syphon",
+      "player_count": 6,
+      "projection": "fisheye_domemaster",
+      "render_profile": "fulldome_safe",
+      "track_id": "snowtuxpeak"
+    },
+    "configured": true,
+    "countdown": null,
+    "current_lap": 12,
+    "handoff_active": false,
+    "handoff_countdown": null,
+    "handoff_policy": "lap_based_handoff",
+    "input_locked": false,
+    "last_error": null,
+    "last_error_recoverable": true,
+    "last_report": {
+      "actions_by_role": {
+        "navigator": 1
+      },
+      "combo_count": 0,
+      "completed_laps": 12,
+      "crew_actions_accepted": 1,
+      "crew_actions_enabled": true,
+      "crew_mode_enabled": true,
+      "driver_turns_by_player": {
+        "p1": 2,
+        "p2": 2,
+        "p3": 2,
+        "p4": 2,
+        "p5": 2,
+        "p6": 2
+      },
+      "duration_seconds": 0,
+      "encounters_failed": 41,
+      "encounters_started": 56,
+      "encounters_succeeded": 1,
+      "final_result": "finished_bronze",
+      "output": "syphon",
+      "player_count": 6,
+      "projection": "fisheye_domemaster",
+      "rank": "bronze",
+      "render_profile": "fulldome_safe",
+      "score": 375,
+      "session_id": "relay-local",
+      "total_laps": 12,
+      "track_id": "snowtuxpeak"
+    },
+    "legacy_state": "finished_bronze",
+    "next_driver": 1,
+    "next_driver_id": "p1",
+    "operator_commands": [
+      "configure",
+      "reset",
+      "start"
+    ],
+    "pilot_turns_by_player": {
+      "p1": 2,
+      "p2": 2,
+      "p3": 2,
+      "p4": 2,
+      "p5": 2,
+      "p6": 2
+    },
+    "player_count": 6,
+    "previous_driver": 6,
+    "previous_driver_id": "p6",
+    "remaining_laps": 0,
+    "report": {
+      "actions_by_role": {
+        "navigator": 1
+      },
+      "combo_count": 0,
+      "completed_laps": 12,
+      "crew_actions_accepted": 1,
+      "crew_actions_enabled": true,
+      "crew_mode_enabled": true,
+      "driver_turns_by_player": {
+        "p1": 2,
+        "p2": 2,
+        "p3": 2,
+        "p4": 2,
+        "p5": 2,
+        "p6": 2
+      },
+      "duration_seconds": 0,
+      "encounters_failed": 41,
+      "encounters_started": 56,
+      "encounters_succeeded": 1,
+      "final_result": "finished_bronze",
+      "output": "syphon",
+      "player_count": 6,
+      "projection": "fisheye_domemaster",
+      "rank": "bronze",
+      "render_profile": "fulldome_safe",
+      "score": 375,
+      "session_id": "relay-local",
+      "total_laps": 12,
+      "track_id": "snowtuxpeak"
+    },
+    "session_id": "relay-local",
+    "state": "results",
+    "total_laps": 12,
+    "waiting_for_operator_confirm": false
+  },
+  "arcade_state": "results",
+  "arcade_ui": false,
+  "armor": 100,
+  "assist_level": 0,
+  "boost_charge": 0,
+  "combo_count": 0,
+  "completed_handoffs": 0,
+  "cooldowns": [
+    {
+      "action_type": "nav_select_route",
+      "player_id": "p1",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "navigator"
+    },
+    {
+      "action_type": "nav_mark_hazard",
+      "player_id": "p1",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "navigator"
+    },
+    {
+      "action_type": "nav_call_pace_note",
+      "player_id": "p1",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "navigator"
+    },
+    {
+      "action_type": "nav_reveal_shortcut",
+      "player_id": "p1",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "navigator"
+    },
+    {
+      "action_type": "nav_request_role",
+      "player_id": "p1",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "navigator"
+    },
+    {
+      "action_type": "engineer_charge_boost",
+      "player_id": "p2",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "engineer"
+    },
+    {
+      "action_type": "engineer_release_boost",
+      "player_id": "p2",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "engineer"
+    },
+    {
+      "action_type": "engineer_dump_heat",
+      "player_id": "p2",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "engineer"
+    },
+    {
+      "action_type": "engineer_stabilize_grip",
+      "player_id": "p2",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "engineer"
+    },
+    {
+      "action_type": "engineer_rebalance_power",
+      "player_id": "p2",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "engineer"
+    },
+    {
+      "action_type": "defender_raise_shield",
+      "player_id": "p3",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "defender"
+    },
+    {
+      "action_type": "defender_cleanse_status",
+      "player_id": "p3",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "defender"
+    },
+    {
+      "action_type": "defender_absorb_hit",
+      "player_id": "p3",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "defender"
+    },
+    {
+      "action_type": "defender_repair_armor_small",
+      "player_id": "p3",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "defender"
+    },
+    {
+      "action_type": "defender_emergency_bubble",
+      "player_id": "p3",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "defender"
+    },
+    {
+      "action_type": "hacker_open_gate",
+      "player_id": "p4",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "hacker"
+    },
+    {
+      "action_type": "hacker_close_hazard_barrier",
+      "player_id": "p4",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "hacker"
+    },
+    {
+      "action_type": "hacker_rotate_ramp",
+      "player_id": "p4",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "hacker"
+    },
+    {
+      "action_type": "hacker_arm_shortcut",
+      "player_id": "p4",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "hacker"
+    },
+    {
+      "action_type": "hacker_disable_trap",
+      "player_id": "p4",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "hacker"
+    },
+    {
+      "action_type": "gunner_lock_target",
+      "player_id": "p5",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "gunner"
+    },
+    {
+      "action_type": "gunner_fire_utility",
+      "player_id": "p5",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "gunner"
+    },
+    {
+      "action_type": "gunner_emp_zone",
+      "player_id": "p5",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "gunner"
+    },
+    {
+      "action_type": "gunner_drop_decoy",
+      "player_id": "p5",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "gunner"
+    },
+    {
+      "action_type": "gunner_tag_rival",
+      "player_id": "p5",
+      "ready": true,
+      "remaining_ms": 0,
+      "role": "gunner"
+    }
+  ],
+  "crew_actions_accepted": 1,
+  "crew_armor": 100,
+  "crew_assignments": [
+    {
+      "combined_roles": false,
+      "display_name": "Player 1",
+      "is_pilot": false,
+      "player_id": "p1",
+      "roles": [
+        "navigator"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 2",
+      "is_pilot": false,
+      "player_id": "p2",
+      "roles": [
+        "engineer"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 3",
+      "is_pilot": false,
+      "player_id": "p3",
+      "roles": [
+        "defender"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 4",
+      "is_pilot": false,
+      "player_id": "p4",
+      "roles": [
+        "hacker"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 5",
+      "is_pilot": false,
+      "player_id": "p5",
+      "roles": [
+        "gunner"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 6",
+      "is_pilot": true,
+      "player_id": "p6",
+      "roles": []
+    }
+  ],
+  "crew_heat": 0,
+  "crew_multiplier": 1.0,
+  "crew_multiplier_x100": 100,
+  "crew_score": 375,
+  "current_checkpoint": 1,
+  "current_lap": 12,
+  "elapsed_ms": 0,
+  "encounters_failed": 41,
+  "encounters_started": 56,
+  "encounters_succeeded": 1,
+  "engine_heat": 0,
+  "engineer_boost_charge": 0,
+  "gameplay_seconds": 420,
+  "handoff_active": false,
+  "handoff_in_ms": 0,
+  "handoff_pending_safe_zone": false,
+  "handoff_policy": "lap_based_handoff",
+  "handoff_reason": "",
+  "handoff_warning_active": false,
+  "handoff_warning_in_ms": 0,
+  "human_gap_ms": 0,
+  "human_position": 6,
+  "immersive_render": {
+    "active_driver_id": "",
+    "active_driver_index": -1,
+    "camera": {
+      "active_driver": -1,
+      "active_driver_id": "",
+      "dome_tilt_deg": 0.0,
+      "forward_offset": 0.25,
+      "horizon_stabilization": true,
+      "mode": "stabilized_chase",
+      "pitch_deg": 35.0,
+      "roll_deg": 0.0,
+      "roll_limit_deg": 12.0,
+      "smoothing_factor": 0.16,
+      "vertical_offset": 0.4,
+      "yaw_deg": 0.0
+    },
+    "camera_mode": "stabilized_chase",
+    "camera_settings": {
+      "camera_mode": "stabilized_chase",
+      "dome_tilt_deg": 0.0,
+      "forward_offset": 0.25,
+      "horizon_stabilization": true,
+      "pitch_deg": 35.0,
+      "roll_deg": 0.0,
+      "roll_limit_deg": 12.0,
+      "smoothing_factor": 0.16,
+      "vertical_offset": 0.4,
+      "yaw_deg": 0.0
+    },
+    "capture": {
+      "cubemap_size": 768,
+      "faces": 6,
+      "type": "full_sphere_cubemap"
+    },
+    "capture_time_ms": 0.0,
+    "cubemap_render_time_ms": 0.0,
+    "cubemap_size": 768,
+    "current_encounter": "",
+    "dome_tilt_deg": 0.0,
+    "domemaster_size": 1536,
+    "dropped_frames": 0,
+    "enabled": true,
+    "fallback_reason": "",
+    "forward_offset": 0.25,
+    "fps": 0.0,
+    "frame_time_ms": 0.0,
+    "horizon_stabilization": true,
+    "immersive_output_mode": "syphon",
+    "immersive_projection": "fisheye",
+    "lap": 0,
+    "last_frame_time_ms": 0.0,
+    "output": {
+      "active": false,
+      "available": true,
+      "server_name": "SuperTuxKart Immersive Relay Domemaster",
+      "type": "syphon"
+    },
+    "output_publish_time_ms": 0.0,
+    "p95_frame_time_ms": 0.0,
+    "p99_frame_time_ms": 0.0,
+    "pitch_deg": 35.0,
+    "projection": {
+      "aspect": "1:1",
+      "coverage": "front-facing 180",
+      "debug_grid": true,
+      "height": 1536,
+      "orientation": "disc center is active-driver forward; top is camera up; bottom is track/kart down",
+      "status": "production",
+      "type": "fisheye_domemaster",
+      "width": 1536
+    },
+    "projection_height": 1536,
+    "projection_time_ms": 0.0,
+    "projection_width": 1536,
+    "publish_skipped": 0,
+    "roll_deg": 0.0,
+    "roll_limit_deg": 12.0,
+    "server_name": "SuperTuxKart Immersive Relay Domemaster",
+    "smoothing_factor": 0.16,
+    "stats": {
+      "capture_ms": 0.0,
+      "dropped_frames": 0,
+      "fps": 0.0,
+      "frame_time_ms": 0.0,
+      "output_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0,
+      "projection_ms": 0.0,
+      "publish_skipped": 0
+    },
+    "supported_projections": [
+      {
+        "aspect": "1:1",
+        "available": true,
+        "coverage": "front-facing 180",
+        "status": "production",
+        "type": "fisheye_domemaster"
+      },
+      {
+        "aspect": "2:1",
+        "available": false,
+        "coverage": "360x180 full sphere",
+        "status": "stub",
+        "type": "equirectangular"
+      },
+      {
+        "aspect": "variable",
+        "available": false,
+        "coverage": "horizontal panorama",
+        "status": "stub",
+        "type": "cylindrical"
+      },
+      {
+        "aspect": "6x1_or_atlas",
+        "available": false,
+        "coverage": "six cube faces full sphere",
+        "status": "stub",
+        "type": "cube_faces"
+      },
+      {
+        "aspect": "layout_defined",
+        "available": false,
+        "coverage": "venue wall layout",
+        "status": "stub",
+        "type": "wall_atlas"
+      }
+    ],
+    "syphon_on": false,
+    "syphon_publish_time_ms": 0.0,
+    "total_laps": 0,
+    "true_fulldome": false,
+    "vertical_offset": 0.4,
+    "yaw_deg": 0.0
+  },
+  "lap": 12,
+  "lap_progress": 1,
+  "last_accepted_actions": [
+    {
+      "action_id": "navigator_mark_left_route",
+      "cooldown_ms": 7000,
+      "effect": "route_selected:ridge_left|encounter_success:route_choice_ridge_lap1",
+      "idempotency_key": "fixture-success",
+      "player_id": "p2",
+      "reason": "",
+      "result": "crew_action_accepted",
+      "role": "navigator",
+      "score_delta": 375,
+      "state_version": 25,
+      "type": "nav_select_route"
+    }
+  ],
+  "last_crew_effect": "operator_force_finish",
+  "last_crew_event": "nav_select_route",
+  "last_rejected_actions": [
+    {
+      "action_id": "navigator_mark_left_route",
+      "cooldown_ms": 0,
+      "effect": "",
+      "idempotency_key": "fixture-stale-state",
+      "player_id": "p2",
+      "reason": "stale_state",
+      "result": "crew_action_rejected",
+      "role": "navigator",
+      "score_delta": 0,
+      "state_version": 22,
+      "type": "nav_select_route"
+    },
+    {
+      "action_id": "navigator_mark_left_route",
+      "cooldown_ms": 0,
+      "effect": "",
+      "idempotency_key": "fixture-wrong-role",
+      "player_id": "p2",
+      "reason": "wrong_role",
+      "result": "crew_action_rejected",
+      "role": "engineer",
+      "score_delta": 0,
+      "state_version": 23,
+      "type": "nav_select_route"
+    },
+    {
+      "action_id": "navigator_mark_left_route",
+      "cooldown_ms": 7000,
+      "effect": "",
+      "idempotency_key": "fixture-cooldown",
+      "player_id": "p2",
+      "reason": "cooldown",
+      "result": "crew_action_rejected",
+      "role": "navigator",
+      "score_delta": 0,
+      "state_version": 25,
+      "type": "nav_select_route"
+    }
+  ],
+  "leaderboard_bucket": "arcade_fixed",
+  "next_pilot_id": "p1",
+  "next_pilot_name": "Player 1",
+  "ok": true,
+  "paused": false,
+  "phone_states": [
+    {
+      "actions": [],
+      "active_driver": {
+        "index": 5,
+        "player_id": "p6"
+      },
+      "encounter_id": "blue_gate_hack_lap12",
+      "lap": 12,
+      "message": "Stand by - Blue gate hack",
+      "next_encounter_id": "blue_gate_hack_lap12",
+      "player_id": "p1",
+      "primary": false,
+      "remaining_ms": 0,
+      "resource_text": "boost=0 heat=0 armor=100",
+      "role": "navigator",
+      "title": "navigator console",
+      "total_laps": 12
+    },
+    {
+      "actions": [],
+      "active_driver": {
+        "index": 5,
+        "player_id": "p6"
+      },
+      "encounter_id": "blue_gate_hack_lap12",
+      "lap": 12,
+      "message": "Stand by - Blue gate hack",
+      "next_encounter_id": "blue_gate_hack_lap12",
+      "player_id": "p2",
+      "primary": false,
+      "remaining_ms": 0,
+      "resource_text": "boost=0 heat=0 armor=100",
+      "role": "engineer",
+      "title": "engineer console",
+      "total_laps": 12
+    },
+    {
+      "actions": [],
+      "active_driver": {
+        "index": 5,
+        "player_id": "p6"
+      },
+      "encounter_id": "blue_gate_hack_lap12",
+      "lap": 12,
+      "message": "Stand by - Blue gate hack",
+      "next_encounter_id": "blue_gate_hack_lap12",
+      "player_id": "p3",
+      "primary": false,
+      "remaining_ms": 0,
+      "resource_text": "boost=0 heat=0 armor=100",
+      "role": "defender",
+      "title": "defender console",
+      "total_laps": 12
+    },
+    {
+      "actions": [],
+      "active_driver": {
+        "index": 5,
+        "player_id": "p6"
+      },
+      "encounter_id": "blue_gate_hack_lap12",
+      "lap": 12,
+      "message": "Hold for your window",
+      "next_encounter_id": "blue_gate_hack_lap12",
+      "player_id": "p4",
+      "primary": true,
+      "remaining_ms": 200,
+      "resource_text": "boost=0 heat=0 armor=100",
+      "role": "hacker",
+      "title": "hacker console",
+      "total_laps": 12
+    },
+    {
+      "actions": [],
+      "active_driver": {
+        "index": 5,
+        "player_id": "p6"
+      },
+      "encounter_id": "blue_gate_hack_lap12",
+      "lap": 12,
+      "message": "Stand by - Blue gate hack",
+      "next_encounter_id": "blue_gate_hack_lap12",
+      "player_id": "p5",
+      "primary": false,
+      "remaining_ms": 0,
+      "resource_text": "boost=0 heat=0 armor=100",
+      "role": "gunner",
+      "title": "gunner console",
+      "total_laps": 12
+    }
+  ],
+  "pilot_turns_by_player": {
+    "p1": 2,
+    "p2": 2,
+    "p3": 2,
+    "p4": 2,
+    "p5": 2,
+    "p6": 2
+  },
+  "player_count": 6,
+  "preset": "standard_arcade",
+  "race_attached": true,
+  "race_laps": 12,
+  "race_phase": "finish",
+  "relay_enabled": true,
+  "remaining_ms": 0,
+  "role_assignments": [
+    {
+      "combined_roles": false,
+      "display_name": "Player 1",
+      "is_pilot": false,
+      "player_id": "p1",
+      "roles": [
+        "navigator"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 2",
+      "is_pilot": false,
+      "player_id": "p2",
+      "roles": [
+        "engineer"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 3",
+      "is_pilot": false,
+      "player_id": "p3",
+      "roles": [
+        "defender"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 4",
+      "is_pilot": false,
+      "player_id": "p4",
+      "roles": [
+        "hacker"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 5",
+      "is_pilot": false,
+      "player_id": "p5",
+      "roles": [
+        "gunner"
+      ]
+    },
+    {
+      "combined_roles": false,
+      "display_name": "Player 6",
+      "is_pilot": true,
+      "player_id": "p6",
+      "roles": []
+    }
+  ],
+  "score_by_role": {
+    "navigator": 375
+  },
+  "session_id": "relay-local",
+  "slot_seconds": 720,
+  "state": "finished_bronze",
+  "state_version": 103,
+  "test_accelerated_progress": true,
+  "total_laps": 12,
+  "track_distance": 0,
+  "track_effects": [
+    {
+      "key": "boost_window",
+      "value": "missed"
+    },
+    {
+      "key": "hud:route",
+      "value": "left_arrow"
+    },
+    {
+      "key": "route:ridge_left",
+      "value": "missed"
+    },
+    {
+      "key": "route:selected",
+      "value": "ridge_left"
+    },
+    {
+      "key": "session:final_lap",
+      "value": "active"
+    },
+    {
+      "key": "session:finish",
+      "value": "finished_bronze"
+    },
+    {
+      "key": "shield",
+      "value": "missed"
+    },
+    {
+      "key": "shortcut:ice_cut",
+      "value": "missed"
+    },
+    {
+      "key": "target:drone_ridge",
+      "value": "active"
+    }
+  ],
+  "track_id": "snowtuxpeak"
+}

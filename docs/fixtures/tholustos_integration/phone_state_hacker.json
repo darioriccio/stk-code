@@ -1,0 +1,18 @@
+{
+  "actions": [],
+  "active_driver": {
+    "index": 5,
+    "player_id": "p6"
+  },
+  "encounter_id": "blue_gate_hack_lap12",
+  "lap": 12,
+  "message": "Hold for your window",
+  "next_encounter_id": "blue_gate_hack_lap12",
+  "player_id": "p4",
+  "primary": true,
+  "remaining_ms": 200,
+  "resource_text": "boost=0 heat=0 armor=100",
+  "role": "hacker",
+  "title": "hacker console",
+  "total_laps": 12
+}

@@ -41,6 +41,12 @@
 #include "modes/easter_egg_hunt.hpp"
 #include "modes/follow_the_leader.hpp"
 #include "modes/free_for_all.hpp"
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay race mode include
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/relay_race_mode.hpp"
+#include "modes/immersive_relay/relay_session_controller.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 #include "modes/overworld.hpp"
 #include "modes/standard_race.hpp"
 #include "modes/tutorial_world.hpp"
@@ -650,11 +656,34 @@ void RaceManager::startNextRace()
         World::setWorld(new DemoWorld());
     else if(ProfileWorld::isProfileMode())
         World::setWorld(new ProfileWorld());
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: select relay race mode when runtime is enabled
+#ifdef ENABLE_IMMERSIVE_RELAY
+    else if(RelaySessionController::get()->isRuntimeEnabled() &&
+            m_minor_mode != MINOR_MODE_NORMAL_RACE &&
+            m_minor_mode != MINOR_MODE_TIME_TRIAL)
+    {
+        Log::warn("ImmersiveRelay",
+                  "Relay mode does not support '%s'; using normal race.",
+                  getMinorModeName().c_str());
+        m_minor_mode = MINOR_MODE_NORMAL_RACE;
+        World::setWorld(new RelayRaceMode());
+    }
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
     else if(m_minor_mode==MINOR_MODE_FOLLOW_LEADER)
         World::setWorld(new FollowTheLeaderRace());
     else if(m_minor_mode==MINOR_MODE_NORMAL_RACE ||
             m_minor_mode==MINOR_MODE_TIME_TRIAL)
-        World::setWorld(new StandardRace());
+    {
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: normal/time-trial relay world override
+#ifdef ENABLE_IMMERSIVE_RELAY
+        if (RelaySessionController::get()->isRuntimeEnabled())
+            World::setWorld(new RelayRaceMode());
+        else
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+            World::setWorld(new StandardRace());
+    }
     else if(m_minor_mode==MINOR_MODE_LAP_TRIAL)
     {
         World::setWorld(new LapTrial());

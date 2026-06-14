@@ -244,6 +244,11 @@ extern "C" {
 #include "karts/official_karts.hpp"
 #include "modes/cutscene_world.hpp"
 #include "modes/demo_world.hpp"
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay main hooks include
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/relay_main_hooks.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 #include "network/protocols/connect_to_server.hpp"
 #include "network/protocols/client_lobby.hpp"
 #include "network/protocols/server_lobby.hpp"
@@ -676,6 +681,43 @@ void cmdLineHelp()
     "       --connection-debug Print verbose info for sending or receiving packets.\n"
     "       --no-console-log   Does not write messages in the console but to\n"
     "                          stdout.log.\n"
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay command-line help
+#ifdef ENABLE_IMMERSIVE_RELAY
+    "       --immersive-relay  Enable Immersive Relay race/session mode.\n"
+    "       --relay-arcade-ui  Hide venue-controlled race settings from players.\n"
+    "       --relay-session-preset=s  Relay preset: quick_play, standard_arcade, premium_ride.\n"
+    "       --relay-player-count=n  Human relay pilots, 1-6. One disables handoffs.\n"
+    "       --relay-handoff-policy=s  Relay handoff policy: lap_based_handoff, fixed_time_segments.\n"
+    "       --immersive-output=s  Immersive output: none, window, syphon.\n"
+    "       --immersive-projection=s  Immersive projection: none, fisheye, fisheye_domemaster,\n"
+    "                          equirect, cylindrical, cube_faces, wall_atlas; only\n"
+    "                          fisheye_domemaster is production in Phase 4.6.\n"
+    "       --immersive-domemaster-size=n  Domemaster size: 1024, 1536, 2048.\n"
+    "       --immersive-cubemap-size=n  Cubemap face size: 512, 768, 1024, 1536.\n"
+    "       --immersive-camera=s  Camera: pov, chase, stabilized_chase, cockpit.\n"
+    "       --immersive-yaw-deg=f  Immersive camera yaw offset in degrees.\n"
+    "       --immersive-pitch-deg=f  Immersive camera pitch in degrees; positive looks up.\n"
+    "       --immersive-roll-deg=f  Immersive camera roll offset in degrees.\n"
+    "       --immersive-dome-tilt-deg=f  Domemaster dome tilt in degrees.\n"
+    "       --immersive-horizon-stabilization=s  on/off horizon stabilization.\n"
+    "       --immersive-roll-limit-deg=f  Comfort roll clamp in degrees.\n"
+    "       --immersive-forward-offset=f  Chase camera distance behind kart.\n"
+    "       --immersive-vertical-offset=f  Chase camera height above kart.\n"
+    "       --immersive-smoothing-factor=f  Camera smoothing factor.\n"
+    "       --immersive-debug-grid=s  on/off domemaster calibration grid.\n"
+    "       --immersive-stats=s  on/off immersive render stats logging/state.\n"
+    "       --syphon-server-name=s  Syphon server name for domemaster output.\n"
+#endif
+#ifdef ENABLE_RELAY_LOCAL_API
+    "       --relay-local-api  Start the localhost Immersive Relay API.\n"
+    "       --relay-api-bind=s Bind address for relay API, default 127.0.0.1.\n"
+    "       --relay-api-port=n Port for relay API, default 8890.\n"
+    "       --relay-api-token=s Token required by relay API clients.\n"
+#ifdef ENABLE_RELAY_TEST_TOOLS
+    "       --relay-test-accelerated-progress  Enable relay smoke-test lap/progress endpoint.\n"
+#endif
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
     "  -h,  --help             Show this help.\n"
     "       --help-debug       Show help for debugging options.\n"
     "       --log=N            Set the verbosity to a value between\n"
@@ -1704,6 +1746,12 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         UserConfigParams::m_race_now = true;
     }   // --race-now
 
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: parse relay command-line options
+#ifdef ENABLE_IMMERSIVE_RELAY
+    RelayMainHooks::handleCommandLineOptions();
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+
     if(CommandLine::has( "--use-keyboard",&n)) {
         UserConfigParams::m_default_keyboard = n;
     } //--use-keyboard
@@ -1729,6 +1777,12 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
                 RaceManager::get()->setNumLaps(laps);
         }
     }   // --laps
+
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: apply relay race defaults after lap parsing
+#ifdef ENABLE_IMMERSIVE_RELAY
+    RelayMainHooks::applyRaceDefaultsAfterLapOptions();
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 
     if(CommandLine::has("--profile-laps",  &n))
     {
@@ -2622,6 +2676,12 @@ int main(int argc, char *argv[])
             RaceManager::get()->startNew(false);
         }
 
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: start local relay API after race setup
+#ifdef ENABLE_IMMERSIVE_RELAY
+        RelayMainHooks::startLocalApiIfEnabled();
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+
 #ifdef __SWITCH__
         // Game loaded, bring CPU / GPU clock back to normal
         appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
@@ -2657,6 +2717,12 @@ int main(int argc, char *argv[])
     if (STKHost::existHost())
         STKHost::get()->shutdown();
     ClientLobby::destroyBackgroundDownload();
+
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: shutdown relay singletons
+#ifdef ENABLE_IMMERSIVE_RELAY
+    RelayMainHooks::shutdown();
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 
     cleanSuperTuxKart();
     NetworkConfig::destroy();

@@ -424,6 +424,14 @@ void Skybox::render(const scene::ICameraSceneNode *camera) const
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: keep sky out of domemaster depth mask
+    GLboolean previous_depth_mask = GL_TRUE;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &previous_depth_mask);
+    glDepthMask(GL_FALSE);
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
+
     if (CVS->isDeferredEnabled())
     {
         glEnable(GL_BLEND);
@@ -439,7 +447,11 @@ void Skybox::render(const scene::ICameraSceneNode *camera) const
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
     glDisable(GL_BLEND);
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: restore depth mask after skybox render
+    glDepthMask(previous_depth_mask);
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
 }   // renderSkybox
 
 #endif   // !SERVER_ONLY
-

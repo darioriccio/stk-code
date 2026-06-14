@@ -37,6 +37,9 @@
 #include "io/file_manager.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/relay_session_controller.hpp"
+#endif
 #include "race/highscores.hpp"
 #include "race/highscore_manager.hpp"
 #include "race/race_manager.hpp"
@@ -140,6 +143,8 @@ void TrackInfoScreen::init()
     const bool has_laps         = RaceManager::get()->modeHasLaps();
     const bool has_highscores   = RaceManager::get()->modeHasHighscores();
 
+    getWidget<Widget>("race-options-box")->setCollapsed(false, this);
+
     getWidget<LabelWidget>("name")->setText(m_track->getName(), false);
 
     //I18N: when showing who is the author of track '%s'
@@ -235,6 +240,16 @@ void TrackInfoScreen::init()
     else
         RaceManager::get()->setNumKarts(local_players);
 
+    if (isRelayRuntimeEnabled() && has_AI)
+    {
+        const int relay_ai = getRelayAIKartCount(local_players);
+        m_ai_kart_spinner->setValue(relay_ai);
+        m_ai_kart_spinner->setMin(relay_ai);
+        m_ai_kart_spinner->setMax(relay_ai);
+        m_ai_kart_spinner->setActive(false);
+        RaceManager::get()->setNumKarts(relay_ai + local_players);
+    }
+
     // Soccer options
     // -------------
     if (m_is_soccer)
@@ -272,6 +287,19 @@ void TrackInfoScreen::init()
         RaceManager::get()->setNumLaps(m_target_value_spinner->getValue());
 
         m_target_value_label->setText(_("Number of laps"), false);
+    }
+
+    if (isRelayRuntimeEnabled() && has_laps)
+    {
+        const int relay_laps = getRelayLapCount();
+        m_target_value_spinner->setVisible(true);
+        m_target_value_label->setVisible(true);
+        m_target_value_spinner->setValue(relay_laps);
+        m_target_value_spinner->setMin(relay_laps);
+        m_target_value_spinner->setMax(relay_laps);
+        m_target_value_spinner->setActive(false);
+        RaceManager::get()->setNumLaps(relay_laps);
+        m_track->setActualNumberOfLaps(relay_laps);
     }
 
     if (m_is_lap_trial)
@@ -334,6 +362,18 @@ void TrackInfoScreen::init()
     }
     else
         m_ai_kart_spinner->setActive(true);
+
+    if (isRelayArcadeUIEnabled())
+    {
+        m_record_this_race = false;
+        m_record_race->setState(false);
+        m_record_race->setActive(false);
+        m_option->setState(false);
+        RaceManager::get()->setReverseTrack(false);
+        if (m_track->hasNavMesh())
+            UserConfigParams::m_random_arena_item = false;
+        getWidget<Widget>("race-options-box")->setCollapsed(true, this);
+    }
 
     // ---- High Scores
     m_highscore_label->setText(_("High Scores"), false);
@@ -458,6 +498,53 @@ TrackInfoScreen::~TrackInfoScreen()
 {
 }   // ~TrackInfoScreen
 
+bool TrackInfoScreen::isRelayRuntimeEnabled() const
+{
+#ifdef ENABLE_IMMERSIVE_RELAY
+    return RelaySessionController::get()->isRuntimeEnabled();
+#else
+    return false;
+#endif
+}
+
+bool TrackInfoScreen::isRelayArcadeUIEnabled() const
+{
+#ifdef ENABLE_IMMERSIVE_RELAY
+    return RelaySessionController::get()->isArcadeUIEnabled();
+#else
+    return false;
+#endif
+}
+
+int TrackInfoScreen::getRelayPlayerCount() const
+{
+#ifdef ENABLE_IMMERSIVE_RELAY
+    RelaySessionSnapshot snapshot =
+        RelaySessionController::get()->getSnapshot();
+    if (snapshot.m_player_count > 0)
+        return snapshot.m_player_count;
+    return RelaySessionController::get()->getDefaultConfig().m_player_count;
+#else
+    return 1;
+#endif
+}
+
+int TrackInfoScreen::getRelayLapCount() const
+{
+#ifdef ENABLE_IMMERSIVE_RELAY
+    return RelaySessionController::getRecommendedLapCount(
+        getRelayPlayerCount());
+#else
+    return RaceManager::get()->getNumLaps();
+#endif
+}
+
+int TrackInfoScreen::getRelayAIKartCount(int local_players) const
+{
+    const int relay_total_karts = std::min(6, stk_config->m_max_karts);
+    return std::max(0, relay_total_karts - local_players);
+}
+
 
 // ----------------------------------------------------------------------------
 void TrackInfoScreen::tearDown()
@@ -551,13 +638,21 @@ void TrackInfoScreen::updateHighScores()
 
 void TrackInfoScreen::onEnterPressedInternal()
 {
+    if (isRelayArcadeUIEnabled())
+        m_record_this_race = false;
     RaceManager::get()->setRecordRace(m_record_this_race);
     // Create a copy of member variables we still need, since they will
     // not be accessible after dismiss:
-    const int num_laps = RaceManager::get()->modeHasLaps() ? m_target_value_spinner->getValue()
-                                                     : -1;
-    const bool option_state = m_option == NULL ? false
-                                               : m_option->getState();
+    int num_laps = RaceManager::get()->modeHasLaps()
+        ? m_target_value_spinner->getValue() : -1;
+    if (isRelayRuntimeEnabled() && num_laps >= 0)
+    {
+        num_laps = getRelayLapCount();
+        RaceManager::get()->setNumLaps(num_laps);
+    }
+    bool option_state = m_option == NULL ? false : m_option->getState();
+    if (isRelayArcadeUIEnabled())
+        option_state = false;
     // Avoid negative lap numbers (after e.g. easter egg mode).
     if(num_laps>=0)
         m_track->setActualNumberOfLaps(num_laps);
@@ -585,6 +680,8 @@ void TrackInfoScreen::onEnterPressedInternal()
         if (m_is_soccer) // Soccer mode
             num_ai += m_ai_blue_spinner->getValue();
     }
+    if (isRelayRuntimeEnabled() && has_AI)
+        num_ai = getRelayAIKartCount(local_players);
 
     const int selected_target_type = m_target_type_spinner->getValue();
     const int selected_target_value = m_target_value_spinner->getValue();
@@ -667,6 +764,15 @@ void TrackInfoScreen::eventCallback(Widget* widget, const std::string& name,
     }
     else if (name == "target-value-spinner")
     {
+        if (isRelayRuntimeEnabled() && RaceManager::get()->modeHasLaps())
+        {
+            const int relay_laps = getRelayLapCount();
+            m_target_value_spinner->setValue(relay_laps);
+            RaceManager::get()->setNumLaps(relay_laps);
+            updateHighScores();
+            return;
+        }
+
         if (m_is_soccer)
         {
             const bool timed = m_target_type_spinner->getValue() == 0;
@@ -725,6 +831,17 @@ void TrackInfoScreen::eventCallback(Widget* widget, const std::string& name,
     }
     else if (name=="ai-spinner")
     {
+        if (isRelayRuntimeEnabled())
+        {
+            const int relay_ai =
+                getRelayAIKartCount(RaceManager::get()->getNumLocalPlayers());
+            m_ai_kart_spinner->setValue(relay_ai);
+            RaceManager::get()->setNumKarts(
+                RaceManager::get()->getNumLocalPlayers() + relay_ai);
+            updateHighScores();
+            return;
+        }
+
         if (m_is_soccer) // Soccer mode
         {            
             soccerSpinnerUpdate(false /* blue spinner */);            

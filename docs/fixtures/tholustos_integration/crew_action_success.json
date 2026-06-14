@@ -1,0 +1,14 @@
+{
+  "accepted": true,
+  "cooldown_ms": 7000,
+  "crew_multiplier_x100": 100,
+  "crew_score": 375,
+  "duplicate": false,
+  "effect": "route_selected:ridge_left|encounter_success:route_choice_ridge_lap1",
+  "event": "crew_action_accepted",
+  "idempotency_key": "fixture-success",
+  "ok": true,
+  "score_delta": 375,
+  "state": "running",
+  "state_version": 25
+}

@@ -1,0 +1,18 @@
+{
+  "ai_karts": 5,
+  "allow_abort": true,
+  "allow_force_finish": true,
+  "allow_pause": true,
+  "crew_mode": "enabled",
+  "difficulty": "easy",
+  "encounter_script": "snowtuxpeak_relay_encounters",
+  "handoff_policy": "lap_based_handoff",
+  "kart_id": "tux",
+  "lap_policy": "player_count_based",
+  "operator_mode": "arcade",
+  "output": "syphon",
+  "player_count": 6,
+  "projection": "fisheye_domemaster",
+  "render_profile": "fulldome_safe",
+  "track_id": "snowtuxpeak"
+}

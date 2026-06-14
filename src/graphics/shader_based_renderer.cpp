@@ -46,6 +46,12 @@
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
 
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: Phase 4 render pipeline hook
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/render/immersive_render_pipeline.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+
 #include "../../lib/irrlicht/source/Irrlicht/CSceneManager.h"
 #include "../../lib/irrlicht/source/Irrlicht/os.h"
 #include <IVideoDriver.h>
@@ -824,6 +830,13 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
 #ifdef DEBUG
     drawDebugMeshes();
 #endif
+
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: render true domemaster output
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if (!is_loading)
+        ImmersiveRelay::ImmersiveRenderPipeline::get()->renderFrame(dt);
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 
     PROFILER_PUSH_CPU_MARKER("EndScene", 0x45, 0x75, 0x45);
     irr_driver->getVideoDriver()->endScene();

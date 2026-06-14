@@ -64,6 +64,22 @@ irr::core::dimension2du GL1RenderTarget::getTextureSize() const
 }
 
 //-----------------------------------------------------------------------------
+#ifdef ENABLE_IMMERSIVE_RELAY
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose RTT texture for domemaster projection
+GLuint GL1RenderTarget::getColorTexture() const
+{
+    if (m_render_target_texture == NULL) return 0;
+    return (GLuint)m_render_target_texture->getTextureHandler();
+}
+
+GLuint GL1RenderTarget::getDepthTexture() const
+{
+    return 0;
+}
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
+
+//-----------------------------------------------------------------------------
 void GL1RenderTarget::renderToTexture(irr::scene::ICameraSceneNode* camera, float dt)
 {
     if (m_render_target_texture == NULL)
@@ -119,8 +135,13 @@ GL3RenderTarget::GL3RenderTarget(const irr::core::dimension2du &dimension,
 
 GL3RenderTarget::~GL3RenderTarget()
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: preserve outer RTT during nested immersive renders
+    if (m_renderer->getRTTs() == m_rtts)
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
+        m_renderer->setRTT(NULL);
     delete m_rtts;
-    m_renderer->setRTT(NULL);
 }   // ~GL3RenderTarget
 
 //-----------------------------------------------------------------------------
@@ -128,8 +149,18 @@ void GL3RenderTarget::renderToTexture(irr::scene::ICameraSceneNode* camera,
                                       float dt)
 {
     m_frame_buffer = NULL;
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: restore previous RTT after cubemap face render
+    RTT* previous_rtts = m_renderer->getRTTs();
     m_renderer->setRTT(m_rtts);
     m_renderer->renderToTexture(this, camera, dt);
+    if (m_renderer->getRTTs() == m_rtts)
+        m_renderer->setRTT(previous_rtts);
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#else
+    m_renderer->setRTT(m_rtts);
+    m_renderer->renderToTexture(this, camera, dt);
+#endif
 
 }   // renderToTexture
 
@@ -139,6 +170,25 @@ irr::core::dimension2du GL3RenderTarget::getTextureSize() const
     return irr::core::dimension2du(m_frame_buffer->getWidth(),
                                    m_frame_buffer->getHeight());
 }   // getTextureSize
+
+//-----------------------------------------------------------------------------
+#ifdef ENABLE_IMMERSIVE_RELAY
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose RTT texture for domemaster projection
+GLuint GL3RenderTarget::getColorTexture() const
+{
+    if (m_frame_buffer == NULL || m_frame_buffer->getRTT().empty())
+        return 0;
+    return m_frame_buffer->getRTT()[0];
+}   // getColorTexture
+
+GLuint GL3RenderTarget::getDepthTexture() const
+{
+    if (m_frame_buffer == NULL)
+        return 0;
+    return m_frame_buffer->getDepthTextureOrZero();
+}   // getDepthTexture
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
 
 //-----------------------------------------------------------------------------
 void GL3RenderTarget::draw2DImage(const irr::core::rect<s32>& dest_rect,

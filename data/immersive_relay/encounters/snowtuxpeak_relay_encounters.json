@@ -1,0 +1,340 @@
+{
+  "version": 1,
+  "track_id": "snowtuxpeak",
+  "encounters": [
+    {
+      "id": "route_choice_ridge",
+      "title": "Ridge route choice",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "all", "progress": 0.16, "preview_progress": 0.08, "duration_progress": 0.10},
+      "duration_seconds": 16,
+      "roles": ["navigator"],
+      "stages": [
+        {
+          "id": "navigator_route",
+          "role": "navigator",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 15,
+          "phone": {
+            "title": "Ridge split",
+            "message": "Mark LEFT for the shorter ridge line.",
+            "actions": [
+              {"type": "nav_select_route", "label": "Mark LEFT", "target_key": "route_id", "target_id": "ridge_left"},
+              {"type": "nav_select_route", "label": "Safe right", "target_key": "route_id", "target_id": "ridge_safe"}
+            ]
+          },
+          "dome_debug": {"message": "ROUTE MARKED"}
+        }
+      ],
+      "success": {
+        "required_actions": ["nav_select_route:ridge_left"],
+        "score": 260,
+        "track_effects": {"route:ridge_left": "marked", "hud:route": "left_arrow"}
+      },
+      "fail": {"score": 40, "soft_penalty": "route_unclear", "track_effects": {"route:ridge_left": "missed"}}
+    },
+    {
+      "id": "blue_gate_hack",
+      "title": "Blue gate hack",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_checkpoint", "lap_pattern": "all", "checkpoint": 1, "progress": 0.28, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 14,
+      "roles": ["hacker"],
+      "stages": [
+        {
+          "id": "hacker_gate",
+          "role": "hacker",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 13,
+          "phone": {
+            "title": "Blue gate",
+            "message": "Open the blue gate before the kart arrives.",
+            "actions": [
+              {"type": "hacker_open_gate", "label": "Open BLUE", "target_key": "gate_id", "target_id": "gate_blue_02"},
+              {"type": "hacker_open_gate", "label": "Open RED", "target_key": "gate_id", "target_id": "gate_red_decoy"}
+            ]
+          },
+          "dome_debug": {"message": "GATE OPEN"}
+        }
+      ],
+      "success": {
+        "required_actions": ["hacker_open_gate:gate_blue_02"],
+        "score": 320,
+        "track_effects": {"gate_blue_02": "open", "hud:gate": "blue_open"}
+      },
+      "fail": {"score": 50, "soft_penalty": "route_longer", "track_effects": {"gate_blue_02": "closed"}}
+    },
+    {
+      "id": "engineer_boost_window",
+      "title": "Boost window",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "all", "progress": 0.38, "preview_progress": 0.06, "duration_progress": 0.10},
+      "duration_seconds": 12,
+      "roles": ["engineer"],
+      "stages": [
+        {
+          "id": "engineer_prime",
+          "role": "engineer",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 11,
+          "phone": {
+            "title": "Boost lane",
+            "message": "Prime boost for the straight.",
+            "actions": [
+              {"type": "engineer_charge_boost", "label": "Prime boost", "amount": 35},
+              {"type": "engineer_stabilize_grip", "label": "Stabilize grip", "mode_key": "mode", "mode": "grip"}
+            ]
+          },
+          "dome_debug": {"message": "BOOST PRIMED"}
+        }
+      ],
+      "success": {
+        "required_actions": ["engineer_charge_boost"],
+        "score": 280,
+        "track_effects": {"boost_window": "primed", "hud:boost": "ready"}
+      },
+      "fail": {"score": 40, "soft_penalty": "boost_missed", "track_effects": {"boost_window": "missed"}}
+    },
+    {
+      "id": "combo_shortcut",
+      "title": "Combo shortcut",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_every": 2, "lap_offset": 2, "progress": 0.52, "preview_progress": 0.08, "duration_progress": 0.14},
+      "duration_seconds": 18,
+      "roles": ["navigator", "hacker", "engineer"],
+      "stages": [
+        {
+          "id": "nav_shortcut",
+          "role": "navigator",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 17,
+          "phone": {
+            "title": "Shortcut call",
+            "message": "Reveal the ice cut and call Hacker.",
+            "actions": [
+              {"type": "nav_reveal_shortcut", "label": "Reveal ice cut", "target_key": "shortcut_id", "target_id": "ice_cut"}
+            ]
+          },
+          "dome_debug": {"message": "SHORTCUT REVEALED"}
+        },
+        {
+          "id": "hack_shortcut",
+          "role": "hacker",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 17,
+          "phone": {
+            "title": "Arm shortcut",
+            "message": "Arm the ice cut gate.",
+            "actions": [
+              {"type": "hacker_arm_shortcut", "label": "Arm ice cut", "target_key": "shortcut_id", "target_id": "ice_cut"}
+            ]
+          },
+          "dome_debug": {"message": "SHORTCUT ARMED"}
+        },
+        {
+          "id": "engineer_chain",
+          "role": "engineer",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 17,
+          "phone": {
+            "title": "Boost chain",
+            "message": "Charge the launch boost for the shortcut exit.",
+            "actions": [
+              {"type": "engineer_charge_boost", "label": "Charge chain", "amount": 40}
+            ]
+          },
+          "dome_debug": {"message": "CHAIN BOOST READY"}
+        }
+      ],
+      "success": {
+        "required_actions": ["nav_reveal_shortcut:ice_cut", "hacker_arm_shortcut:ice_cut", "engineer_charge_boost"],
+        "score": 720,
+        "combo_score": 450,
+        "combo_tag": "shortcut_combo",
+        "track_effects": {"shortcut:ice_cut": "revealed_and_armed", "combo:shortcut": "achieved"}
+      },
+      "fail": {"score": 120, "soft_penalty": "shortcut_missed", "track_effects": {"shortcut:ice_cut": "missed"}}
+    },
+    {
+      "id": "danger_tunnel_defense",
+      "title": "Danger tunnel",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "odd", "progress": 0.64, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 16,
+      "roles": ["defender", "engineer"],
+      "stages": [
+        {
+          "id": "defender_shield",
+          "role": "defender",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 15,
+          "phone": {
+            "title": "Tunnel hazard",
+            "message": "Raise FRONT shield through the tunnel.",
+            "actions": [
+              {"type": "defender_raise_shield", "label": "Front shield", "target_key": "direction", "target_id": "front"}
+            ]
+          },
+          "dome_debug": {"message": "SHIELD ACTIVE"}
+        },
+        {
+          "id": "engineer_grip",
+          "role": "engineer",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 15,
+          "phone": {
+            "title": "Grip assist",
+            "message": "Stabilize grip while shield is up.",
+            "actions": [
+              {"type": "engineer_stabilize_grip", "label": "Stabilize", "mode_key": "mode", "mode": "grip"}
+            ]
+          },
+          "dome_debug": {"message": "GRIP STABLE"}
+        }
+      ],
+      "success": {
+        "required_actions": ["defender_raise_shield:front", "engineer_stabilize_grip:grip"],
+        "score": 520,
+        "combo_score": 280,
+        "combo_tag": "defense_combo",
+        "track_effects": {"shield": "front_active", "combo:defense": "achieved"}
+      },
+      "fail": {"score": 90, "soft_penalty": "wobble", "track_effects": {"shield": "missed"}}
+    },
+    {
+      "id": "drone_target_clear",
+      "title": "Drone clear",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "even", "progress": 0.66, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 16,
+      "roles": ["gunner"],
+      "stages": [
+        {
+          "id": "gunner_clear",
+          "role": "gunner",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 15,
+          "phone": {
+            "title": "Drone target",
+            "message": "Lock and clear the ridge drone.",
+            "actions": [
+              {"type": "gunner_lock_target", "label": "Lock drone", "target_key": "target_id", "target_id": "drone_ridge"},
+              {"type": "gunner_fire_utility", "label": "Fire utility", "target_key": "target_id", "target_id": "drone_ridge"}
+            ]
+          },
+          "dome_debug": {"message": "TARGET CLEARED"}
+        }
+      ],
+      "success": {
+        "required_actions": ["gunner_lock_target:drone_ridge"],
+        "score": 340,
+        "track_effects": {"target:drone_ridge": "locked", "hud:target": "clear_path"}
+      },
+      "fail": {"score": 40, "soft_penalty": "target_alive", "track_effects": {"target:drone_ridge": "active"}}
+    },
+    {
+      "id": "lap_end_handoff_call",
+      "title": "Lap end handoff call",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_end", "lap_pattern": "all", "preview_progress": 0.08, "duration_progress": 0.10},
+      "duration_seconds": 12,
+      "roles": ["navigator"],
+      "stages": [
+        {
+          "id": "navigator_handoff",
+          "role": "navigator",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 11,
+          "phone": {
+            "title": "Handoff call",
+            "message": "Call the next driver and mark safe line.",
+            "actions": [
+              {"type": "nav_call_pace_note", "label": "Safe handoff line", "target_key": "note_id", "target_id": "handoff_safe_line"}
+            ]
+          },
+          "dome_debug": {"message": "HANDOFF LINE"}
+        }
+      ],
+      "success": {
+        "required_actions": ["nav_call_pace_note:handoff_safe_line"],
+        "score": 180,
+        "track_effects": {"handoff_line": "marked"}
+      },
+      "fail": {"score": 30, "soft_penalty": "handoff_unclear", "track_effects": {"handoff_line": "missing"}}
+    },
+    {
+      "id": "final_sprint_sync",
+      "title": "Final sprint sync",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "final_stretch", "progress": 0.74, "preview_progress": 0.10, "duration_progress": 0.22},
+      "duration_seconds": 24,
+      "roles": ["navigator", "engineer", "defender", "hacker", "gunner"],
+      "stages": [
+        {
+          "id": "final_nav",
+          "role": "navigator",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 23,
+          "phone": {"title": "Final line", "message": "Call the final apex.", "actions": [{"type": "nav_call_pace_note", "label": "Final apex", "target_key": "note_id", "target_id": "final_apex"}]},
+          "dome_debug": {"message": "FINAL APEX"}
+        },
+        {
+          "id": "final_engineer",
+          "role": "engineer",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 23,
+          "phone": {"title": "Final boost", "message": "Release or prime the last boost.", "actions": [{"type": "engineer_charge_boost", "label": "Final charge", "amount": 45}]},
+          "dome_debug": {"message": "FINAL BOOST"}
+        },
+        {
+          "id": "final_defender",
+          "role": "defender",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 23,
+          "phone": {"title": "Final shield", "message": "Protect the kart through the finish gate.", "actions": [{"type": "defender_raise_shield", "label": "Finish shield", "target_key": "direction", "target_id": "front"}]},
+          "dome_debug": {"message": "FINAL SHIELD"}
+        },
+        {
+          "id": "final_hacker",
+          "role": "hacker",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 23,
+          "phone": {"title": "Finish gate", "message": "Open the finish gate.", "actions": [{"type": "hacker_open_gate", "label": "Open finish", "target_key": "gate_id", "target_id": "finish_gate"}]},
+          "dome_debug": {"message": "FINISH GATE OPEN"}
+        },
+        {
+          "id": "final_gunner",
+          "role": "gunner",
+          "starts_at_seconds": 0,
+          "ends_at_seconds": 23,
+          "phone": {"title": "Clear finish", "message": "Tag the final rival.", "actions": [{"type": "gunner_tag_rival", "label": "Tag rival", "target_key": "rival_id", "target_id": "final_rival"}]},
+          "dome_debug": {"message": "FINAL TARGET TAGGED"}
+        }
+      ],
+      "success": {
+        "required_actions": ["nav_call_pace_note:final_apex", "engineer_charge_boost", "defender_raise_shield:front", "hacker_open_gate:finish_gate", "gunner_tag_rival:final_rival"],
+        "score": 1000,
+        "combo_score": 800,
+        "combo_tag": "final_sprint_combo",
+        "track_effects": {"final_sprint": "all_roles_synced", "combo:final_sprint": "achieved"}
+      },
+      "fail": {"score": 200, "soft_penalty": "final_sync_partial", "track_effects": {"final_sprint": "partial"}}
+    }
+  ]
+}

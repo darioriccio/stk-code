@@ -1,0 +1,133 @@
+{
+  "api_port": 8894,
+  "api_version": 1,
+  "auth_headers": [
+    "X-STK-Relay-Token",
+    "Authorization: Bearer"
+  ],
+  "base_path": "/immersive/v1",
+  "bind_policy": "trusted_localhost_default",
+  "camera_presets": {
+    "safe": {
+      "forward_offset": 0.25,
+      "horizon_stabilization": true,
+      "mode": "stabilized_chase",
+      "pitch_deg": 35,
+      "roll_limit_deg": 12,
+      "smoothing_factor": 0.16,
+      "vertical_offset": 0.4
+    }
+  },
+  "cors_policy": "localhost_only",
+  "crew_error_codes": [
+    "wrong_role",
+    "wrong_window",
+    "cooldown",
+    "already_used",
+    "encounter_expired",
+    "stale_state",
+    "invalid_token",
+    "invalid_payload"
+  ],
+  "crew_roles": [
+    "navigator",
+    "engineer",
+    "defender",
+    "hacker",
+    "gunner"
+  ],
+  "default_base_url": "http://127.0.0.1:8890/immersive/v1",
+  "default_render_profile": "fulldome_safe",
+  "default_syphon_server_name": "SuperTuxKart Immersive Relay Domemaster",
+  "endpoints": [
+    "GET /state",
+    "GET /operator/state",
+    "GET /capabilities",
+    "POST /operator/configure",
+    "POST /operator/start",
+    "POST /operator/countdown",
+    "POST /operator/pause",
+    "POST /operator/resume",
+    "POST /operator/abort",
+    "POST /operator/reset",
+    "POST /operator/force-finish",
+    "POST /operator/handoff/confirm",
+    "POST /operator/render-preset",
+    "POST /render/config",
+    "POST /crew/action"
+  ],
+  "handoff_policy": "lap_based_handoff",
+  "lap_policy": "player_count_based",
+  "ok": true,
+  "output_adapters": {
+    "none": {
+      "status": "production"
+    },
+    "syphon": {
+      "server_name": "SuperTuxKart Immersive Relay Domemaster",
+      "status": "available"
+    },
+    "window": {
+      "status": "production"
+    }
+  },
+  "phone_routing": "phones_talk_to_tholustos_not_stk",
+  "player_count": {
+    "max": 6,
+    "min": 2
+  },
+  "relay_enabled": true,
+  "render_profiles": {
+    "debug": {
+      "cubemap_size": 512,
+      "domemaster_size": 1024,
+      "projection": "fisheye_domemaster",
+      "status": "production"
+    },
+    "fulldome_safe": {
+      "cubemap_size": 768,
+      "domemaster_size": 1536,
+      "projection": "fisheye_domemaster",
+      "status": "venue_default"
+    },
+    "target": {
+      "cubemap_size": 1024,
+      "domemaster_size": 2048,
+      "projection": "fisheye_domemaster",
+      "status": "pending_mac_mini_m1_benchmark"
+    }
+  },
+  "service": "immersive_supertuxkart",
+  "status": "ready",
+  "supported_outputs": [
+    "none",
+    "window",
+    "syphon"
+  ],
+  "supported_projections": [
+    {
+      "aspect": "1:1",
+      "coverage": "front-facing 180",
+      "status": "production",
+      "type": "fisheye_domemaster"
+    },
+    {
+      "status": "stub",
+      "type": "equirectangular"
+    },
+    {
+      "status": "stub",
+      "type": "cylindrical"
+    },
+    {
+      "status": "stub",
+      "type": "cube_faces"
+    },
+    {
+      "status": "stub",
+      "type": "wall_atlas"
+    }
+  ],
+  "token_required": true,
+  "video_flow": "stk_to_tholustos_syphon_only"
+}

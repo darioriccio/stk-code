@@ -31,6 +31,71 @@ CMAKE_DEPENDENT_OPTION(USE_IPV6 "Allow create or connect to game server with IPv
 option(USE_SYSTEM_WIIUSE "Use system WiiUse instead of the built-in version, when available." OFF)
 option(USE_SQLITE3 "Use sqlite to manage server stats and ban list." ON)
 
+# THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay build flags
+option(ENABLE_IMMERSIVE_RELAY "Build the SuperTuxKart Immersive Relay session mode." OFF)
+option(ENABLE_RELAY_LOCAL_API "Build the localhost Immersive Relay control API." OFF)
+option(ENABLE_RELAY_TEST_TOOLS "Build/install Immersive Relay test tooling." OFF)
+option(ENABLE_SYPHON_OUTPUT "Build macOS Syphon output support for Immersive Relay." OFF)
+option(ENABLE_SPOUT_OUTPUT "Build Windows Spout output support for Immersive Relay." OFF)
+set(SYPHON_FRAMEWORK_PATH "" CACHE PATH "Path to Syphon.framework, or to a directory containing Syphon.framework.")
+
+if(ENABLE_RELAY_LOCAL_API AND NOT ENABLE_IMMERSIVE_RELAY)
+    message(FATAL_ERROR "ENABLE_RELAY_LOCAL_API=ON requires ENABLE_IMMERSIVE_RELAY=ON.")
+endif()
+if(ENABLE_RELAY_TEST_TOOLS AND NOT ENABLE_IMMERSIVE_RELAY)
+    message(FATAL_ERROR "ENABLE_RELAY_TEST_TOOLS=ON requires ENABLE_IMMERSIVE_RELAY=ON.")
+endif()
+if(ENABLE_SYPHON_OUTPUT AND NOT ENABLE_IMMERSIVE_RELAY)
+    message(FATAL_ERROR "ENABLE_SYPHON_OUTPUT=ON requires ENABLE_IMMERSIVE_RELAY=ON.")
+endif()
+if(ENABLE_SPOUT_OUTPUT AND NOT ENABLE_IMMERSIVE_RELAY)
+    message(FATAL_ERROR "ENABLE_SPOUT_OUTPUT=ON requires ENABLE_IMMERSIVE_RELAY=ON.")
+endif()
+if(ENABLE_SYPHON_OUTPUT AND NOT (APPLE AND NOT IOS))
+    message(FATAL_ERROR "ENABLE_SYPHON_OUTPUT=ON is supported only on macOS in current phase.")
+endif()
+if(ENABLE_SYPHON_OUTPUT)
+    unset(SYPHON_FRAMEWORK CACHE)
+    if(SYPHON_FRAMEWORK_PATH)
+        if(IS_DIRECTORY "${SYPHON_FRAMEWORK_PATH}/Syphon.framework")
+            find_library(SYPHON_FRAMEWORK Syphon
+                PATHS "${SYPHON_FRAMEWORK_PATH}"
+                NO_DEFAULT_PATH)
+        elseif(IS_DIRECTORY "${SYPHON_FRAMEWORK_PATH}" AND
+               EXISTS "${SYPHON_FRAMEWORK_PATH}/Syphon")
+            set(SYPHON_FRAMEWORK "${SYPHON_FRAMEWORK_PATH}" CACHE FILEPATH
+                "Syphon.framework path" FORCE)
+        else()
+            message(FATAL_ERROR
+                "SYPHON_FRAMEWORK_PATH must point to Syphon.framework or to a directory containing it. "
+                "Example: -DSYPHON_FRAMEWORK_PATH=$HOME/Library/Frameworks/Syphon.framework")
+        endif()
+    else()
+        find_library(SYPHON_FRAMEWORK Syphon
+            PATHS
+                "$ENV{HOME}/Library/Frameworks"
+                "/Library/Frameworks"
+                "/opt/homebrew/Frameworks"
+                "/usr/local/Frameworks")
+    endif()
+    if(NOT SYPHON_FRAMEWORK)
+        message(FATAL_ERROR
+            "ENABLE_SYPHON_OUTPUT=ON requires Syphon.framework on macOS. "
+            "Install it in ~/Library/Frameworks, /Library/Frameworks, /opt/homebrew/Frameworks, "
+            "or configure explicitly with -DSYPHON_FRAMEWORK_PATH=/path/to/Syphon.framework. "
+            "Use -DENABLE_SYPHON_OUTPUT=OFF for relay builds without Syphon.")
+    endif()
+    get_filename_component(SYPHON_FRAMEWORK_DIR "${SYPHON_FRAMEWORK}" DIRECTORY)
+    message(STATUS "Use Syphon framework: ${SYPHON_FRAMEWORK}")
+endif()
+if(ENABLE_SPOUT_OUTPUT AND NOT WIN32)
+    message(FATAL_ERROR "ENABLE_SPOUT_OUTPUT=ON is supported only on Windows.")
+endif()
+if(ENABLE_RELAY_LOCAL_API AND WIN32)
+    message(FATAL_ERROR "Relay Local API is POSIX/macOS-only in current phase; Windows support is planned for later.")
+endif()
+# THOLUS_IMMERSIVE_RELAY_HOOK_END
+
 if(APPLE)
     CMAKE_DEPENDENT_OPTION(DLOPEN_MOLTENVK "Use dlopen to load MoltenVK for Apple." ON
         "NOT IOS;NOT SERVER_ONLY" OFF)
@@ -50,6 +115,24 @@ CMAKE_DEPENDENT_OPTION(USE_MOJOAL "Use bundled MojoAL instead of system OpenAL" 
 if (DLOPEN_MOLTENVK)
     ADD_DEFINITIONS(-DDLOPEN_MOLTENVK)
 endif()
+
+# THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay compile definitions
+if(ENABLE_IMMERSIVE_RELAY)
+    add_definitions(-DENABLE_IMMERSIVE_RELAY)
+endif()
+if(ENABLE_RELAY_LOCAL_API)
+    add_definitions(-DENABLE_RELAY_LOCAL_API)
+endif()
+if(ENABLE_RELAY_TEST_TOOLS)
+    add_definitions(-DENABLE_RELAY_TEST_TOOLS)
+endif()
+if(ENABLE_SYPHON_OUTPUT)
+    add_definitions(-DENABLE_SYPHON_OUTPUT)
+endif()
+if(ENABLE_SPOUT_OUTPUT)
+    add_definitions(-DENABLE_SPOUT_OUTPUT)
+endif()
+# THOLUS_IMMERSIVE_RELAY_HOOK_END
 
 if((UNIX AND NOT APPLE) OR NINTENDO_SWITCH)
     include(FindPkgConfig)
@@ -530,6 +613,23 @@ endif()
 # Provides list of source and header files (STK_SOURCES and STK_HEADERS)
 include(sources.cmake)
 
+# THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: keep vanilla target free of relay sources
+if(NOT ENABLE_IMMERSIVE_RELAY)
+    list(FILTER STK_SOURCES EXCLUDE REGEX "^src/modes/immersive_relay/")
+    list(FILTER STK_HEADERS EXCLUDE REGEX "^src/modes/immersive_relay/")
+elseif(NOT ENABLE_RELAY_LOCAL_API)
+    list(FILTER STK_SOURCES EXCLUDE REGEX "^src/modes/immersive_relay/remote/")
+    list(FILTER STK_HEADERS EXCLUDE REGEX "^src/modes/immersive_relay/remote/")
+endif()
+if(ENABLE_SYPHON_OUTPUT)
+    set(STK_SOURCES
+        ${STK_SOURCES}
+        src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.mm)
+    set_source_files_properties(src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.mm PROPERTIES COMPILE_FLAGS "-x objective-c++")
+    set_source_files_properties(src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.mm PROPERTIES LANGUAGE CXX)
+endif()
+# THOLUS_IMMERSIVE_RELAY_HOOK_END
+
 if (USE_APPLE_NETWORK_LIBRARIES)
     add_definitions(-DAPPLE_NETWORK_LIBRARIES)
     set(STK_SOURCES
@@ -824,6 +924,13 @@ endif()
 if(BUILD_RECORDER)
     target_link_libraries(supertuxkart ${OPENGLRECORDER_LIBRARY})
 endif()
+
+# THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: macOS Syphon output linking
+if(ENABLE_SYPHON_OUTPUT)
+    target_compile_options(supertuxkart PRIVATE "-F${SYPHON_FRAMEWORK_DIR}")
+    target_link_libraries(supertuxkart ${SYPHON_FRAMEWORK} "-framework Cocoa -framework OpenGL")
+endif()
+# THOLUS_IMMERSIVE_RELAY_HOOK_END
 
 # FreeBSD does not search in /usr/local/lib, but at least Freetype is installed there :(
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")

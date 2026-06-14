@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "track_id": "*",
+  "encounters": [
+    {
+      "id": "default_route_choice",
+      "title": "Route choice",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "all", "progress": 0.16, "preview_progress": 0.08, "duration_progress": 0.10},
+      "duration_seconds": 16,
+      "roles": ["navigator"],
+      "stages": [{"id": "nav", "role": "navigator", "starts_at_seconds": 0, "ends_at_seconds": 15, "phone": {"title": "Route split", "message": "Mark the fast line.", "actions": [{"type": "nav_select_route", "label": "Fast line", "target_key": "route_id", "target_id": "fast_line"}]}, "dome_debug": {"message": "ROUTE MARKED"}}],
+      "success": {"required_actions": ["nav_select_route:fast_line"], "score": 240, "track_effects": {"route:fast_line": "marked"}},
+      "fail": {"score": 40, "soft_penalty": "route_unclear", "track_effects": {"route:fast_line": "missed"}}
+    },
+    {
+      "id": "default_gate_hack",
+      "title": "Gate hack",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_checkpoint", "lap_pattern": "all", "checkpoint": 1, "progress": 0.28, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 14,
+      "roles": ["hacker"],
+      "stages": [{"id": "hack", "role": "hacker", "starts_at_seconds": 0, "ends_at_seconds": 13, "phone": {"title": "Debug gate", "message": "Open the blue debug gate.", "actions": [{"type": "hacker_open_gate", "label": "Open gate", "target_key": "gate_id", "target_id": "debug_gate_blue"}]}, "dome_debug": {"message": "GATE OPEN"}}],
+      "success": {"required_actions": ["hacker_open_gate:debug_gate_blue"], "score": 300, "track_effects": {"debug_gate_blue": "open"}},
+      "fail": {"score": 50, "soft_penalty": "gate_closed", "track_effects": {"debug_gate_blue": "closed"}}
+    },
+    {
+      "id": "default_boost_window",
+      "title": "Boost window",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "all", "progress": 0.38, "preview_progress": 0.06, "duration_progress": 0.10},
+      "duration_seconds": 12,
+      "roles": ["engineer"],
+      "stages": [{"id": "engineer", "role": "engineer", "starts_at_seconds": 0, "ends_at_seconds": 11, "phone": {"title": "Boost lane", "message": "Prime boost.", "actions": [{"type": "engineer_charge_boost", "label": "Prime boost", "amount": 35}]}, "dome_debug": {"message": "BOOST PRIMED"}}],
+      "success": {"required_actions": ["engineer_charge_boost"], "score": 260, "track_effects": {"boost_window": "primed"}},
+      "fail": {"score": 40, "soft_penalty": "boost_missed", "track_effects": {"boost_window": "missed"}}
+    },
+    {
+      "id": "default_combo_shortcut",
+      "title": "Combo shortcut",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_every": 2, "lap_offset": 2, "progress": 0.52, "preview_progress": 0.08, "duration_progress": 0.14},
+      "duration_seconds": 18,
+      "roles": ["navigator", "hacker", "engineer"],
+      "stages": [
+        {"id": "nav", "role": "navigator", "starts_at_seconds": 0, "ends_at_seconds": 17, "phone": {"title": "Shortcut", "message": "Reveal shortcut.", "actions": [{"type": "nav_reveal_shortcut", "label": "Reveal", "target_key": "shortcut_id", "target_id": "debug_shortcut"}]}, "dome_debug": {"message": "SHORTCUT REVEALED"}},
+        {"id": "hack", "role": "hacker", "starts_at_seconds": 0, "ends_at_seconds": 17, "phone": {"title": "Arm shortcut", "message": "Arm shortcut.", "actions": [{"type": "hacker_arm_shortcut", "label": "Arm", "target_key": "shortcut_id", "target_id": "debug_shortcut"}]}, "dome_debug": {"message": "SHORTCUT ARMED"}},
+        {"id": "eng", "role": "engineer", "starts_at_seconds": 0, "ends_at_seconds": 17, "phone": {"title": "Chain boost", "message": "Charge boost.", "actions": [{"type": "engineer_charge_boost", "label": "Charge", "amount": 40}]}, "dome_debug": {"message": "CHAIN BOOST"}}
+      ],
+      "success": {"required_actions": ["nav_reveal_shortcut:debug_shortcut", "hacker_arm_shortcut:debug_shortcut", "engineer_charge_boost"], "score": 700, "combo_score": 420, "combo_tag": "shortcut_combo", "track_effects": {"combo:shortcut": "achieved"}},
+      "fail": {"score": 100, "soft_penalty": "shortcut_missed", "track_effects": {"combo:shortcut": "missed"}}
+    },
+    {
+      "id": "default_defense_combo",
+      "title": "Defense combo",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "odd", "progress": 0.64, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 16,
+      "roles": ["defender", "engineer"],
+      "stages": [
+        {"id": "shield", "role": "defender", "starts_at_seconds": 0, "ends_at_seconds": 15, "phone": {"title": "Shield", "message": "Raise front shield.", "actions": [{"type": "defender_raise_shield", "label": "Front shield", "target_key": "direction", "target_id": "front"}]}, "dome_debug": {"message": "SHIELD ACTIVE"}},
+        {"id": "grip", "role": "engineer", "starts_at_seconds": 0, "ends_at_seconds": 15, "phone": {"title": "Grip", "message": "Stabilize grip.", "actions": [{"type": "engineer_stabilize_grip", "label": "Stabilize", "mode_key": "mode", "mode": "grip"}]}, "dome_debug": {"message": "GRIP STABLE"}}
+      ],
+      "success": {"required_actions": ["defender_raise_shield:front", "engineer_stabilize_grip:grip"], "score": 500, "combo_score": 260, "combo_tag": "defense_combo", "track_effects": {"combo:defense": "achieved"}},
+      "fail": {"score": 80, "soft_penalty": "shield_missed", "track_effects": {"combo:defense": "missed"}}
+    },
+    {
+      "id": "default_target_clear",
+      "title": "Target clear",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_progress", "lap_pattern": "even", "progress": 0.66, "preview_progress": 0.07, "duration_progress": 0.12},
+      "duration_seconds": 16,
+      "roles": ["gunner"],
+      "stages": [{"id": "gunner", "role": "gunner", "starts_at_seconds": 0, "ends_at_seconds": 15, "phone": {"title": "Target", "message": "Lock target.", "actions": [{"type": "gunner_lock_target", "label": "Lock", "target_key": "target_id", "target_id": "debug_target"}]}, "dome_debug": {"message": "TARGET LOCKED"}}],
+      "success": {"required_actions": ["gunner_lock_target:debug_target"], "score": 320, "track_effects": {"target:debug_target": "locked"}},
+      "fail": {"score": 40, "soft_penalty": "target_alive", "track_effects": {"target:debug_target": "active"}}
+    },
+    {
+      "id": "default_lap_end_call",
+      "title": "Lap end call",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "lap_end", "lap_pattern": "all", "preview_progress": 0.08, "duration_progress": 0.10},
+      "duration_seconds": 12,
+      "roles": ["navigator"],
+      "stages": [{"id": "handoff", "role": "navigator", "starts_at_seconds": 0, "ends_at_seconds": 11, "phone": {"title": "Handoff", "message": "Mark safe handoff line.", "actions": [{"type": "nav_call_pace_note", "label": "Safe line", "target_key": "note_id", "target_id": "handoff_safe_line"}]}, "dome_debug": {"message": "HANDOFF LINE"}}],
+      "success": {"required_actions": ["nav_call_pace_note:handoff_safe_line"], "score": 180, "track_effects": {"handoff_line": "marked"}},
+      "fail": {"score": 30, "soft_penalty": "handoff_unclear", "track_effects": {"handoff_line": "missing"}}
+    },
+    {
+      "id": "default_final_sprint",
+      "title": "Final sprint",
+      "enabled": true,
+      "player_count_min": 2,
+      "player_count_max": 6,
+      "trigger": {"type": "final_stretch", "progress": 0.74, "preview_progress": 0.10, "duration_progress": 0.22},
+      "duration_seconds": 24,
+      "roles": ["navigator", "engineer", "defender", "hacker", "gunner"],
+      "stages": [
+        {"id": "nav", "role": "navigator", "starts_at_seconds": 0, "ends_at_seconds": 23, "phone": {"title": "Final line", "message": "Call final apex.", "actions": [{"type": "nav_call_pace_note", "label": "Final apex", "target_key": "note_id", "target_id": "final_apex"}]}, "dome_debug": {"message": "FINAL APEX"}},
+        {"id": "eng", "role": "engineer", "starts_at_seconds": 0, "ends_at_seconds": 23, "phone": {"title": "Final boost", "message": "Charge final boost.", "actions": [{"type": "engineer_charge_boost", "label": "Final charge", "amount": 45}]}, "dome_debug": {"message": "FINAL BOOST"}},
+        {"id": "def", "role": "defender", "starts_at_seconds": 0, "ends_at_seconds": 23, "phone": {"title": "Final shield", "message": "Protect front.", "actions": [{"type": "defender_raise_shield", "label": "Front shield", "target_key": "direction", "target_id": "front"}]}, "dome_debug": {"message": "FINAL SHIELD"}},
+        {"id": "hack", "role": "hacker", "starts_at_seconds": 0, "ends_at_seconds": 23, "phone": {"title": "Finish gate", "message": "Open finish gate.", "actions": [{"type": "hacker_open_gate", "label": "Open finish", "target_key": "gate_id", "target_id": "finish_gate"}]}, "dome_debug": {"message": "FINISH GATE"}},
+        {"id": "gun", "role": "gunner", "starts_at_seconds": 0, "ends_at_seconds": 23, "phone": {"title": "Final target", "message": "Tag final rival.", "actions": [{"type": "gunner_tag_rival", "label": "Tag rival", "target_key": "rival_id", "target_id": "final_rival"}]}, "dome_debug": {"message": "FINAL TARGET"}}
+      ],
+      "success": {"required_actions": ["nav_call_pace_note:final_apex", "engineer_charge_boost", "defender_raise_shield:front", "hacker_open_gate:finish_gate", "gunner_tag_rival:final_rival"], "score": 1000, "combo_score": 800, "combo_tag": "final_sprint_combo", "track_effects": {"combo:final_sprint": "achieved"}},
+      "fail": {"score": 200, "soft_penalty": "final_partial", "track_effects": {"combo:final_sprint": "partial"}}
+    }
+  ]
+}

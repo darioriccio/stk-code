@@ -38,8 +38,12 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/overworld.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/relay_session_controller.hpp"
+#endif
 #include "network/network_config.hpp"
 #include "states_screens/race_setup_screen.hpp"
+#include "states_screens/tracks_and_gp_screen.hpp"
 #include "utils/log.hpp"
 #include "utils/random_generator.hpp"
 #include "utils/string_utils.hpp"
@@ -1430,6 +1434,17 @@ void KartSelectionScreen::allPlayersDone()
     }
     else
     {
+#ifdef ENABLE_IMMERSIVE_RELAY
+        if (RelaySessionController::get()->isArcadeUIEnabled())
+        {
+            RaceManager::get()->setMajorMode(RaceManager::MAJOR_MODE_SINGLE);
+            RaceManager::get()->setMinorMode(
+                RaceManager::MINOR_MODE_NORMAL_RACE);
+            UserConfigParams::m_game_mode = 0;
+            TracksAndGPScreen::getInstance()->push();
+            return;
+        }
+#endif
         RaceSetupScreen::getInstance()->push();
     }
 }   // allPlayersDone

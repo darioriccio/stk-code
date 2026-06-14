@@ -118,6 +118,12 @@ public:
         return m_depth_texture;
     }
     // ------------------------------------------------------------------------
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: expose optional depth for domemaster masking
+    GLuint getDepthTextureOrZero() const { return m_depth_texture; }
+    // THOLUS_IMMERSIVE_RELAY_HOOK_END
+#endif
+    // ------------------------------------------------------------------------
     unsigned int getWidth() const                           { return m_width; }
     // ------------------------------------------------------------------------
     unsigned int getHeight() const                         { return m_height; }
