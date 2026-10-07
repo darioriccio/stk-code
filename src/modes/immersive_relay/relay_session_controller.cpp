@@ -25,6 +25,38 @@ RelaySessionController* RelaySessionController::m_instance = NULL;
 
 namespace
 {
+bool isContinuousCrewAction(const std::string& type)
+{
+    static const char* types[] = {"nav_select_route", "nav_call_pace_note",
+        "engineer_charge_boost", "engineer_release_boost", "engineer_dump_heat",
+        "defender_raise_shield", "defender_cleanse_status", "hacker_open_gate",
+        "hacker_disable_trap", "gunner_fire_utility", "gunner_emp_zone", "gunner_drop_decoy"};
+    return std::find(types, types + 12, type) != types + 12;
+}
+
+std::string crewActionLabel(const std::string& type)
+{
+    static const std::map<std::string, std::string> labels = {
+        {"nav_select_route", "Segnala la linea"}, {"nav_call_pace_note", "Dai il ritmo"},
+        {"nav_mark_hazard", "Segnala pericolo"}, {"nav_reveal_shortcut", "Segnala bonus"},
+        {"nav_request_role", "Richiedi supporto"},
+        {"engineer_charge_boost", "Carica turbo"}, {"engineer_release_boost", "Usa turbo"},
+        {"engineer_dump_heat", "Raffredda motore"}, {"engineer_stabilize_grip", "Stabilizza"},
+        {"engineer_rebalance_power", "Bilancia potenza"},
+        {"defender_raise_shield", "Attiva scudo"}, {"defender_cleanse_status", "Ripulisci kart"},
+        {"defender_absorb_hit", "Assorbi colpo"}, {"defender_repair_armor_small", "Ripara"},
+        {"defender_emergency_bubble", "Scudo emergenza"},
+        {"hacker_open_gate", "Sincronizza impulso"}, {"hacker_disable_trap", "Neutralizza disturbo"},
+        {"hacker_close_hazard_barrier", "Impulso protettivo"}, {"hacker_rotate_ramp", "Impulso potenza"},
+        {"hacker_arm_shortcut", "Attiva bonus squadra"},
+        {"gunner_lock_target", "Aggancia avversario"}, {"gunner_fire_utility", "Rallenta avversario"},
+        {"gunner_emp_zone", "Impulso collettivo"}, {"gunner_drop_decoy", "Diversivo"},
+        {"gunner_tag_rival", "Segnala avversario"}
+    };
+    const auto found = labels.find(type);
+    return found == labels.end() ? type : found->second;
+}
+
 std::string roleTitle(RelayCrewRole role)
 {
     std::string title = CrewRoleManager::roleToString(role);
@@ -44,7 +76,7 @@ RelayCrewPhoneAction makeDefaultPhoneAction(
     if (definition.m_type == "nav_select_route")
     {
         action.m_target_key = "route_id";
-        action.m_target_id = "debug_route_blue";
+        action.m_target_id = "race_line";
     }
     else if (definition.m_type == "nav_mark_hazard")
     {
@@ -54,7 +86,7 @@ RelayCrewPhoneAction makeDefaultPhoneAction(
     else if (definition.m_type == "nav_call_pace_note")
     {
         action.m_target_key = "note_id";
-        action.m_target_id = "debug_pace_note";
+        action.m_target_id = "race_rhythm";
     }
     else if (definition.m_type == "nav_reveal_shortcut")
     {
@@ -93,7 +125,7 @@ RelayCrewPhoneAction makeDefaultPhoneAction(
     else if (definition.m_type == "defender_cleanse_status")
     {
         action.m_target_key = "status_id";
-        action.m_target_id = "debug_status";
+        action.m_target_id = "current";
     }
     else if (definition.m_type == "defender_absorb_hit")
     {
@@ -103,7 +135,7 @@ RelayCrewPhoneAction makeDefaultPhoneAction(
     else if (definition.m_type == "hacker_open_gate")
     {
         action.m_target_key = "gate_id";
-        action.m_target_id = "debug_gate";
+        action.m_target_id = "sync_impulse";
     }
     else if (definition.m_type == "hacker_close_hazard_barrier")
     {
@@ -125,23 +157,23 @@ RelayCrewPhoneAction makeDefaultPhoneAction(
     else if (definition.m_type == "hacker_disable_trap")
     {
         action.m_target_key = "trap_id";
-        action.m_target_id = "debug_trap";
+        action.m_target_id = "interference";
     }
     else if (definition.m_type == "gunner_lock_target" ||
              definition.m_type == "gunner_fire_utility")
     {
         action.m_target_key = "target_id";
-        action.m_target_id = "debug_rival_2";
+        action.m_target_id = "nearest";
     }
     else if (definition.m_type == "gunner_emp_zone")
     {
         action.m_target_key = "zone_id";
-        action.m_target_id = "debug_zone";
+        action.m_target_id = "nearby";
     }
     else if (definition.m_type == "gunner_tag_rival")
     {
         action.m_target_key = "rival_id";
-        action.m_target_id = "debug_rival_2";
+        action.m_target_id = "nearest";
     }
 
     return action;
@@ -233,7 +265,7 @@ RelaySessionConfig::RelaySessionConfig()
     m_track_id = "";
     m_kart_id = "tux";
     m_difficulty = "easy";
-    m_ai_karts = 5;
+    m_ai_karts = 3;
     m_lap_policy = "player_count_based";
     m_crew_mode = "enabled";
     m_encounter_script = "snowtuxpeak_relay_encounters";
@@ -244,8 +276,12 @@ RelaySessionConfig::RelaySessionConfig()
     m_allow_pause = true;
     m_allow_force_finish = true;
     m_allow_abort = true;
-    m_require_handoff_confirm = false;
-    m_auto_confirm_handoff = true;
+    m_require_handoff_confirm = true;
+    m_auto_confirm_handoff = false;
+    m_music_enabled = true;
+    m_sfx_enabled = true;
+    m_music_volume = 0.7f;
+    m_sfx_volume = 0.8f;
     m_briefing_seconds = 6;
     m_countdown_seconds = 3;
     m_player_count = 1;
@@ -292,8 +328,13 @@ RelayLocalApiOptions::RelayLocalApiOptions()
 RelaySessionController::RelaySessionController()
 {
     m_runtime_enabled = false;
+    m_operator_controlled = false;
+    m_resume_countdown = false;
+    m_state_before_pause = ARCADE_STATE_RUNNING;
     m_race_attached = false;
+    m_world_elapsed_ms = 0;
     m_paused = false;
+    m_presentation_ready = true;
     m_state = RELAY_STATE_ATTRACT;
     m_state_before_handoff = RELAY_STATE_RUNNING;
     m_state_version = 1;
@@ -485,6 +526,7 @@ void RelaySessionController::resetArcadeRuntimeLocked(
     bool keep_configuration)
 {
     m_paused = false;
+    m_resume_countdown = false;
     m_countdown_remaining_ms = 0;
     m_countdown_started_at = 0.0f;
     m_session_started_at = 0.0f;
@@ -543,7 +585,10 @@ void RelaySessionController::resetAdaptiveDifficultyLocked()
 
 void RelaySessionController::configureCrewRolesLocked()
 {
-    m_crew_roles.configure(m_players, m_rotation.getActiveIndex());
+    m_crew_roles.configure(m_players, m_rotation.getActiveIndex(),
+        m_active_config.m_crew_mode == "enabled"
+            ? m_connected_player_ids : std::vector<std::string>());
+    m_event_director.setAvailableRoles(m_crew_roles.getAssignmentsSnapshot());
 }
 
 void RelaySessionController::recordPilotTurnForLapLocked(int lap)
@@ -617,6 +662,31 @@ bool RelaySessionController::isRuntimeEnabled() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_runtime_enabled;
+}
+
+void RelaySessionController::setOperatorControlled(bool enabled)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_operator_controlled = enabled;
+    bumpVersionLocked();
+}
+
+bool RelaySessionController::isWorldHeld() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_runtime_enabled &&
+        (!m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
+         (m_operator_controlled && !isSessionPlayableStateLocked()));
+}
+
+void RelaySessionController::worldLoadFailed(const std::string& reason)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_race_attached = false;
+    m_loaded_track_id.clear();
+    m_state = RELAY_STATE_ERROR_RECOVERABLE;
+    m_arcade_state_machine.fail(reason, true, NULL);
+    bumpVersionLocked();
 }
 
 void RelaySessionController::setDefaultPreset(const std::string& preset)
@@ -855,6 +925,7 @@ void RelaySessionController::startSessionLocked(
     const RelaySessionConfig& config,
     const std::vector<RelayPlayer>& players)
 {
+    if (!m_presentation_ready) return;
     m_active_config = config;
     if (m_active_config.m_session_id.empty())
         m_active_config.m_session_id = makeArcadeSessionId();
@@ -966,6 +1037,11 @@ bool RelaySessionController::startSession(
     std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
     if (!m_runtime_enabled)
     {
         if (reject_reason)
@@ -1000,7 +1076,16 @@ bool RelaySessionController::configureArcadeLocked(
             *reject_reason = "already_running";
         return false;
     }
-    if (config.m_player_count < 2 || config.m_player_count > 6)
+    if (!std::isfinite(config.m_handoff_seconds) || config.m_handoff_seconds < 6.0f || config.m_handoff_seconds > 60.0f ||
+        !std::isfinite(config.m_min_handoff_seconds) || config.m_min_handoff_seconds < 6.0f || config.m_min_handoff_seconds > 30.0f ||
+        config.m_handoff_seconds < config.m_min_handoff_seconds ||
+        !std::isfinite(config.m_music_volume) || config.m_music_volume < 0.0f || config.m_music_volume > 1.0f ||
+        !std::isfinite(config.m_sfx_volume) || config.m_sfx_volume < 0.0f || config.m_sfx_volume > 1.0f)
+    {
+        if (reject_reason) *reject_reason = "invalid_session_settings";
+        return false;
+    }
+    if (config.m_player_count < 1 || config.m_player_count > 6)
     {
         if (reject_reason)
             *reject_reason = "invalid_player_count";
@@ -1012,13 +1097,15 @@ bool RelaySessionController::configureArcadeLocked(
             *reject_reason = "invalid_lap_policy";
         return false;
     }
-    if (config.m_handoff_policy != RELAY_HANDOFF_LAP_BASED)
+    if (config.m_handoff_policy != RELAY_HANDOFF_LAP_BASED &&
+        !(config.m_player_count == 1 &&
+          config.m_handoff_policy == RELAY_HANDOFF_SINGLE_PILOT_DEMO))
     {
         if (reject_reason)
             *reject_reason = "invalid_handoff_policy";
         return false;
     }
-    if (config.m_projection != "fisheye_domemaster")
+    if (config.m_projection != "fisheye_domemaster" && config.m_projection != "equirectangular")
     {
         if (reject_reason)
             *reject_reason = "invalid_projection";
@@ -1029,7 +1116,10 @@ bool RelaySessionController::configureArcadeLocked(
         config.m_render_profile != "target" &&
         config.m_render_profile != "fulldome_debug" &&
         config.m_render_profile != "fulldome_safe" &&
-        config.m_render_profile != "fulldome_target")
+        config.m_render_profile != "fulldome_target" &&
+        config.m_render_profile != "equirectangular_debug" &&
+        config.m_render_profile != "equirectangular_safe" &&
+        config.m_render_profile != "equirectangular_target")
     {
         if (reject_reason)
             *reject_reason = "invalid_render_preset";
@@ -1051,22 +1141,31 @@ bool RelaySessionController::configureArcadeLocked(
         RelayDifficultyDirector::sanitizeConfig(
             configured.m_adaptive_difficulty);
 
+    if (!players.empty() && (int)players.size() != configured.m_player_count)
+    {
+        if (reject_reason) *reject_reason = "invalid_players";
+        return false;
+    }
     std::vector<RelayPlayer> active_players = players;
     ensureDefaultPlayersLocked(configured, &active_players);
-    if ((int)active_players.size() != configured.m_player_count)
+    std::vector<std::string> unique_ids;
+    for (const RelayPlayer& player : active_players)
     {
-        if (active_players.size() > (unsigned int)configured.m_player_count)
-            active_players.resize(configured.m_player_count);
-        while ((int)active_players.size() < configured.m_player_count)
+        if (player.m_player_id.empty() || player.m_display_name.size() > 256 ||
+            std::find(unique_ids.begin(), unique_ids.end(), player.m_player_id) != unique_ids.end())
         {
-            const int index = (int)active_players.size() + 1;
-            active_players.push_back(
-                RelayPlayer("p" + std::to_string(index),
-                            "Player " + std::to_string(index)));
+            if (reject_reason) *reject_reason = "invalid_players";
+            return false;
         }
+        unique_ids.push_back(player.m_player_id);
     }
 
+    m_connected_player_ids.clear();
+    m_resume_countdown = false;
     m_active_config = configured;
+    if (m_active_config.m_player_count == 1)
+        m_active_config.m_handoff_policy = RELAY_HANDOFF_SINGLE_PILOT_DEMO;
+    m_operator_controlled = true;
     m_players = active_players;
     m_total_laps = getRecommendedLapCount(m_active_config.m_player_count);
     m_current_lap = 1;
@@ -1131,9 +1230,98 @@ bool RelaySessionController::configureArcadeSession(
     return configureArcadeLocked(config, players, reject_reason);
 }
 
+bool RelaySessionController::setCrewPresence(
+    const std::string& session_id, const std::vector<std::string>& connected,
+    std::string* reject_reason)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_arcade_configured || session_id != m_active_config.m_session_id)
+    {
+        if (reject_reason) *reject_reason = "wrong_session";
+        return false;
+    }
+    std::vector<std::string> validated;
+    for (const std::string& id : connected)
+    {
+        const auto player = std::find_if(m_players.begin(), m_players.end(),
+            [&id](const RelayPlayer& p) { return p.m_player_id == id; });
+        if (player == m_players.end() ||
+            std::find(validated.begin(), validated.end(), id) != validated.end())
+        {
+            if (reject_reason) *reject_reason = "invalid_connected_player_ids";
+            return false;
+        }
+        validated.push_back(id);
+    }
+    if (m_connected_player_ids == validated) return true;
+    m_connected_player_ids = validated;
+    configureCrewRolesLocked();
+    bumpVersionLocked();
+    return true;
+}
+
+void RelaySessionController::setPresentationReady(bool ready)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_presentation_ready == ready) return;
+    m_presentation_ready = ready;
+    bumpVersionLocked();
+}
+
+bool RelaySessionController::pilotReady(const std::string& player_id,
+                                         std::string* reject_reason)
+{
+    // Public methods acquire the mutex individually; no world is replaced here.
+    const RelaySessionSnapshot state = getSnapshot();
+    if (!state.m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
+    const std::string expected = state.m_rotation.m_handoff_active
+        ? state.m_rotation.m_next_player_id : state.m_rotation.m_active_player_id;
+    if (!player_id.empty() && player_id != expected)
+    {
+        if (reject_reason) *reject_reason = "not_expected_pilot";
+        return false;
+    }
+    if (state.m_paused && state.m_rotation.m_handoff_active)
+    {
+        if (!operatorResume(reject_reason)) return false;
+        return confirmHandoff(reject_reason);
+    }
+    if (state.m_paused)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_presentation_ready)
+        { if (reject_reason) *reject_reason = "presentation_not_ready"; return false; }
+        if (!transitionArcadeLocked(ARCADE_STATE_COUNTDOWN, "pilot_ready_resume", reject_reason))
+            return false;
+        m_resume_countdown = m_state_before_pause != ARCADE_STATE_COUNTDOWN || m_resume_countdown;
+        m_paused = false;
+        m_state = RELAY_STATE_COUNTDOWN;
+        m_race_phase = "resume_countdown";
+        m_countdown_remaining_ms = 3000;
+        return true;
+    }
+    if (state.m_rotation.m_handoff_active) return confirmHandoff(reject_reason);
+    return operatorCountdown(false, reject_reason);
+}
+
 bool RelaySessionController::operatorStart(std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
+    if (!m_race_attached && !m_active_config.m_test_accelerated_progress)
+    {
+        if (reject_reason)
+            *reject_reason = "race_not_loaded";
+        return false;
+    }
     if (!m_arcade_configured)
     {
         if (reject_reason)
@@ -1179,6 +1367,11 @@ bool RelaySessionController::operatorStart(std::string* reject_reason)
 bool RelaySessionController::startRunningFromConfiguredLocked(
     std::string* reject_reason)
 {
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
     if (!m_arcade_configured)
     {
         if (reject_reason)
@@ -1193,6 +1386,11 @@ bool RelaySessionController::operatorCountdown(bool skip,
                                                std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
     if (!m_arcade_configured)
     {
         if (reject_reason)
@@ -1220,6 +1418,7 @@ bool RelaySessionController::operatorCountdown(bool skip,
     if (!transitionArcadeLocked(ARCADE_STATE_COUNTDOWN,
                                 "operator_countdown", reject_reason))
         return false;
+    m_resume_countdown = false;
     m_state = RELAY_STATE_COUNTDOWN;
     m_race_phase = "countdown";
     m_countdown_started_at = m_last_race_time;
@@ -1251,6 +1450,7 @@ bool RelaySessionController::operatorPause(std::string* reject_reason)
             *reject_reason = "wrong_state";
         return false;
     }
+    m_state_before_pause = state;
     m_paused = true;
     if (!transitionArcadeLocked(ARCADE_STATE_PAUSED,
                                 "operator_pause", reject_reason))
@@ -1263,6 +1463,11 @@ bool RelaySessionController::operatorPause(std::string* reject_reason)
 bool RelaySessionController::operatorResume(std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
     if (m_arcade_state_machine.getState() != ARCADE_STATE_PAUSED)
     {
         if (reject_reason)
@@ -1275,8 +1480,13 @@ bool RelaySessionController::operatorResume(std::string* reject_reason)
         next = ARCADE_STATE_FINAL_LAP;
     if (m_rotation.isHandoffActive())
         next = ARCADE_STATE_LAP_HANDOFF;
+    if (m_state_before_pause == ARCADE_STATE_COUNTDOWN)
+        next = ARCADE_STATE_COUNTDOWN;
     if (!transitionArcadeLocked(next, "operator_resume", reject_reason))
         return false;
+    m_state = next == ARCADE_STATE_LAP_HANDOFF ? RELAY_STATE_HANDOFF
+        : (next == ARCADE_STATE_FINAL_LAP ? RELAY_STATE_FINAL_SPRINT
+           : (next == ARCADE_STATE_COUNTDOWN ? RELAY_STATE_COUNTDOWN : RELAY_STATE_RUNNING));
     Log::info("ImmersiveRelayArcade", "Operator resumed session.");
     return true;
 }
@@ -1445,7 +1655,10 @@ bool RelaySessionController::operatorRenderPreset(
         profile != "target" &&
         profile != "fulldome_debug" &&
         profile != "fulldome_safe" &&
-        profile != "fulldome_target")
+        profile != "fulldome_target" &&
+        profile != "equirectangular_debug" &&
+        profile != "equirectangular_safe" &&
+        profile != "equirectangular_target")
     {
         if (reject_reason)
             *reject_reason = "invalid_render_preset";
@@ -1453,7 +1666,8 @@ bool RelaySessionController::operatorRenderPreset(
     }
     const std::string requested_projection =
         projection.empty() ? m_active_config.m_projection : projection;
-    if (requested_projection != "fisheye_domemaster")
+    if ((requested_projection != "fisheye_domemaster" && requested_projection != "equirectangular") ||
+        (profile.find("equirectangular_") == 0 && requested_projection != "equirectangular"))
     {
         if (reject_reason)
             *reject_reason = "invalid_projection";
@@ -1482,6 +1696,11 @@ bool RelaySessionController::operatorRenderPreset(
 bool RelaySessionController::confirmHandoff(std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready)
+    {
+        if (reject_reason) *reject_reason = "presentation_not_ready";
+        return false;
+    }
     if (!m_rotation.isHandoffActive())
     {
         if (reject_reason)
@@ -1534,6 +1753,7 @@ void RelaySessionController::pauseSession()
 void RelaySessionController::resumeSession()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_presentation_ready) return;
     m_paused = false;
     if (m_arcade_state_machine.getState() == ARCADE_STATE_PAUSED)
         m_arcade_state_machine.transitionTo(
@@ -1587,6 +1807,8 @@ void RelaySessionController::attachRace(const std::string& track_id,
     (void)player_count;
     std::lock_guard<std::mutex> lock(m_mutex);
     m_race_attached = true;
+    m_loaded_track_id = track_id;
+    m_world_elapsed_ms = 0;
     if (!track_id.empty())
     {
         m_default_config.m_track_id = track_id;
@@ -1594,7 +1816,7 @@ void RelaySessionController::attachRace(const std::string& track_id,
             m_active_config.m_track_id = track_id;
     }
 
-    if (m_runtime_enabled &&
+    if (m_runtime_enabled && !m_operator_controlled &&
         (m_state == RELAY_STATE_ATTRACT ||
          m_state == RELAY_STATE_READY_FOR_PLAYERS))
     {
@@ -1612,6 +1834,7 @@ void RelaySessionController::detachRace()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_race_attached = false;
+    m_loaded_track_id.clear();
     bumpVersionLocked();
 }
 
@@ -1637,6 +1860,7 @@ void RelaySessionController::updateProgressLocked(
     lap_progress = std::max(0.0f, std::min(1.0f, lap_progress));
 
     const bool lap_changed = current_lap != m_current_lap;
+    const bool checkpoint_changed = checkpoint_id >= 0 && checkpoint_id != m_current_checkpoint;
     const bool progress_changed =
         std::fabs(lap_progress - m_lap_progress) > 0.001f;
     m_current_lap = current_lap;
@@ -1683,7 +1907,7 @@ void RelaySessionController::updateProgressLocked(
         consumeDirectorTrackEffectsLocked();
         bumpVersionLocked();
     }
-    else if (lap_changed || checkpoint_id >= 0)
+    else if (lap_changed || checkpoint_changed)
     {
         bumpVersionLocked();
     }
@@ -1709,7 +1933,8 @@ void RelaySessionController::updateTrackProgress(
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_runtime_enabled || m_paused ||
-        m_active_config.m_test_accelerated_progress)
+        m_active_config.m_test_accelerated_progress || isFinishedStateLocked() ||
+        (m_operator_controlled && !isSessionPlayableStateLocked()))
         return;
     updateProgressLocked(current_lap, lap_progress, checkpoint_id, distance,
                          false);
@@ -1718,6 +1943,8 @@ void RelaySessionController::updateTrackProgress(
 void RelaySessionController::updateTimedStateLocked(float race_time)
 {
     (void)race_time;
+    if (m_operator_controlled && !isSessionPlayableStateLocked())
+        return;
     if (m_state == RELAY_STATE_FINISHED_GOLD ||
         m_state == RELAY_STATE_FINISHED_SILVER ||
         m_state == RELAY_STATE_FINISHED_BRONZE ||
@@ -1780,24 +2007,34 @@ void RelaySessionController::updateTimedStateLocked(float race_time)
 void RelaySessionController::updateRace(float dt, float race_time,
                                         bool safe_for_handoff)
 {
-    (void)dt;
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_runtime_enabled)
+    m_world_elapsed_ms = (int)(std::max(0.0f, race_time) * 1000.0f);
+    if (!m_runtime_enabled || !m_presentation_ready)
         return;
 
-    m_last_race_time = race_time;
     if (m_arcade_state_machine.getState() == ARCADE_STATE_COUNTDOWN &&
         !m_paused)
     {
-        const float elapsed = std::max(
-            0.0f, race_time - m_countdown_started_at);
-        m_countdown_remaining_ms = std::max(
-            0, m_active_config.m_countdown_seconds * 1000 -
-               (int)(elapsed * 1000.0f));
+        // Physics and race time stay frozen during operator countdown.
+        m_countdown_remaining_ms = std::max(0,
+            m_countdown_remaining_ms - (int)std::round(std::max(0.0f, dt) * 1000.0f));
         if (m_countdown_remaining_ms <= 0)
         {
             std::string ignored;
-            startRunningFromConfiguredLocked(&ignored);
+            if (m_resume_countdown)
+            {
+                m_resume_countdown = false;
+                const ArcadeSessionState next = m_rotation.isHandoffActive()
+                    ? ARCADE_STATE_LAP_HANDOFF
+                    : (m_current_lap >= m_total_laps ? ARCADE_STATE_FINAL_LAP : ARCADE_STATE_RUNNING);
+                transitionArcadeLocked(next, "pilot_resume_countdown_complete", &ignored);
+                m_state = m_rotation.isHandoffActive() ? RELAY_STATE_HANDOFF
+                    : (next == ARCADE_STATE_FINAL_LAP ? RELAY_STATE_FINAL_SPRINT : RELAY_STATE_RUNNING);
+                m_race_phase = m_rotation.isHandoffActive() ? "handoff" : "racing";
+                if (m_rotation.isHandoffActive())
+                    m_rotation.confirmHandoff(m_rotation_time, &ignored);
+            }
+            else startRunningFromConfiguredLocked(&ignored);
         }
         else
         {
@@ -1807,9 +2044,11 @@ void RelaySessionController::updateRace(float dt, float race_time,
     }
     if (m_paused)
         return;
-    if (m_active_config.m_test_accelerated_progress)
+    if (m_active_config.m_test_accelerated_progress ||
+        (m_operator_controlled && !isSessionPlayableStateLocked()))
         return;
 
+    m_last_race_time = race_time;
     m_rotation_time += std::max(0.0f, dt);
     if (m_rotation_time < race_time)
         m_rotation_time = race_time;
@@ -1941,6 +2180,7 @@ void RelaySessionController::notifyLap(int completed_laps, float race_time,
 
     if (completed_laps >= m_total_laps)
     {
+        m_last_race_time = race_time;
         m_current_lap = m_total_laps;
         m_lap_progress = 1.0f;
         m_race_phase = "finish";
@@ -2175,19 +2415,19 @@ bool RelaySessionController::updateCrewStateForActionLocked(
     else if (action->m_type == "hacker_open_gate")
     {
         m_track_effects["gate:" + target] = "open";
-        effect = "gate_open:" + target;
+        effect = "sync_impulse:" + target;
     }
     else if (action->m_type == "hacker_close_hazard_barrier")
     {
         m_track_effects["barrier:" + target] = "closed";
-        effect = "barrier_closed:" + target;
+        effect = "protection_impulse:" + target;
     }
     else if (action->m_type == "hacker_rotate_ramp")
     {
         const std::string mode = action->m_mode.empty()
             ? "attack" : action->m_mode;
         m_track_effects["ramp:" + target] = mode;
-        effect = "ramp_rotated:" + target + ":" + mode;
+        effect = "power_impulse:" + target + ":" + mode;
     }
     else if (action->m_type == "hacker_arm_shortcut")
     {
@@ -2200,8 +2440,8 @@ bool RelaySessionController::updateCrewStateForActionLocked(
             m_crew_multiplier_x100 = std::min(300,
                 m_crew_multiplier_x100 + 25);
         }
-        effect = combo ? "shortcut_combo:" + target
-                       : "shortcut_armed:" + target;
+        effect = combo ? "team_bonus_combo:" + target
+                       : "team_bonus_ready:" + target;
     }
     else if (action->m_type == "hacker_disable_trap")
     {
@@ -2402,8 +2642,15 @@ void RelaySessionController::annotatePhoneStatesLocked(
 
             action.m_cooldown_ms = m_crew_roles.getCooldownRemainingMs(
                 state.m_player_id, action.m_type, now_ms);
+            if (isContinuousCrewAction(action.m_type))
+                action.m_unavailable_reason.clear();
 
-            if (m_state == RELAY_STATE_HANDOFF)
+            if (m_paused)
+            {
+                action.m_available = false;
+                action.m_unavailable_reason = "session_paused";
+            }
+            else if (m_state == RELAY_STATE_HANDOFF)
             {
                 action.m_available = false;
                 action.m_unavailable_reason =
@@ -2419,11 +2666,23 @@ void RelaySessionController::annotatePhoneStatesLocked(
                 action.m_available = false;
                 action.m_unavailable_reason = "cooldown";
             }
+            else if (m_active_config.m_ai_karts == 0 &&
+                     (action.m_type == "gunner_fire_utility" || action.m_type == "gunner_emp_zone"))
+            {
+                action.m_available = false;
+                action.m_unavailable_reason = "no_opponents";
+            }
             else if (action.m_type == "engineer_release_boost" &&
                      m_engineer_boost_charge <= 0)
             {
                 action.m_available = false;
                 action.m_unavailable_reason = "boost_not_charged";
+            }
+            else if ((action.m_type == "hacker_open_gate" && (now_ms % 8000) >= 4000) ||
+                     (action.m_type == "hacker_disable_trap" && (now_ms % 8000) < 4000))
+            {
+                action.m_available = false;
+                action.m_unavailable_reason = "sync_window";
             }
             else if (action.m_unavailable_reason.empty())
             {
@@ -2433,50 +2692,13 @@ void RelaySessionController::annotatePhoneStatesLocked(
     }
 }
 
-void RelaySessionController::limitPhoneActionLoadLocked(
-    std::vector<RelayCrewPhoneState>* states) const
-{
-    int max_available_per_player = 0;
-    if (m_active_config.m_player_count <= 2)
-        max_available_per_player = 2;
-    else if (m_active_config.m_player_count == 3)
-        max_available_per_player = 3;
-    else
-        return;
-
-    std::map<std::string, int> available_by_player;
-    for (unsigned int i = 0; i < states->size(); i++)
-    {
-        RelayCrewPhoneState& state = (*states)[i];
-        for (unsigned int a = 0; a < state.m_actions.size(); a++)
-        {
-            RelayCrewPhoneAction& action = state.m_actions[a];
-            if (!action.m_available)
-                continue;
-
-            int& shown = available_by_player[state.m_player_id];
-            if (shown >= max_available_per_player)
-            {
-                action.m_available = false;
-                action.m_unavailable_reason = "focus_queue";
-                if (state.m_message == "Hold for your window" ||
-                    state.m_message == "Stand by")
-                {
-                    state.m_message =
-                        "Queued - finish the current crew call first.";
-                }
-                continue;
-            }
-            shown++;
-        }
-    }
-}
-
 std::vector<RelayCrewPhoneState>
 RelaySessionController::buildPhoneStatesLocked(
     const std::vector<RelayCrewRoleAssignment>& assignments,
     int now_ms) const
 {
+    if (m_active_config.m_crew_mode != "enabled")
+        return {};
     std::vector<RelayCrewPhoneState> states =
         m_event_director.getPhoneStates(assignments, m_engineer_boost_charge,
                                         m_engine_heat, m_armor);
@@ -2484,7 +2706,7 @@ RelaySessionController::buildPhoneStatesLocked(
     for (unsigned int i = 0; i < assignments.size(); i++)
     {
         const RelayCrewRoleAssignment& assignment = assignments[i];
-        if (assignment.m_is_pilot)
+        if (assignment.m_is_pilot && assignments.size() != 1)
             continue;
 
         for (unsigned int r = 0; r < assignment.m_roles.size(); r++)
@@ -2514,9 +2736,8 @@ RelaySessionController::buildPhoneStatesLocked(
                 state.m_active_driver_id = rotation.m_active_player_id;
                 state.m_message = "Stand by";
                 state.m_resource_text =
-                    "boost=" + std::to_string(m_engineer_boost_charge) +
-                    " heat=" + std::to_string(m_engine_heat) +
-                    " armor=" + std::to_string(m_armor);
+                    "Turbo " + std::to_string(m_engineer_boost_charge) + "% · Calore " +
+                    std::to_string(m_engine_heat) + "% · Protezione " + std::to_string(m_armor) + "%";
                 state.m_remaining_ms = 0;
                 state.m_primary = false;
                 states.push_back(state);
@@ -2525,8 +2746,27 @@ RelaySessionController::buildPhoneStatesLocked(
         }
     }
 
+    // Ordinary actions remain accessible in every role; encounter actions are
+    // presented first but never hide a role's ordinary activity.
+    for (RelayCrewPhoneState& state : states)
+    {
+        if (state.m_message == "Stand by" || state.m_message == "Hold for your window")
+            state.m_message = "Aiuta la squadra durante il turno di guida";
+        for (const RelayCrewActionDefinition& definition :
+             CrewRoleManager::getActionDefinitionsSnapshot())
+        {
+            if (definition.m_role != state.m_role ||
+                !isContinuousCrewAction(definition.m_type) ||
+                phoneStateHasAction(state, definition.m_type))
+                continue;
+            RelayCrewPhoneAction action = makeDefaultPhoneAction(definition);
+            action.m_label = crewActionLabel(definition.m_type);
+            state.m_actions.push_back(action);
+        }
+    }
+
     annotatePhoneStatesLocked(&states, now_ms);
-    limitPhoneActionLoadLocked(&states);
+    // All roles must remain usable on a phone holding several roles.
     return states;
 }
 
@@ -2582,11 +2822,11 @@ bool RelaySessionController::submitCrewAction(
         recordRejectedActionLocked(request, "session_not_running", 0);
         return false;
     }
-    if (m_players.size() < 2)
+    if (m_active_config.m_crew_mode != "enabled")
     {
         if (reject_reason)
-            *reject_reason = "single_pilot_no_crew";
-        recordRejectedActionLocked(request, "single_pilot_no_crew", 0);
+            *reject_reason = "crew_mode_disabled";
+        recordRejectedActionLocked(request, "crew_mode_disabled", 0);
         return false;
     }
     if (request.m_session_id.empty())
@@ -2750,8 +2990,10 @@ bool RelaySessionController::submitCrewAction(
         action.m_action_id = action.m_player_id + ":" + action.m_type + ":" +
             std::to_string(m_crew_actions_accepted + 1);
 
+    const bool continuous_resource = isContinuousCrewAction(action.m_type);
     std::string director_error;
-    if (!m_event_director.validateAction(action, &director_error))
+    const bool director_action = m_event_director.validateAction(action, &director_error);
+    if (!director_action && !continuous_resource)
     {
         if (reject_reason)
             *reject_reason = director_error;
@@ -2759,6 +3001,27 @@ bool RelaySessionController::submitCrewAction(
         return false;
     }
 
+    if (!director_action &&
+        ((action.m_type == "hacker_open_gate" && (cooldown_now_ms % 8000) >= 4000) ||
+         (action.m_type == "hacker_disable_trap" && (cooldown_now_ms % 8000) < 4000)))
+    {
+        if (reject_reason) *reject_reason = "sync_window";
+        recordRejectedActionLocked(action, "sync_window", 0);
+        return false;
+    }
+    if (action.m_amount < 0 || action.m_amount > 100)
+    {
+        if (reject_reason) *reject_reason = "invalid_amount";
+        recordRejectedActionLocked(action, "invalid_amount", 0);
+        return false;
+    }
+    if (m_active_config.m_ai_karts == 0 &&
+        (action.m_type == "gunner_fire_utility" || action.m_type == "gunner_emp_zone"))
+    {
+        if (reject_reason) *reject_reason = "no_opponents";
+        recordRejectedActionLocked(action, "no_opponents", 0);
+        return false;
+    }
     markRateLimitLocked(action, definition, api_now_ms);
 
     int scored = 0;
@@ -2775,7 +3038,7 @@ bool RelaySessionController::submitCrewAction(
 
     std::string encounter_effect;
     const int encounter_bonus =
-        m_event_director.markActionAccepted(action, &encounter_effect);
+        director_action ? m_event_director.markActionAccepted(action, &encounter_effect) : 0;
     if (encounter_bonus > 0)
     {
         scored += encounter_bonus;
@@ -2849,7 +3112,8 @@ std::string RelaySessionController::consumeCrewDomeCallout()
 bool RelaySessionController::isHumanInputLocked() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_runtime_enabled && (m_paused || m_rotation.isHandoffActive());
+    return m_runtime_enabled && (!m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
+        (m_operator_controlled && !isSessionPlayableStateLocked()));
 }
 
 RelaySessionSnapshot RelaySessionController::getSnapshot() const
@@ -2858,7 +3122,12 @@ RelaySessionSnapshot RelaySessionController::getSnapshot() const
     RelaySessionSnapshot s;
     s.m_runtime_enabled = m_runtime_enabled;
     s.m_race_attached = m_race_attached;
+    s.m_loaded_track_id = m_loaded_track_id;
+    s.m_world_elapsed_ms = m_world_elapsed_ms;
+    s.m_input_locked = !m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
+        (m_operator_controlled && !isSessionPlayableStateLocked());
     s.m_paused = m_paused;
+    s.m_presentation_ready = m_presentation_ready;
     s.m_state = m_state;
     s.m_state_version = m_state_version;
     s.m_session_id = m_active_config.m_session_id;
@@ -2898,10 +3167,18 @@ RelaySessionSnapshot RelaySessionController::getSnapshot() const
     s.m_require_handoff_confirm =
         m_active_config.m_require_handoff_confirm;
     s.m_auto_confirm_handoff = m_active_config.m_auto_confirm_handoff;
+    s.m_handoff_seconds = m_active_config.m_handoff_seconds;
+    s.m_min_handoff_seconds = m_active_config.m_min_handoff_seconds;
+    s.m_music_enabled = m_active_config.m_music_enabled;
+    s.m_sfx_enabled = m_active_config.m_sfx_enabled;
+    s.m_music_volume = m_active_config.m_music_volume;
+    s.m_sfx_volume = m_active_config.m_sfx_volume;
+    s.m_connected_player_ids = m_connected_player_ids;
     s.m_briefing_seconds = m_active_config.m_briefing_seconds;
     s.m_countdown_seconds = m_active_config.m_countdown_seconds;
     s.m_countdown_remaining_ms = m_countdown_remaining_ms;
     s.m_can_start = m_arcade_configured &&
+        (m_race_attached || m_active_config.m_test_accelerated_progress) &&
         (s.m_arcade_state == ARCADE_STATE_READY_FOR_PLAYERS ||
          s.m_arcade_state == ARCADE_STATE_SESSION_CONFIGURED ||
          s.m_arcade_state == ARCADE_STATE_RESULTS);
@@ -2946,6 +3223,20 @@ RelaySessionSnapshot RelaySessionController::getSnapshot() const
     s.m_active_route_id = m_active_route_id;
     s.m_last_crew_event = m_last_crew_event;
     s.m_last_crew_effect = m_last_crew_effect;
+    if (!m_last_accepted_actions.empty())
+    {
+        const RelayCrewActionHistory& feedback = m_last_accepted_actions.back();
+        s.m_crew_feedback_id = m_active_config.m_session_id + ":" + feedback.m_idempotency_key;
+        s.m_crew_feedback_message = crewActionLabel(feedback.m_type) + ": riuscito";
+        if (feedback.m_type == "engineer_charge_boost")
+            s.m_crew_feedback_message = "Turbo caricato: " + std::to_string(m_engineer_boost_charge) + "%";
+        else if (feedback.m_type == "engineer_release_boost")
+            s.m_crew_feedback_message = "Turbo attivato!";
+        if (feedback.m_effect_summary.find("|combo:") != std::string::npos)
+            s.m_crew_feedback_message = "Combo della squadra!";
+        else if (feedback.m_effect_summary.find("encounter_success:") != std::string::npos)
+            s.m_crew_feedback_message = "Sfida completata! " + crewActionLabel(feedback.m_type);
+    }
     s.m_crew_assignments = m_crew_roles.getAssignmentsSnapshot();
     for (std::map<std::string, std::string>::const_iterator i =
              m_track_effects.begin(); i != m_track_effects.end(); i++)

@@ -12,15 +12,26 @@
 
 #include "modes/immersive_relay/relay_session_controller.hpp"
 #include "race/race_manager.hpp"
+#include "audio/music_manager.hpp"
+#include "audio/sfx_manager.hpp"
+#include "config/user_config.hpp"
+#include "karts/kart_properties_manager.hpp"
+#include "karts/kart_properties.hpp"
+#include "utils/string_utils.hpp"
+#include "modes/immersive_relay/remote/relay_input_control.hpp"
+#include "modes/immersive_relay/remote/relay_world_controller.hpp"
 #include "modes/immersive_relay/remote/relay_state_publisher.hpp"
 #include "modes/immersive_relay/render/immersive_render_pipeline.hpp"
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
+#include <limits>
 #include <cstdlib>
 #include <iomanip>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 
 namespace
@@ -317,7 +328,11 @@ bool getString(const JsonValue& object, const std::string& key,
 bool getInt(const JsonValue& object, const std::string& key, int* value)
 {
     const JsonValue* child = objectGet(object, key);
-    if (!child || child->m_type != JsonValue::JSON_NUMBER)
+    if (!child || child->m_type != JsonValue::JSON_NUMBER ||
+        !std::isfinite(child->m_number) ||
+        child->m_number < std::numeric_limits<int>::min() ||
+        child->m_number > std::numeric_limits<int>::max() ||
+        std::floor(child->m_number) != child->m_number)
         return false;
     *value = (int)child->m_number;
     return true;
@@ -340,7 +355,10 @@ bool getPlayerId(const JsonValue& object, const std::string& key,
 bool getFloat(const JsonValue& object, const std::string& key, float* value)
 {
     const JsonValue* child = objectGet(object, key);
-    if (!child || child->m_type != JsonValue::JSON_NUMBER)
+    if (!child || child->m_type != JsonValue::JSON_NUMBER ||
+        !std::isfinite(child->m_number) ||
+        child->m_number < -std::numeric_limits<float>::max() ||
+        child->m_number > std::numeric_limits<float>::max())
         return false;
     *value = (float)child->m_number;
     return true;
@@ -491,7 +509,7 @@ RelaySessionConfig extractSessionConfig(const JsonValue& root,
     if (getString(root, "difficulty", &value))
         config.m_difficulty = value;
     if (getInt(root, "ai_karts", &int_value))
-        config.m_ai_karts = std::max(0, int_value);
+        config.m_ai_karts = int_value;
     if (getString(root, "lap_policy", &value))
         config.m_lap_policy = value;
     if (getString(root, "handoff_policy", &value))
@@ -525,6 +543,13 @@ RelaySessionConfig extractSessionConfig(const JsonValue& root,
         config.m_require_handoff_confirm = bool_value;
     if (getBool(root, "auto_confirm_handoff", &bool_value))
         config.m_auto_confirm_handoff = bool_value;
+    float float_value;
+    if (getFloat(root, "handoff_seconds", &float_value)) config.m_handoff_seconds = float_value;
+    if (getFloat(root, "min_handoff_seconds", &float_value)) config.m_min_handoff_seconds = float_value;
+    if (getBool(root, "music_enabled", &bool_value)) config.m_music_enabled = bool_value;
+    if (getBool(root, "sfx_enabled", &bool_value)) config.m_sfx_enabled = bool_value;
+    if (getFloat(root, "music_volume", &float_value)) config.m_music_volume = float_value;
+    if (getFloat(root, "sfx_volume", &float_value)) config.m_sfx_volume = float_value;
     if (getInt(root, "briefing_seconds", &int_value))
         config.m_briefing_seconds = std::max(0, int_value);
     if (getInt(root, "countdown_seconds", &int_value))
@@ -702,6 +727,8 @@ int statusForOperatorError(const std::string& error)
         error == "invalid_track" ||
         error == "invalid_lap_policy" ||
         error == "invalid_handoff_policy" ||
+        error == "invalid_players" ||
+        error == "invalid_session_settings" ||
         error == "invalid_state")
         return 400;
     if (error == "invalid_token")
@@ -713,12 +740,15 @@ int statusForOperatorError(const std::string& error)
 
 void applyVenueRenderPreset(const std::string& profile,
                             const std::string& output,
+                            const std::string& projection,
                             ImmersiveRelay::ImmersiveRenderConfig* config)
 {
     const bool debug = profile == "debug" ||
-        profile == "fulldome_debug";
+        profile == "fulldome_debug" || profile == "equirectangular_debug";
     const bool target = profile == "target" ||
-        profile == "fulldome_target";
+        profile == "fulldome_target" || profile == "equirectangular_target";
+    if (config->m_projection_mode == ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
+        config->m_pitch_deg = 35.0f;
     config->m_projection_mode =
         ImmersiveRelay::IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER;
     if (debug)
@@ -742,6 +772,13 @@ void applyVenueRenderPreset(const std::string& profile,
         config->m_projection_height = 1536;
         config->m_cubemap_size = 768;
     }
+    if (projection == "equirectangular" || profile.find("equirectangular_") == 0)
+    {
+        config->m_projection_mode = ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR;
+        config->m_projection_width = target ? 4096 : 2048;
+        config->m_projection_height = config->m_projection_width / 2;
+        config->m_pitch_deg = 0.0f;
+    }
     if (!output.empty())
     {
         if (!ImmersiveRelay::parseOutputMode(output, &config->m_output_mode))
@@ -758,6 +795,7 @@ std::string renderConfigJson(
     out << "{";
     out << "\"ok\":true";
     out << ",\"event\":\"render_config_updated\"";
+    out << ",\"application\":\"pending_render_frame\"";
     out << ",\"state_version\":" << snapshot.m_state_version;
     out << ",\"immersive_render_config\":{";
     out << "\"output_mode\":\""
@@ -866,6 +904,32 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
         return RelayHttpResponse(200,
             RelayStatePublisher::healthJson(snapshot, api_active, api_port));
     }
+    if (method == "GET" && route_path == "/immersive/v1/tracks")
+        return RelayHttpResponse(200, RelayWorldController::tracksJson());
+    if (method == "GET" && route_path == "/immersive/v1/input/devices")
+        return RelayHttpResponse(200, RelayInputControl::devicesJson());
+    if (method == "GET" && route_path == "/immersive/v1/input/state")
+        return RelayHttpResponse(200, RelayInputControl::stateJson());
+    if (method == "GET" && route_path == "/immersive/v1/karts")
+    {
+        if (!kart_properties_manager)
+            return RelayHttpResponse(503, RelayStatePublisher::errorJson("kart_inventory_unavailable", snapshot.m_state_version));
+        std::ostringstream out;
+        out << "{\"ok\":true,\"karts\":[";
+        bool first = true;
+        for (const std::string& id : kart_properties_manager->getAllAvailableKarts())
+        {
+            const KartProperties* kart = kart_properties_manager->getKart(id);
+            if (!kart) continue;
+            if (!first) out << ',';
+            first = false;
+            out << "{\"id\":\"" << RelayStatePublisher::jsonEscape(id)
+                << "\",\"name\":\"" << RelayStatePublisher::jsonEscape(
+                    StringUtils::wideToUtf8(kart->getName())) << "\"}";
+        }
+        out << "]}";
+        return RelayHttpResponse(200, out.str());
+    }
     if (method == "GET" && route_path == "/immersive/v1/capabilities")
     {
         return RelayHttpResponse(200,
@@ -915,12 +979,143 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                                            snapshot.m_state_version));
     }
 
+    if ((route_path == "/immersive/v1/operator/ready" ||
+         route_path == "/immersive/v1/operator/resume" ||
+         route_path == "/immersive/v1/operator/countdown" ||
+         route_path == "/immersive/v1/operator/start" ||
+         route_path == "/immersive/v1/operator/handoff/confirm") &&
+        !RelayInputControl::isAvailable())
+        return RelayHttpResponse(409, RelayStatePublisher::errorJson("input_device_unavailable", snapshot.m_state_version));
+
+    if (route_path == "/immersive/v1/input/config" || route_path == "/immersive/v1/input/configure")
+    {
+        RelayInputControl::Configuration config;
+        std::string error;
+        if (objectGet(root, "device_id") && !getString(root, "device_id", &config.device_id))
+            error = "invalid_device_id";
+        struct IntField { const char* name; int* value; };
+        const IntField ints[] = {{"steering_axis", &config.steering_axis},
+            {"accelerator_axis", &config.accelerator_axis}, {"brake_axis", &config.brake_axis},
+            {"ready_button", &config.ready_button}};
+        for (const IntField& field : ints)
+            if (objectGet(root, field.name) && !getInt(root, field.name, field.value))
+                error = std::string("invalid_") + field.name;
+        struct BoolField { const char* name; bool* value; };
+        const BoolField bools[] = {{"steering_inverted", &config.steering_inverted},
+            {"accelerator_inverted", &config.accelerator_inverted}, {"brake_inverted", &config.brake_inverted},
+            {"accelerator_full_range", &config.accelerator_full_range}, {"brake_full_range", &config.brake_full_range}};
+        for (const BoolField& field : bools)
+            if (objectGet(root, field.name) && !getBool(root, field.name, field.value))
+                error = std::string("invalid_") + field.name;
+        if (objectGet(root, "deadzone") && !getFloat(root, "deadzone", &config.deadzone))
+            error = "invalid_deadzone";
+        if (!error.empty() || !RelayInputControl::configure(config, &error))
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
+        return RelayHttpResponse(200, RelayInputControl::stateJson());
+    }
+    if (route_path == "/immersive/v1/crew/presence")
+    {
+        std::string session_id;
+        const JsonValue* ids = objectGet(root, "connected_player_ids");
+        if (!getString(root, "session_id", &session_id) || !ids ||
+            ids->m_type != JsonValue::JSON_ARRAY || ids->m_array.size() > 6)
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_presence", snapshot.m_state_version));
+        std::vector<std::string> connected;
+        for (const JsonValue& id : ids->m_array)
+        {
+            if (id.m_type != JsonValue::JSON_STRING)
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_connected_player_ids", snapshot.m_state_version));
+            connected.push_back(id.m_string);
+        }
+        std::string error;
+        if (!controller->setCrewPresence(session_id, connected, &error))
+            return RelayHttpResponse(409, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
+        return RelayHttpResponse(200, RelayStatePublisher::okJson(controller->getSnapshot(), "crew_presence_updated"));
+    }
+    if (route_path == "/immersive/v1/render/readiness")
+    {
+        bool ready = false;
+        if (!getBool(root, "ready", &ready))
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                "invalid_presentation_readiness", snapshot.m_state_version));
+        controller->setPresentationReady(ready);
+        return RelayHttpResponse(200, RelayStatePublisher::okJson(
+            controller->getSnapshot(), "presentation_readiness_updated"));
+    }
+    if (route_path == "/immersive/v1/operator/ready")
+    {
+        if (!snapshot.m_presentation_ready)
+            return RelayHttpResponse(409, RelayStatePublisher::errorJson(
+                "presentation_not_ready", snapshot.m_state_version));
+        std::string player_id, error;
+        if (objectGet(root, "player_id") && !getPlayerId(root, "player_id", &player_id))
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_player_id", snapshot.m_state_version));
+        if (snapshot.m_arcade_state == ARCADE_STATE_RESULTS)
+        {
+            if (!player_id.empty() && player_id != snapshot.m_rotation.m_active_player_id)
+                return RelayHttpResponse(409, RelayStatePublisher::errorJson("not_expected_pilot", snapshot.m_state_version));
+            if (!controller->operatorReset(&error))
+                return RelayHttpResponse(409, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
+            if (!snapshot.m_test_accelerated_progress) RelayWorldController::reset();
+            player_id.clear();
+        }
+        if (!controller->pilotReady(player_id, &error))
+            return RelayHttpResponse(409, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
+        RelayWorldController::dismissPauseUI();
+        return RelayHttpResponse(200, RelayStatePublisher::okJson(controller->getSnapshot(), "pilot_ready"));
+    }
+
     if (route_path == "/immersive/v1/operator/configure")
     {
+        const char* integer_fields[] = {"player_count", "ai_karts",
+            "countdown_seconds", "briefing_seconds"};
+        for (const char* field : integer_fields)
+        {
+            int value;
+            if (objectGet(root, field) && !getInt(root, field, &value))
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                    std::string("invalid_") + field, snapshot.m_state_version));
+        }
+        if (const JsonValue* roster = objectGet(root, "players"))
+        {
+            if (roster->m_type != JsonValue::JSON_ARRAY || roster->m_array.empty() || roster->m_array.size() > 6)
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_players", snapshot.m_state_version));
+            for (const JsonValue& player : roster->m_array)
+            {
+                std::string id, name;
+                if (player.m_type != JsonValue::JSON_OBJECT || !getString(player, "player_id", &id) || id.empty() ||
+                    (objectGet(player, "display_name") && !getString(player, "display_name", &name)))
+                    return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_players", snapshot.m_state_version));
+            }
+        }
+        const char* float_fields[] = {"handoff_seconds", "min_handoff_seconds", "music_volume", "sfx_volume"};
+        for (const char* field : float_fields)
+        {
+            float value;
+            if (objectGet(root, field) && (!getFloat(root, field, &value) || !std::isfinite(value)))
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson(std::string("invalid_") + field, snapshot.m_state_version));
+        }
+        const char* bool_fields[] = {"handoff_operator_confirm", "require_handoff_confirm", "auto_confirm_handoff", "music_enabled", "sfx_enabled"};
+        for (const char* field : bool_fields)
+        {
+            bool value;
+            if (objectGet(root, field) && !getBool(root, field, &value))
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson(std::string("invalid_") + field, snapshot.m_state_version));
+        }
         RelaySessionConfig config = extractSessionConfig(
             root, controller->getDefaultConfig());
+        if (!objectGet(root, "session_id"))
+            config.m_session_id.clear();
         std::vector<RelayPlayer> players = extractPlayers(root);
         std::string reject_reason;
+        if (!RelayWorldController::validate(config, &reject_reason))
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                reject_reason, snapshot.m_state_version));
+#ifndef ENABLE_SYPHON_OUTPUT
+        if (config.m_output == "syphon")
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                "immersive_output_unavailable:syphon", snapshot.m_state_version));
+#endif
         if (!controller->configureArcadeSession(config, players,
                                                 &reject_reason))
         {
@@ -928,6 +1123,30 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
             return RelayHttpResponse(statusForOperatorError(reject_reason),
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
+        }
+        try
+        {
+            if (!config.m_test_accelerated_progress &&
+                !RelayWorldController::load(config, &reject_reason))
+                throw std::runtime_error(reject_reason.empty()
+                    ? "race_load_failed" : reject_reason);
+        }
+        catch (const std::exception& error)
+        {
+            controller->worldLoadFailed(error.what());
+            snapshot = controller->getSnapshot();
+            return RelayHttpResponse(500, RelayStatePublisher::errorJson(
+                "race_load_failed", snapshot.m_state_version));
+        }
+        UserConfigParams::m_music = config.m_music_enabled;
+        UserConfigParams::m_sfx = config.m_sfx_enabled;
+        UserConfigParams::m_music_volume = config.m_music_volume;
+        UserConfigParams::m_sfx_volume = config.m_sfx_volume;
+        if (music_manager) music_manager->setMasterMusicVolume(config.m_music_enabled ? config.m_music_volume : 0.0f);
+        if (SFXManager::get())
+        {
+            SFXManager::get()->toggleSound(config.m_sfx_enabled);
+            SFXManager::get()->setMasterSFXVolume(config.m_sfx_volume);
         }
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
@@ -937,6 +1156,14 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     if (route_path == "/immersive/v1/operator/start")
     {
         std::string reject_reason;
+        if (snapshot.m_arcade_state == ARCADE_STATE_RESULTS)
+        {
+            if (!controller->operatorReset(&reject_reason))
+                return RelayHttpResponse(409, RelayStatePublisher::errorJson(
+                    reject_reason, snapshot.m_state_version));
+            if (!snapshot.m_test_accelerated_progress)
+                RelayWorldController::reset();
+        }
         if (!controller->operatorStart(&reject_reason))
         {
             snapshot = controller->getSnapshot();
@@ -964,6 +1191,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        RelayWorldController::dismissPauseUI();
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_countdown"));
@@ -994,6 +1222,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        RelayWorldController::dismissPauseUI();
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_resumed"));
@@ -1024,6 +1253,8 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        if (!snapshot.m_test_accelerated_progress)
+            RelayWorldController::reset();
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_reset"));
@@ -1080,12 +1311,13 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     {
         std::string profile;
         std::string output;
-        std::string projection = "fisheye_domemaster";
+        std::string projection;
         if (!getString(root, "render_profile", &profile) &&
             !getString(root, "render_preset", &profile))
             getString(root, "profile", &profile);
         getString(root, "output", &output);
         getString(root, "projection", &projection);
+        if (projection.empty()) projection = profile.find("equirectangular_") == 0 ? "equirectangular" : "fisheye_domemaster";
 #ifndef ENABLE_SYPHON_OUTPUT
         if (output == "syphon")
         {
@@ -1096,6 +1328,11 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                     snapshot.m_state_version));
         }
 #endif
+        if (!snapshot.m_paused && (snapshot.m_arcade_state == ARCADE_STATE_RUNNING ||
+            snapshot.m_arcade_state == ARCADE_STATE_FINAL_LAP || snapshot.m_arcade_state == ARCADE_STATE_COUNTDOWN ||
+            snapshot.m_arcade_state == ARCADE_STATE_LAP_HANDOFF || snapshot.m_arcade_state == ARCADE_STATE_FINISH_SEQUENCE))
+            return RelayHttpResponse(409, RelayStatePublisher::errorJson(
+                "render_reconfiguration_requires_pause", snapshot.m_state_version));
         std::string reject_reason;
         if (!controller->operatorRenderPreset(profile, output, projection,
                                               &reject_reason))
@@ -1108,7 +1345,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
         ImmersiveRelay::ImmersiveRenderConfig render_config =
             ImmersiveRelay::ImmersiveRenderPipeline::get()->getConfig();
         applyVenueRenderPreset(profile.empty() ? "fulldome_safe" : profile,
-                               output, &render_config);
+                               output, projection, &render_config);
         ImmersiveRelay::ImmersiveRenderPipeline::get()->setConfig(
             render_config);
         snapshot = controller->getSnapshot();
@@ -1120,6 +1357,47 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     {
         ImmersiveRelay::ImmersiveRenderConfig render_config =
             ImmersiveRelay::ImmersiveRenderPipeline::get()->getConfig();
+        const ImmersiveRelay::ImmersiveProjectionMode previous_projection = render_config.m_projection_mode;
+        // Reject malformed camera values before changing even the candidate.
+        // JSON numbers can be finite doubles but overflow the float camera math.
+        const JsonValue* camera_objects[] = { &root, getObject(root, "camera") };
+        const char* camera_numbers[] = { "yaw_deg", "pitch_deg", "roll_deg",
+            "dome_tilt_deg", "roll_limit_deg", "forward_offset",
+            "vertical_offset", "smoothing_factor" };
+        for (const JsonValue* object : camera_objects)
+        {
+            if (!object) continue;
+            for (const char* field : camera_numbers)
+            {
+                float parsed = 0.0f;
+                if (objectGet(*object, field) && !getFloat(*object, field, &parsed))
+                    return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                        std::string("invalid_immersive_camera_") + field,
+                        snapshot.m_state_version));
+            }
+        }
+        const JsonValue* requested_projection = getObject(root, "projection");
+        const JsonValue* dimension_objects[] = { &root, requested_projection };
+        const char* dimension_keys[][4] = {
+            { "projection_width", "projection_height", "domemaster_size", "cubemap_size" },
+            { "width", "height", "domemaster_size", NULL }
+        };
+        bool dimensions_explicit = false;
+        for (unsigned int i=0; i<2; i++)
+        {
+            if (!dimension_objects[i]) continue;
+            for (unsigned int j=0; j<4 && dimension_keys[i][j]; j++)
+            {
+                const JsonValue* field = objectGet(*dimension_objects[i], dimension_keys[i][j]);
+                if (!field) continue;
+                if (j<2) dimensions_explicit = true;
+                if (field->m_type != JsonValue::JSON_NUMBER || !std::isfinite(field->m_number) ||
+                    field->m_number < 1 || field->m_number > 8192 ||
+                    field->m_number != std::floor(field->m_number))
+                    return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                        "invalid_immersive_dimensions", snapshot.m_state_version));
+            }
+        }
         std::string value;
         int int_value = 0;
         float float_value = 0.0f;
@@ -1311,6 +1589,26 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
             render_config.m_projection_mode =
                 ImmersiveRelay::IMMERSIVE_PROJECTION_FISHEYE;
         }
+        if (render_config.m_projection_mode == ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
+        {
+            if (previous_projection != render_config.m_projection_mode && !dimensions_explicit)
+            { render_config.m_projection_width=2048; render_config.m_projection_height=1024; }
+            if (!ImmersiveRelay::validEquirectDimensions(render_config.m_projection_width, render_config.m_projection_height))
+                return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                    "equirectangular_requires_supported_2_to_1_projection", snapshot.m_state_version));
+        }
+        else if (previous_projection == ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR &&
+                 render_config.m_projection_mode == ImmersiveRelay::IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER && !dimensions_explicit)
+        {
+            render_config.m_projection_width=render_config.m_domemaster_size;
+            render_config.m_projection_height=render_config.m_domemaster_size;
+        }
+        if (previous_projection != render_config.m_projection_mode)
+        {
+            const JsonValue* camera_request = getObject(root, "camera");
+            if (!objectGet(root, "pitch_deg") && (!camera_request || !objectGet(*camera_request, "pitch_deg")))
+                render_config.m_pitch_deg = render_config.m_projection_mode == ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR ? 0.0f : 35.0f;
+        }
         if (render_config.m_projection_mode ==
                 ImmersiveRelay::IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER)
         {
@@ -1351,6 +1649,22 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                     snapshot.m_state_version));
         }
 #endif
+        const ImmersiveRelay::ImmersiveRenderConfig previous_config =
+            ImmersiveRelay::ImmersiveRenderPipeline::get()->getConfig();
+        const bool mapping_changed = previous_config.m_projection_mode != render_config.m_projection_mode ||
+            previous_config.m_projection_width != render_config.m_projection_width ||
+            previous_config.m_projection_height != render_config.m_projection_height ||
+            previous_config.m_cubemap_size != render_config.m_cubemap_size ||
+            previous_config.m_output_mode != render_config.m_output_mode ||
+            previous_config.m_syphon_server_name != render_config.m_syphon_server_name ||
+            previous_config.m_yaw_deg != render_config.m_yaw_deg || previous_config.m_pitch_deg != render_config.m_pitch_deg ||
+            previous_config.m_roll_deg != render_config.m_roll_deg || previous_config.m_dome_tilt_deg != render_config.m_dome_tilt_deg;
+        if (mapping_changed && !snapshot.m_paused &&
+            (snapshot.m_arcade_state == ARCADE_STATE_RUNNING || snapshot.m_arcade_state == ARCADE_STATE_FINAL_LAP ||
+             snapshot.m_arcade_state == ARCADE_STATE_COUNTDOWN || snapshot.m_arcade_state == ARCADE_STATE_LAP_HANDOFF ||
+             snapshot.m_arcade_state == ARCADE_STATE_FINISH_SEQUENCE))
+            return RelayHttpResponse(409, RelayStatePublisher::errorJson(
+                "render_reconfiguration_requires_pause", snapshot.m_state_version));
         ImmersiveRelay::ImmersiveRenderPipeline::get()->setConfig(
             render_config);
         return RelayHttpResponse(200,

@@ -865,7 +865,7 @@ void CrewEventDirector::resetEncounterRuntime(Encounter* encounter, int lap)
 CrewEventDirector::EncounterState CrewEventDirector::evaluateState(
     const Encounter& encounter) const
 {
-    if (!encounter.m_enabled ||
+    if (countRequiredActions(encounter) == 0 || !encounter.m_enabled ||
         m_context.m_player_count < encounter.m_player_count_min ||
         m_context.m_player_count > encounter.m_player_count_max ||
         !lapMatches(encounter))
@@ -978,6 +978,13 @@ void CrewEventDirector::updateEncounter(Encounter* encounter)
     }
     else if (next_state == ENCOUNTER_EXPIRED)
     {
+        // A late phone join must not manufacture a failed challenge that
+        // nobody had the opportunity to play.
+        if (!encounter->m_started_logged)
+        {
+            encounter->m_state = ENCOUNTER_EXPIRED;
+            return;
+        }
         encounter->m_state = ENCOUNTER_RESOLVED_FAIL;
         m_encounters_failed++;
         queueEffects(encounter->m_fail_effects);
@@ -1164,17 +1171,36 @@ bool CrewEventDirector::hasAcceptedAction(
     return false;
 }
 
+void CrewEventDirector::setAvailableRoles(
+    const std::vector<RelayCrewRoleAssignment>& assignments)
+{
+    m_available_roles.clear();
+    for (const RelayCrewRoleAssignment& assignment : assignments)
+        for (RelayCrewRole role : assignment.m_roles)
+            if (!roleVectorContains(m_available_roles, role))
+                m_available_roles.push_back(role);
+}
+
+bool CrewEventDirector::actionRoleAvailable(const std::string& identity) const
+{
+    const std::string type = identity.substr(0, identity.find(':'));
+    const RelayCrewActionDefinition* definition = CrewRoleManager::getActionDefinition(type);
+    return definition && roleVectorContains(m_available_roles, definition->m_role);
+}
+
 bool CrewEventDirector::requiredActionsSatisfied(
     const Encounter& encounter) const
 {
     if (encounter.m_required_actions.empty())
-        return countCompletedActions(encounter) >= countRequiredActions(encounter);
+        return countRequiredActions(encounter) > 0 &&
+            countCompletedActions(encounter) >= countRequiredActions(encounter);
     for (unsigned int i = 0; i < encounter.m_required_actions.size(); i++)
     {
-        if (!hasAcceptedAction(encounter, encounter.m_required_actions[i]))
+        if (actionRoleAvailable(encounter.m_required_actions[i]) &&
+            !hasAcceptedAction(encounter, encounter.m_required_actions[i]))
             return false;
     }
-    return true;
+    return countRequiredActions(encounter) > 0;
 }
 
 bool CrewEventDirector::validateAction(
@@ -1299,11 +1325,17 @@ bool CrewEventDirector::validateAction(
 int CrewEventDirector::countRequiredActions(const Encounter& encounter) const
 {
     if (!encounter.m_required_actions.empty())
-        return (int)encounter.m_required_actions.size();
+    {
+        int count = 0;
+        for (const std::string& action : encounter.m_required_actions)
+            if (actionRoleAvailable(action)) ++count;
+        return count;
+    }
     int count = 0;
     for (unsigned int i = 0; i < encounter.m_steps.size(); i++)
     {
-        if (encounter.m_steps[i].m_required)
+        if (encounter.m_steps[i].m_required &&
+            roleVectorContains(m_available_roles, encounter.m_steps[i].m_role))
             count++;
     }
     return count;
@@ -1316,7 +1348,8 @@ int CrewEventDirector::countCompletedActions(const Encounter& encounter) const
         int count = 0;
         for (unsigned int i = 0; i < encounter.m_required_actions.size(); i++)
         {
-            if (hasAcceptedAction(encounter, encounter.m_required_actions[i]))
+            if (actionRoleAvailable(encounter.m_required_actions[i]) &&
+                hasAcceptedAction(encounter, encounter.m_required_actions[i]))
                 count++;
         }
         return count;
@@ -1325,6 +1358,7 @@ int CrewEventDirector::countCompletedActions(const Encounter& encounter) const
     for (unsigned int i = 0; i < encounter.m_steps.size(); i++)
     {
         if (encounter.m_steps[i].m_required &&
+            roleVectorContains(m_available_roles, encounter.m_steps[i].m_role) &&
             encounter.m_steps[i].m_completed)
         {
             count++;
@@ -1458,7 +1492,7 @@ std::vector<RelayCrewPhoneState> CrewEventDirector::getPhoneStates(
     for (unsigned int i = 0; i < assignments.size(); i++)
     {
         const RelayCrewRoleAssignment& assignment = assignments[i];
-        if (assignment.m_is_pilot)
+        if (assignment.m_is_pilot && assignments.size() != 1)
             continue;
 
         for (unsigned int r = 0; r < assignment.m_roles.size(); r++)
@@ -1475,9 +1509,8 @@ std::vector<RelayCrewPhoneState> CrewEventDirector::getPhoneStates(
                 " console";
             state.m_message = "Stand by";
             state.m_resource_text =
-                "boost=" + std::to_string(boost_charge) +
-                " heat=" + std::to_string(heat) +
-                " armor=" + std::to_string(armor);
+                "Turbo " + std::to_string(boost_charge) + "% · Calore " +
+                std::to_string(heat) + "% · Protezione " + std::to_string(armor) + "%";
 
             if (encounter)
             {

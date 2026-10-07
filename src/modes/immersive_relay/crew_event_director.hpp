@@ -171,6 +171,8 @@ private:
     int m_last_active_index;
     CrewEncounterTriggerContext m_context;
     std::vector<Encounter> m_encounters;
+    std::vector<RelayCrewRole> m_available_roles;
+    bool actionRoleAvailable(const std::string& identity) const;
     std::string m_pending_dome_callout;
     std::vector<RelayCrewTrackEffect> m_pending_track_effects;
     std::map<std::string, int> m_role_ready_at_ms;
@@ -223,6 +225,7 @@ public:
     void configure(const std::string& track_id, int total_laps,
                    int player_count);
     void reset();
+    void setAvailableRoles(const std::vector<RelayCrewRoleAssignment>& assignments);
     bool update(const CrewEncounterTriggerContext& context, int now_ms);
     bool validateAction(const RelayCrewActionRequest& action,
                         std::string* reject_reason) const;

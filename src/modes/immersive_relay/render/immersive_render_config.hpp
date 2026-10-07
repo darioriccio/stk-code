@@ -92,6 +92,7 @@ bool projectionIsTwoToOne(ImmersiveProjectionMode mode);
 unsigned int sanitizeDomemasterSize(int requested);
 unsigned int sanitizeCubemapSize(int requested);
 unsigned int sanitizeEquirectWidth(int requested);
+bool validEquirectDimensions(unsigned int width, unsigned int height);
 void syncLegacyDomemasterSize(ImmersiveRenderConfig* config);
 
 } // namespace ImmersiveRelay

@@ -30,7 +30,9 @@ class CubemapRenderTarget
 {
 private:
     unsigned int m_size;
+#ifndef SERVER_ONLY
     std::unique_ptr<RenderTarget> m_faces[CUBEMAP_FACE_COUNT];
+#endif
     irr::scene::ICameraSceneNode* m_camera_node;
     unsigned int m_face_textures[CUBEMAP_FACE_COUNT];
     unsigned int m_face_depth_textures[CUBEMAP_FACE_COUNT];

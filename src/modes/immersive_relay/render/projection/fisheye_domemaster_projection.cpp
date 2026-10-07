@@ -62,6 +62,26 @@ public:
         assignUniforms("resolution", "dome_tilt_rad", "debug_grid",
                        "has_skybox", "face_tan_half_fov", "use_multiview");
     }
+    bool valid() const { GLint linked=0; glGetProgramiv(m_program, GL_LINK_STATUS, &linked); return linked == GL_TRUE; }
+};
+
+class EquirectangularShader
+    : public Shader<EquirectangularShader, irr::core::vector2df, int, int, float, int>
+{
+public:
+    EquirectangularShader()
+    {
+        loadProgram(OBJECT, GL_VERTEX_SHADER, "immersive_domemaster.vert",
+                    GL_FRAGMENT_SHADER, "immersive_equirectangular.frag");
+        assignTextureUnit(0, "environment_cube", 1, "scene_depth_cube", 2, "skybox_cube",
+            3, "face_pos_x", 4, "face_neg_x", 5, "face_pos_y", 6, "face_neg_y",
+            7, "face_pos_z", 8, "face_neg_z", 9, "depth_face_pos_x",
+            10, "depth_face_neg_x", 11, "depth_face_pos_y", 12, "depth_face_neg_y",
+            13, "depth_face_pos_z", 14, "depth_face_neg_z");
+        assignUniforms("resolution", "debug_grid", "has_skybox",
+                       "face_tan_half_fov", "use_multiview");
+    }
+    bool valid() const { GLint linked=0; glGetProgramiv(m_program, GL_LINK_STATUS, &linked); return linked == GL_TRUE; }
 };
 
 void dumpDomemasterFboOnce(unsigned int size)
@@ -108,6 +128,8 @@ void dumpDomemasterFboOnce(unsigned int size)
 FisheyeDomemasterProjection::FisheyeDomemasterProjection()
 {
     m_size = 0;
+    m_width = 0;
+    m_height = 0;
     m_texture = 0;
     m_publish_texture = 0;
     m_publish_texture_target = 0;
@@ -121,54 +143,92 @@ FisheyeDomemasterProjection::~FisheyeDomemasterProjection()
 
 bool FisheyeDomemasterProjection::ensure(unsigned int size)
 {
+    return ensureTarget(size, size);
+}
+
+bool FisheyeDomemasterProjection::ensureTarget(unsigned int width, unsigned int height)
+{
 #ifdef SERVER_ONLY
     return false;
 #else
-    if (m_size == size && m_texture != 0 && m_frame_buffer.get())
+    if (m_width == width && m_height == height && m_texture && m_frame_buffer)
         return true;
-
-    destroy();
-    m_size = size;
-
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)size, (GLsizei)size,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // Syphon clients on macOS receive rectangle textures natively. Keep a
-    // 2D fallback so relay/window builds stay portable when rectangle
-    // textures are not exposed by the GL headers.
+    GLint max_size = 0, previous_read_fbo = 0, previous_draw_fbo = 0, previous_active = 0, previous_2d = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previous_read_fbo);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previous_draw_fbo);
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &previous_active);
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &previous_2d);
+    if (!width || !height || width > (unsigned)max_size || height > (unsigned)max_size)
+    {
+        glActiveTexture((GLenum)previous_active);
+        return false;
+    }
 #ifdef GL_TEXTURE_RECTANGLE
-    m_publish_texture_target = GL_TEXTURE_RECTANGLE;
+    const GLenum target = GL_TEXTURE_RECTANGLE;
+    GLint previous_rectangle = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_RECTANGLE, &previous_rectangle);
 #else
-    m_publish_texture_target = GL_TEXTURE_2D;
+    const GLenum target = GL_TEXTURE_2D;
 #endif
-    glGenTextures(1, &m_publish_texture);
-    glBindTexture((GLenum)m_publish_texture_target, m_publish_texture);
-    glTexImage2D((GLenum)m_publish_texture_target, 0, GL_RGBA8,
-                 (GLsizei)size, (GLsizei)size,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri((GLenum)m_publish_texture_target,
-                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri((GLenum)m_publish_texture_target,
-                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri((GLenum)m_publish_texture_target,
-                    GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri((GLenum)m_publish_texture_target,
-                    GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture((GLenum)m_publish_texture_target, 0);
-
-    std::vector<GLuint> rtts;
-    rtts.push_back(m_texture);
-    m_frame_buffer.reset(new FrameBuffer(rtts, size, size));
-    Log::info("FisheyeDomemasterProjection",
-              "Created %ux%u domemaster projection target.", size, size);
-    return true;
+    GLuint texture = 0, publish = 0, probe_fbo = 0;
+    glGenTextures(1, &texture);
+    glGenTextures(1, &publish);
+    const GLuint textures[2] = { texture, publish };
+    bool valid = texture != 0 && publish != 0;
+    for (unsigned int i=0; i<2 && valid; i++)
+    {
+        const GLenum current = i == 0 ? GL_TEXTURE_2D : target;
+        glBindTexture(current, textures[i]);
+        glTexImage2D(current, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(current, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(current, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(current, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(current, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        GLint allocated_width = 0, allocated_height = 0;
+        glGetTexLevelParameteriv(current, 0, GL_TEXTURE_WIDTH, &allocated_width);
+        glGetTexLevelParameteriv(current, 0, GL_TEXTURE_HEIGHT, &allocated_height);
+        valid = allocated_width == (GLint)width && allocated_height == (GLint)height;
+    }
+    if (valid)
+    {
+        // Probe before FrameBuffer's asserting constructor; failure preserves
+        // the previous live target and restores the caller's GL bindings.
+        glGenFramebuffers(1, &probe_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, probe_fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+        valid = probe_fbo != 0 && glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+    }
+    if (probe_fbo) glDeleteFramebuffers(1, &probe_fbo);
+    if (valid)
+    {
+        std::vector<GLuint> targets(1, texture);
+        std::unique_ptr<FrameBuffer> next(new FrameBuffer(targets, width, height));
+        if (m_texture && (GLuint)previous_2d == m_texture) previous_2d = (GLint)texture;
+        if (m_publish_texture && target == GL_TEXTURE_2D && (GLuint)previous_2d == m_publish_texture) previous_2d = (GLint)publish;
+#ifdef GL_TEXTURE_RECTANGLE
+        if (m_publish_texture && (GLuint)previous_rectangle == m_publish_texture) previous_rectangle = (GLint)publish;
+#endif
+        destroy();
+        m_texture=texture; m_publish_texture=publish; m_publish_texture_target=target;
+        m_width=width; m_height=height; m_size=width;
+        m_frame_buffer.swap(next);
+    }
+    else
+    {
+        if (texture) glDeleteTextures(1, &texture);
+        if (publish) glDeleteTextures(1, &publish);
+        Log::warn("ImmersiveProjection", "Cannot allocate %ux%u projection; previous target retained.", width, height);
+    }
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)previous_read_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)previous_draw_fbo);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)previous_2d);
+#ifdef GL_TEXTURE_RECTANGLE
+    glBindTexture(GL_TEXTURE_RECTANGLE, (GLuint)previous_rectangle);
+#endif
+    glActiveTexture((GLenum)previous_active);
+    return valid;
 #endif
 }
 
@@ -235,9 +295,12 @@ bool FisheyeDomemasterProjection::project(
 #ifdef SERVER_ONLY
     return false;
 #else
-    if (!ensure(config.m_domemaster_size))
+    if (!configure(config))
         return false;
     if (cube_texture == 0)
+        return false;
+    if (kind() == IMMERSIVE_PROJECTION_EQUIRECTANGULAR ?
+        !EquirectangularShader::getInstance()->valid() : !DomemasterShader::getInstance()->valid())
         return false;
 
     const GLboolean was_depth_test = glIsEnabled(GL_DEPTH_TEST);
@@ -340,22 +403,29 @@ bool FisheyeDomemasterProjection::project(
     if (!m_logged_validation)
     {
         Log::info("FisheyeDomemasterProjection",
-            "Projection validation: forward-facing fisheye from six rendered face textures=%s; cube fallback=%u; output=%ux%u.",
+            "Projection validation: native six rendered face textures=%s; cube fallback=%u; output=%ux%u.",
             use_multiview ? "on" : "off",
             cube_texture,
-            m_size, m_size);
+            m_width, m_height);
         m_logged_validation = true;
     }
     const float half_fov = config.m_face_fov_deg * 0.5f * DEGREE_TO_RAD;
     const float face_tan_half_fov = tanf(half_fov);
-    DomemasterShader::getInstance()->drawFullScreenEffect(
-        irr::core::vector2df((float)m_size, (float)m_size),
-        config.m_dome_tilt_deg * DEGREE_TO_RAD,
-        config.m_debug_grid ? 1 : 0,
-        skybox_cube_texture != 0 ? 1 : 0,
-        face_tan_half_fov,
-        use_multiview ? 1 : 0);
-    dumpDomemasterFboOnce(m_size);
+    if (kind() == IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
+    {
+        EquirectangularShader::getInstance()->drawFullScreenEffect(
+            irr::core::vector2df((float)m_width, (float)m_height),
+            config.m_debug_grid ? 1 : 0, skybox_cube_texture != 0 ? 1 : 0,
+            face_tan_half_fov, use_multiview ? 1 : 0);
+    }
+    else
+    {
+        DomemasterShader::getInstance()->drawFullScreenEffect(
+            irr::core::vector2df((float)m_width, (float)m_height),
+            config.m_dome_tilt_deg * DEGREE_TO_RAD, config.m_debug_grid ? 1 : 0,
+            skybox_cube_texture != 0 ? 1 : 0, face_tan_half_fov, use_multiview ? 1 : 0);
+        dumpDomemasterFboOnce(m_size);
+    }
     if (use_multiview)
     {
         for (unsigned int i = 0; i < 6; i++)
@@ -375,7 +445,7 @@ bool FisheyeDomemasterProjection::project(
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glBindTexture((GLenum)m_publish_texture_target, m_publish_texture);
     glCopyTexSubImage2D((GLenum)m_publish_texture_target, 0, 0, 0, 0, 0,
-                        (GLsizei)m_size, (GLsizei)m_size);
+                        (GLsizei)m_width, (GLsizei)m_height);
     glBindTexture((GLenum)m_publish_texture_target, 0);
 
     glDepthMask(was_depth_write);
@@ -440,6 +510,8 @@ void FisheyeDomemasterProjection::destroy()
     m_publish_texture = 0;
     m_publish_texture_target = 0;
     m_size = 0;
+    m_width = 0;
+    m_height = 0;
     m_logged_validation = false;
 }
 

@@ -684,15 +684,18 @@ void cmdLineHelp()
 // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay command-line help
 #ifdef ENABLE_IMMERSIVE_RELAY
     "       --immersive-relay  Enable Immersive Relay race/session mode.\n"
+    "       --relay-presentation-required  Hold play until receiver declares presentation ready.\n"
+    "       --relay-operator-controlled  Hold physics until operator countdown ends.\n"
     "       --relay-arcade-ui  Hide venue-controlled race settings from players.\n"
     "       --relay-session-preset=s  Relay preset: quick_play, standard_arcade, premium_ride.\n"
     "       --relay-player-count=n  Human relay pilots, 1-6. One disables handoffs.\n"
     "       --relay-handoff-policy=s  Relay handoff policy: lap_based_handoff, fixed_time_segments.\n"
     "       --immersive-output=s  Immersive output: none, window, syphon.\n"
     "       --immersive-projection=s  Immersive projection: none, fisheye, fisheye_domemaster,\n"
-    "                          equirect, cylindrical, cube_faces, wall_atlas; only\n"
-    "                          fisheye_domemaster is production in Phase 4.6.\n"
+    "                          equirectangular (360x180); other projections are unavailable.\n"
     "       --immersive-domemaster-size=n  Domemaster size: 1024, 1536, 2048.\n"
+    "       --immersive-projection-width=n  Equirectangular width: 2048, 4096, 8192.\n"
+    "       --immersive-projection-height=n  Equirectangular height must be width/2.\n"
     "       --immersive-cubemap-size=n  Cubemap face size: 512, 768, 1024, 1536.\n"
     "       --immersive-camera=s  Camera: pov, chase, stabilized_chase, cockpit.\n"
     "       --immersive-yaw-deg=f  Immersive camera yaw offset in degrees.\n"
@@ -704,9 +707,9 @@ void cmdLineHelp()
     "       --immersive-forward-offset=f  Chase camera distance behind kart.\n"
     "       --immersive-vertical-offset=f  Chase camera height above kart.\n"
     "       --immersive-smoothing-factor=f  Camera smoothing factor.\n"
-    "       --immersive-debug-grid=s  on/off domemaster calibration grid.\n"
+    "       --immersive-debug-grid=s  on/off projection calibration grid.\n"
     "       --immersive-stats=s  on/off immersive render stats logging/state.\n"
-    "       --syphon-server-name=s  Syphon server name for domemaster output.\n"
+    "       --syphon-server-name=s  Syphon server name for immersive output.\n"
 #endif
 #ifdef ENABLE_RELAY_LOCAL_API
     "       --relay-local-api  Start the localhost Immersive Relay API.\n"

@@ -11,6 +11,7 @@
 #include "modes/immersive_relay/remote/local_control_server.hpp"
 
 #include "modes/immersive_relay/remote/relay_command_router.hpp"
+#include "modes/immersive_relay/remote/relay_game_dispatcher.hpp"
 #include "utils/log.hpp"
 
 #include <algorithm>
@@ -32,7 +33,8 @@ namespace
 std::string lowerCopy(const std::string& s)
 {
     std::string out = s;
-    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
+    std::transform(out.begin(), out.end(), out.begin(),
+        [](unsigned char c) { return (char)std::tolower(c); });
     return out;
 }
 
@@ -86,6 +88,7 @@ const char* statusText(int status_code)
     case 429: return "Too Many Requests";
     case 413: return "Payload Too Large";
     case 501: return "Not Implemented";
+    case 503: return "Service Unavailable";
     default: return "Internal Server Error";
     }
 }
@@ -210,6 +213,12 @@ void LocalControlServer::runLoop()
                 Log::warn("ImmersiveRelayAPI", "Relay API accept failed.");
             continue;
         }
+        // A timed-out status poll must not terminate the producer via SIGPIPE.
+#ifdef SO_NOSIGPIPE
+        int suppress_sigpipe = 1;
+        setsockopt(client_fd, SOL_SOCKET, SO_NOSIGPIPE,
+                   &suppress_sigpipe, sizeof(suppress_sigpipe));
+#endif
         handleClient(client_fd);
         close(client_fd);
     }
@@ -219,11 +228,31 @@ void LocalControlServer::runLoop()
 bool LocalControlServer::requestHasValidToken(
     const std::string& request) const
 {
-    std::string lower = lowerCopy(request);
-    std::string expected_header = "x-stk-relay-token: " + lowerCopy(m_token);
-    std::string expected_bearer = "authorization: bearer " + lowerCopy(m_token);
-    return lower.find(expected_header) != std::string::npos ||
-           lower.find(expected_bearer) != std::string::npos;
+    const size_t headers_end = request.find("\r\n\r\n");
+    size_t start = request.find("\r\n");
+    if (headers_end == std::string::npos || start == std::string::npos)
+        return false;
+    start += 2;
+    while (start < headers_end)
+    {
+        const size_t end = request.find("\r\n", start);
+        const size_t colon = request.find(':', start);
+        if (end == std::string::npos || colon == std::string::npos || colon >= end)
+            return false;
+        const std::string name = lowerCopy(request.substr(start, colon - start));
+        size_t value_start = colon + 1, value_end = end;
+        while (value_start < value_end && (request[value_start] == ' ' || request[value_start] == '\t'))
+            value_start++;
+        while (value_end > value_start && (request[value_end - 1] == ' ' || request[value_end - 1] == '\t'))
+            value_end--;
+        const std::string value = request.substr(value_start, value_end - value_start);
+        if (name == "x-stk-relay-token" && value == m_token) return true;
+        if (name == "authorization" && value.size() >= 7 &&
+            lowerCopy(value.substr(0, 7)) == "bearer " && value.substr(7) == m_token)
+            return true;
+        start = end + 2;
+    }
+    return false;
 }
 
 void LocalControlServer::handleClient(int client_fd)
@@ -282,7 +311,7 @@ void LocalControlServer::handleClient(int client_fd)
         return;
     }
 
-    RelayHttpResponse response = RelayCommandRouter::route(
+    RelayHttpResponse response = RelayGameDispatcher::dispatch(
         method, path, extractBody(request), m_running, m_port);
     sendResponse(client_fd, response.m_status_code, response.m_body);
 #endif
@@ -302,7 +331,20 @@ void LocalControlServer::sendResponse(int client_fd, int status_code,
     out << "Connection: close\r\n\r\n";
     out << body;
     const std::string response = out.str();
-    send(client_fd, response.c_str(), response.size(), 0);
+    size_t sent = 0;
+    while (sent < response.size())
+    {
+#ifdef MSG_NOSIGNAL
+        const int flags = MSG_NOSIGNAL;
+#else
+        const int flags = 0;
+#endif
+        const ssize_t count = send(client_fd, response.data() + sent,
+                                   response.size() - sent, flags);
+        if (count <= 0)
+            break;
+        sent += (size_t)count;
+    }
 #endif
 }
 

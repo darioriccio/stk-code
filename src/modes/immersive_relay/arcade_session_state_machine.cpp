@@ -139,6 +139,8 @@ ArcadeSessionStateMachine::allowedTransitions(ArcadeSessionState state)
         break;
     case ARCADE_STATE_COUNTDOWN:
         out.push_back(ARCADE_STATE_RUNNING);
+        out.push_back(ARCADE_STATE_LAP_HANDOFF);
+        out.push_back(ARCADE_STATE_FINAL_LAP);
         out.push_back(ARCADE_STATE_PAUSED);
         out.push_back(ARCADE_STATE_RESETTING);
         out.push_back(ARCADE_STATE_ERROR_RECOVERABLE);
@@ -160,6 +162,7 @@ ArcadeSessionStateMachine::allowedTransitions(ArcadeSessionState state)
         out.push_back(ARCADE_STATE_ERROR_RECOVERABLE);
         break;
     case ARCADE_STATE_PAUSED:
+        out.push_back(ARCADE_STATE_COUNTDOWN);
         out.push_back(ARCADE_STATE_RUNNING);
         out.push_back(ARCADE_STATE_LAP_HANDOFF);
         out.push_back(ARCADE_STATE_FINAL_LAP);

@@ -39,6 +39,11 @@
 #include "karts/controller/controller.hpp"
 #include "modes/demo_world.hpp"
 #include "modes/world.hpp"
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: selected device and local ready command
+#ifdef ENABLE_RELAY_LOCAL_API
+#include "modes/immersive_relay/remote/relay_input_control.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 #include "network/network_config.hpp"
 #include "network/protocols/client_lobby.hpp"
 #include "network/rewind_manager.hpp"
@@ -241,6 +246,11 @@ SDLController* InputManager::getSDLController(unsigned i) {
 // -----------------------------------------------------------------------------
 void InputManager::update(float dt)
 {
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: input telemetry and disconnect recovery
+#ifdef ENABLE_RELAY_LOCAL_API
+    RelayInputControl::update();
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
 #ifdef ENABLE_WIIUSE
     if (wiimote_manager)
         wiimote_manager->update();
@@ -605,6 +615,15 @@ void InputManager::dispatchInput(Input::InputType type, int deviceID,
                                  Input::AxisDirection axisDirection, int value,
                                  bool shift_mask)
 {
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: readiness works in briefing/results menus
+#ifdef ENABLE_RELAY_LOCAL_API
+    if (type == Input::IT_KEYBOARD && RelayInputControl::keyboardInput(button, value))
+        return;
+    if ((type == Input::IT_STICKMOTION || type == Input::IT_STICKBUTTON) &&
+        RelayInputControl::joystickInput(deviceID, type == Input::IT_STICKMOTION, button, value))
+        return;
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
     // Updated in rendering from main loop
     if (!irr_driver->getDevice()->getEventReceiver())
         return;
@@ -1431,4 +1450,3 @@ void InputManager::setMode(InputDriverMode new_mode)
             assert(false);
     }
 }
-

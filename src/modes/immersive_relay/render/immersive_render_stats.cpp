@@ -51,10 +51,11 @@ ImmersiveRenderStats::ImmersiveRenderStats()
     m_vertical_offset = 0.0f;
     m_smoothing_factor = 0.0f;
     m_horizon_stabilization = true;
+    m_configuration_applied = false;
+    m_true_fulldome = false;
     m_output_active = false;
     m_output_available = false;
     m_syphon_active = false;
-    m_true_fulldome = false;
 }
 
 void ImmersiveRenderStats::resetRolling()
@@ -90,6 +91,7 @@ void ImmersiveRenderStats::beginFrame(const ImmersiveRenderConfig& config)
     m_projection_time_ms = 0.0f;
     m_output_publish_time_ms = 0.0f;
     m_syphon_publish_time_ms = 0.0f;
+    m_true_fulldome = false;
     m_output_active = false;
 #ifdef ENABLE_SYPHON_OUTPUT
     m_output_available = config.m_output_mode != IMMERSIVE_OUTPUT_NONE;
@@ -207,6 +209,7 @@ std::string ImmersiveRenderStats::toJson() const
     out << ",\"horizon_stabilization\":"
         << (m_horizon_stabilization ? "true" : "false");
     out << "}";
+    out << ",\"configuration_applied\":" << (m_configuration_applied ? "true" : "false");
     out << ",\"enabled\":"
         << (m_output_mode != IMMERSIVE_OUTPUT_NONE &&
             projectionIsAvailable(m_projection_mode) ? "true" : "false");
@@ -229,8 +232,7 @@ std::string ImmersiveRenderStats::toJson() const
         << jsonEscape(projectionOrientationToString(m_projection_mode))
         << "\"";
     out << ",\"debug_grid\":"
-        << (m_projection_mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER
-            ? "true" : "false");
+        << (projectionIsAvailable(m_projection_mode) ? "true" : "false");
     out << "}";
     out << ",\"output\":{";
     out << "\"type\":\"" << outputModeToString(m_output_mode) << "\"";
@@ -291,6 +293,7 @@ std::string ImmersiveRenderStats::toJson() const
     out << "]";
     out << ",\"syphon_on\":" << (m_syphon_active ? "true" : "false");
     out << ",\"server_name\":\"" << jsonEscape(m_syphon_server_name) << "\"";
+    out << ",\"venue_validation\":\"pending\"";
     out << ",\"true_fulldome\":" << (m_true_fulldome ? "true" : "false");
     out << ",\"fallback_reason\":\"" << jsonEscape(m_fallback_reason) << "\"";
     out << "}";

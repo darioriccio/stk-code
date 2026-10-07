@@ -20,40 +20,45 @@ namespace ImmersiveRelay
 class FullSphereCapture
 {
 private:
-    CubemapRenderTarget m_cubemap_target;
+    std::unique_ptr<CubemapRenderTarget> m_cubemap_target;
 
 public:
-    FullSphereCapture() {}
+    FullSphereCapture() : m_cubemap_target(new CubemapRenderTarget()) {}
     ~FullSphereCapture() { destroy(); }
 
     bool ensure(unsigned int cubemap_size)
     {
-        return m_cubemap_target.ensure(cubemap_size);
+        if (m_cubemap_target->getSize() == cubemap_size)
+            return m_cubemap_target->ensure(cubemap_size);
+        std::unique_ptr<CubemapRenderTarget> next(new CubemapRenderTarget());
+        if (!next->ensure(cubemap_size)) return false;
+        m_cubemap_target.swap(next);
+        return true;
     }
     bool render(const ImmersiveCameraRig& rig, float dt)
     {
-        return m_cubemap_target.renderFaces(rig, dt);
+        return m_cubemap_target->renderFaces(rig, dt);
     }
     const char* type() const { return "full_sphere_cubemap"; }
     unsigned int getFaceCount() const { return CUBEMAP_FACE_COUNT; }
-    unsigned int getSize() const { return m_cubemap_target.getSize(); }
+    unsigned int getSize() const { return m_cubemap_target->getSize(); }
     unsigned int getCubeTexture() const
     {
-        return m_cubemap_target.getCubeTexture();
+        return m_cubemap_target->getCubeTexture();
     }
     unsigned int getDepthCubeTexture() const
     {
-        return m_cubemap_target.getDepthCubeTexture();
+        return m_cubemap_target->getDepthCubeTexture();
     }
     const unsigned int* getFaceTextures() const
     {
-        return m_cubemap_target.getFaceTextures();
+        return m_cubemap_target->getFaceTextures();
     }
     const unsigned int* getFaceDepthTextures() const
     {
-        return m_cubemap_target.getFaceDepthTextures();
+        return m_cubemap_target->getFaceDepthTextures();
     }
-    void destroy() { m_cubemap_target.destroy(); }
+    void destroy() { m_cubemap_target->destroy(); }
 };
 
 } // namespace ImmersiveRelay

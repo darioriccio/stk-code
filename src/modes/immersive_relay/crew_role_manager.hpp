@@ -137,7 +137,8 @@ public:
     CrewRoleManager();
 
     void configure(const std::vector<RelayPlayer>& players,
-                   int active_pilot_index);
+                   int active_pilot_index,
+                   const std::vector<std::string>& connected_player_ids);
     void resetCooldowns();
 
     static RelayCrewRole roleFromString(const std::string& role);

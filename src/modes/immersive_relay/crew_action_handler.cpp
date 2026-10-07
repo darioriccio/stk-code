@@ -191,6 +191,7 @@ void CrewActionHandler::applyAction(const RelayCrewActionRequest& action,
     }
     else if (action.m_type == "nav_call_pace_note")
     {
+        applyPilotBoost(pilot_kart, 0.7f, 0.4f, 0.7f);
         pilot_kart->beep();
         addRelayMessage(gui, pilot_kart, message + "pace note " + target,
                         80, 210, 255);
@@ -198,7 +199,7 @@ void CrewActionHandler::applyAction(const RelayCrewActionRequest& action,
     else if (action.m_type == "nav_reveal_shortcut")
     {
         applyPilotBoost(pilot_kart, 1.0f, 0.5f, 0.8f);
-        addRelayMessage(gui, pilot_kart, message + "shortcut " + target,
+        addRelayMessage(gui, pilot_kart, message + "bonus segnalato",
                         80, 210, 255);
     }
     else if (action.m_type == "nav_request_role")
@@ -280,25 +281,25 @@ void CrewActionHandler::applyAction(const RelayCrewActionRequest& action,
     else if (action.m_type == "hacker_open_gate")
     {
         applyPilotBoost(pilot_kart, 1.8f, 1.1f, 1.1f);
-        addRelayMessage(gui, pilot_kart, message + "gate open " + target,
+        addRelayMessage(gui, pilot_kart, message + "impulso sincronizzato",
                         255, 220, 90);
     }
     else if (action.m_type == "hacker_close_hazard_barrier")
     {
         pilot_kart->setInvulnerableTicks(timeToTicks(1.5f));
-        addRelayMessage(gui, pilot_kart, message + "barrier down " + target,
+        addRelayMessage(gui, pilot_kart, message + "impulso protettivo",
                         255, 220, 90);
     }
     else if (action.m_type == "hacker_rotate_ramp")
     {
         applyPilotBoost(pilot_kart, 2.4f, 1.6f, 1.4f);
-        addRelayMessage(gui, pilot_kart, message + "ramp " + target,
+        addRelayMessage(gui, pilot_kart, message + "impulso potenza",
                         255, 220, 90);
     }
     else if (action.m_type == "hacker_arm_shortcut")
     {
         applyPilotBoost(pilot_kart, 2.0f, 1.0f, 1.2f);
-        addRelayMessage(gui, pilot_kart, message + "shortcut armed " + target,
+        addRelayMessage(gui, pilot_kart, message + "bonus squadra",
                         255, 220, 90);
     }
     else if (action.m_type == "hacker_disable_trap")

@@ -32,6 +32,7 @@ RelayPilotRotation::RelayPilotRotation()
     m_segment_seconds = 90.0f;
     m_operator_confirm_required = false;
     m_operator_confirmed = false;
+    m_confirmation_at = -1.0f;
     reset();
 }
 
@@ -67,6 +68,7 @@ void RelayPilotRotation::reset()
     m_handoff_warning_active = false;
     m_handoff_pending_safe_zone = false;
     m_operator_confirmed = false;
+    m_confirmation_at = -1.0f;
     m_handoff_started_at = 0.0f;
     m_last_handoff_at = 0.0f;
     m_next_timeout_at = m_segment_seconds;
@@ -126,6 +128,7 @@ bool RelayPilotRotation::beginHandoff(int pending_index,
     m_checkpoint_id = checkpoint_id;
     m_handoff_warning_active = false;
     m_operator_confirmed = false;
+    m_confirmation_at = -1.0f;
 
     if (!safe_now)
     {
@@ -156,6 +159,7 @@ bool RelayPilotRotation::finishHandoff(float race_time)
     m_handoff_warning_active = false;
     m_handoff_pending_safe_zone = false;
     m_operator_confirmed = false;
+    m_confirmation_at = -1.0f;
     m_handoff_started_at = 0.0f;
     m_last_handoff_at = race_time;
     m_next_timeout_at = race_time + m_segment_seconds;
@@ -170,17 +174,14 @@ bool RelayPilotRotation::update(float race_time, bool safe_now,
     if (m_handoff_active)
     {
         const float elapsed = race_time - m_handoff_started_at;
-        if (elapsed >= m_handoff_timeout_seconds)
-        {
-            return finishHandoff(race_time);
-        }
         if (m_operator_confirm_required)
         {
-            if (m_operator_confirmed &&
-                elapsed >= m_min_handoff_seconds)
-            {
+            // Readiness may be given early, but the 3 s countdown only starts
+            // after the minimum physical transfer time. Timeout never drives.
+            if (m_operator_confirmed && race_time >=
+                std::max(m_handoff_started_at + m_min_handoff_seconds,
+                         m_confirmation_at) + 3.0f)
                 return finishHandoff(race_time);
-            }
             return false;
         }
         if (elapsed >= m_handoff_seconds)
@@ -199,6 +200,7 @@ bool RelayPilotRotation::update(float race_time, bool safe_now,
             m_handoff_pending_safe_zone = false;
             m_handoff_warning_active = false;
             m_operator_confirmed = false;
+            m_confirmation_at = -1.0f;
             m_handoff_reason.clear();
             m_checkpoint_id = -1;
             return true;
@@ -328,11 +330,12 @@ bool RelayPilotRotation::confirmHandoff(float race_time,
         return false;
     }
 
-    m_operator_confirmed = true;
-    if (race_time - m_handoff_started_at < m_min_handoff_seconds)
-        return true;
-
-    return finishHandoff(race_time);
+    if (!m_operator_confirmed)
+    {
+        m_operator_confirmed = true;
+        m_confirmation_at = race_time;
+    }
+    return true;
 }
 
 void RelayPilotRotation::setActiveIndexForTest(int active_index,
@@ -353,6 +356,7 @@ void RelayPilotRotation::setActiveIndexForTest(int active_index,
     m_handoff_warning_active = false;
     m_handoff_pending_safe_zone = false;
     m_operator_confirmed = false;
+    m_confirmation_at = -1.0f;
     m_handoff_started_at = 0.0f;
     m_last_handoff_at = race_time;
     m_next_timeout_at = race_time + m_segment_seconds;
@@ -381,7 +385,12 @@ RelayPilotRotation::getSnapshot(float race_time) const
     if (m_handoff_active)
     {
         const float remaining = std::max(0.0f,
-            m_handoff_seconds - (race_time - m_handoff_started_at));
+            (m_operator_confirm_required
+                ? (m_operator_confirmed
+                    ? std::max(m_handoff_started_at + m_min_handoff_seconds,
+                               m_confirmation_at) + 3.0f - race_time
+                    : m_min_handoff_seconds - (race_time - m_handoff_started_at))
+                : m_handoff_seconds - (race_time - m_handoff_started_at)));
         s.m_handoff_remaining_ms = (int)(remaining * 1000.0f);
     }
     else if (m_handoff_warning_active)

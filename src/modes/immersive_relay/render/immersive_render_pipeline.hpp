@@ -14,6 +14,8 @@
 #include "modes/immersive_relay/render/immersive_render_config.hpp"
 #include "modes/immersive_relay/render/immersive_render_stats.hpp"
 
+#include <mutex>
+
 namespace ImmersiveRelay
 {
 
@@ -23,7 +25,11 @@ private:
     static ImmersiveRenderPipeline* m_instance;
 
     ImmersiveRenderConfig m_config;
+    ImmersiveRenderConfig m_last_applied_config;
+    bool m_has_applied_config;
     ImmersiveRenderStats m_stats;
+    ImmersiveRenderStats m_stats_snapshot;
+    mutable std::mutex m_snapshot_mutex;
     bool m_configured;
 
     ImmersiveRenderPipeline();
@@ -33,8 +39,10 @@ public:
     static void destroy();
 
     void setConfig(const ImmersiveRenderConfig& config);
-    const ImmersiveRenderConfig& getConfig() const { return m_config; }
-    const ImmersiveRenderStats& getStats() const { return m_stats; }
+    ImmersiveRenderConfig getConfig() const;
+    ImmersiveRenderStats getStats() const;
+    void publishStatsSnapshot();
+    void rejectRenderConfiguration(const std::string& reason);
     void renderFrame(float dt);
     void shutdown();
 };

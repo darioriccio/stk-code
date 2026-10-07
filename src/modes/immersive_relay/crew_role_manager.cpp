@@ -144,7 +144,8 @@ CrewRoleManager::getDefinitions()
 }
 
 void CrewRoleManager::configure(const std::vector<RelayPlayer>& players,
-                                int active_pilot_index)
+                                int active_pilot_index,
+                                const std::vector<std::string>& connected_player_ids)
 {
     m_players = players;
     m_assignments.clear();
@@ -161,10 +162,17 @@ void CrewRoleManager::configure(const std::vector<RelayPlayer>& players,
     std::vector<int> crew_indices;
     for (unsigned int i = 0; i < m_assignments.size(); i++)
     {
-        if (!m_assignments[i].m_is_pilot)
+        if (!m_assignments[i].m_is_pilot &&
+            std::find(connected_player_ids.begin(), connected_player_ids.end(),
+                      m_assignments[i].m_player_id) != connected_player_ids.end())
             crew_indices.push_back((int)i);
     }
 
+    // In solo play the optional phone provides support for the shared kart.
+    if (crew_indices.empty() && m_assignments.size() == 1 &&
+        std::find(connected_player_ids.begin(), connected_player_ids.end(),
+                  m_assignments[0].m_player_id) != connected_player_ids.end())
+        crew_indices.push_back(0);
     if (crew_indices.empty())
         return;
 
@@ -303,7 +311,8 @@ CrewRoleManager::getActionDefinitionsSnapshot()
 std::string CrewRoleManager::cooldownKey(const std::string& player_id,
                                          const std::string& action_type) const
 {
-    return player_id + "|" + action_type;
+    (void)player_id;
+    return action_type;
 }
 
 const RelayCrewRoleAssignment* CrewRoleManager::getAssignment(
@@ -321,7 +330,7 @@ bool CrewRoleManager::playerHasRole(const std::string& player_id,
                                     RelayCrewRole role) const
 {
     const RelayCrewRoleAssignment* assignment = getAssignment(player_id);
-    if (!assignment || assignment->m_is_pilot)
+    if (!assignment || (assignment->m_is_pilot && m_assignments.size() != 1))
         return false;
 
     return std::find(assignment->m_roles.begin(), assignment->m_roles.end(),
@@ -368,7 +377,7 @@ bool CrewRoleManager::validateAction(const RelayCrewActionRequest& request,
             *reject_reason = "unknown_crew_player";
         return false;
     }
-    if (assignment->m_is_pilot)
+    if (assignment->m_is_pilot && m_assignments.size() != 1)
     {
         if (reject_reason)
             *reject_reason = "active_pilot_cannot_use_crew_action";
@@ -430,7 +439,7 @@ CrewRoleManager::getCooldownsSnapshot(int now_ms) const
     for (unsigned int i = 0; i < m_assignments.size(); i++)
     {
         const RelayCrewRoleAssignment& assignment = m_assignments[i];
-        if (assignment.m_is_pilot)
+        if (assignment.m_is_pilot && m_assignments.size() != 1)
             continue;
 
         for (unsigned int r = 0; r < assignment.m_roles.size(); r++)

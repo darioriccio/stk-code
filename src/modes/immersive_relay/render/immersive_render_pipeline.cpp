@@ -20,6 +20,7 @@
 #include "modes/immersive_relay/render/camera/immersive_camera_rig.hpp"
 #include "modes/immersive_relay/render/full_sphere_capture.hpp"
 #include "modes/immersive_relay/render/projection/fisheye_domemaster_projection.hpp"
+#include "modes/immersive_relay/render/projection/equirectangular_projection.hpp"
 #include "modes/immersive_relay/render/projection/projection_adapter.hpp"
 
 #include <memory>
@@ -44,17 +45,25 @@ float elapsedMs(uint64_t start)
     return (float)(StkTime::getMonoTimeMs() - start);
 }
 
-ProjectionAdapter* ensureProjectionAdapter(ImmersiveProjectionMode mode)
+ProjectionAdapter* ensureProjectionAdapter(const ImmersiveRenderConfig& config,
+                                           std::unique_ptr<ProjectionAdapter>& candidate)
 {
+    const ImmersiveProjectionMode mode = config.m_projection_mode;
     if (!projectionIsAvailable(mode))
         return NULL;
 
-    if (!g_projection.get() || g_projection->kind() != mode)
+    if (!g_projection.get() || g_projection->kind() != mode ||
+        g_projection->getWidth() != config.m_projection_width ||
+        g_projection->getHeight() != config.m_projection_height)
     {
-        if (g_projection.get())
-            g_projection->destroy();
         if (mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER)
-            g_projection.reset(new FisheyeDomemasterProjection());
+            candidate.reset(new FisheyeDomemasterProjection());
+        else if (mode == IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
+            candidate.reset(new EquirectangularProjection());
+        // Allocation happens on the render thread. Preserve the previous
+        // adapter on failure; never publish it under a newly requested format.
+        if (!candidate || !candidate->configure(config)) return NULL;
+        return candidate.get();
     }
     return g_projection.get();
 }
@@ -64,6 +73,7 @@ ProjectionAdapter* ensureProjectionAdapter(ImmersiveProjectionMode mode)
 ImmersiveRenderPipeline::ImmersiveRenderPipeline()
 {
     m_configured = false;
+    m_has_applied_config = false;
 }
 
 ImmersiveRenderPipeline* ImmersiveRenderPipeline::get()
@@ -81,16 +91,19 @@ void ImmersiveRenderPipeline::destroy()
 
 void ImmersiveRenderPipeline::setConfig(const ImmersiveRenderConfig& config)
 {
+    std::lock_guard<std::mutex> lock(m_snapshot_mutex);
     m_config = config;
     syncLegacyDomemasterSize(&m_config);
     m_configured = true;
     m_stats.beginFrame(m_config);
+    m_stats.m_configuration_applied = false;
     if (m_config.m_projection_mode != IMMERSIVE_PROJECTION_NONE &&
         !projectionIsAvailable(m_config.m_projection_mode))
     {
         m_stats.m_fallback_reason = std::string("projection_unavailable:") +
             projectionKindToString(m_config.m_projection_mode);
     }
+    m_stats_snapshot = m_stats;
     Log::info("ImmersiveRenderPipeline",
         "Configured capture=full_sphere_cubemap output=%s projection=%s status=%s size=%ux%u cubemap=%u camera=%s.",
         outputModeToString(config.m_output_mode),
@@ -102,14 +115,50 @@ void ImmersiveRenderPipeline::setConfig(const ImmersiveRenderConfig& config)
         cameraModeToString(config.m_camera_mode));
 }
 
+ImmersiveRenderConfig ImmersiveRenderPipeline::getConfig() const
+{
+    std::lock_guard<std::mutex> lock(m_snapshot_mutex);
+    return m_config;
+}
+
+ImmersiveRenderStats ImmersiveRenderPipeline::getStats() const
+{
+    std::lock_guard<std::mutex> lock(m_snapshot_mutex);
+    return m_stats_snapshot;
+}
+
+void ImmersiveRenderPipeline::publishStatsSnapshot()
+{
+    std::lock_guard<std::mutex> lock(m_snapshot_mutex);
+    if (!m_stats.m_fallback_reason.empty()) m_stats.m_configuration_applied = false;
+    m_stats_snapshot = m_stats;
+}
+
+void ImmersiveRenderPipeline::rejectRenderConfiguration(const std::string& reason)
+{
+    std::lock_guard<std::mutex> lock(m_snapshot_mutex);
+    if (m_has_applied_config) m_config = m_last_applied_config;
+    else m_config.m_output_mode = IMMERSIVE_OUTPUT_NONE;
+    m_stats.m_fallback_reason = reason;
+    m_stats.m_true_fulldome = false;
+    m_stats.m_publish_skipped++;
+}
+
 void ImmersiveRenderPipeline::renderFrame(float dt)
 {
-    if (!m_configured || !m_config.isEnabled() ||
+    const ImmersiveRenderConfig config = getConfig();
+    // Snapshot every exit without holding the mutex across GPU work.
+    struct StatsCommit
+    {
+        ImmersiveRenderPipeline* pipeline;
+        ~StatsCommit() { pipeline->publishStatsSnapshot(); }
+    } commit = { this };
+    if (!m_configured || !config.isEnabled() ||
         !RelaySessionController::get()->isRuntimeEnabled())
         return;
 
     RelaySessionSnapshot snapshot = RelaySessionController::get()->getSnapshot();
-    m_stats.beginFrame(m_config);
+    m_stats.beginFrame(config);
     m_stats.m_active_driver_index = snapshot.m_rotation.m_active_index;
     m_stats.m_active_driver_id = snapshot.m_rotation.m_active_player_id;
     m_stats.m_lap = snapshot.m_current_lap;
@@ -126,20 +175,20 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         g_camera_rig.reset(new ImmersiveCameraRig());
     if (!g_capture.get())
         g_capture.reset(new FullSphereCapture());
-    ProjectionAdapter* projection =
-        ensureProjectionAdapter(m_config.m_projection_mode);
+    // Candidate resources commit together only after a successful projection.
+    // Any early return frees candidates and leaves the previous frame resources.
+    std::unique_ptr<ProjectionAdapter> next_projection;
+    ProjectionAdapter* projection = ensureProjectionAdapter(config, next_projection);
     if (!projection)
     {
-        m_stats.m_fallback_reason = std::string("projection_unavailable:") +
-            projectionKindToString(m_config.m_projection_mode);
-        m_stats.m_true_fulldome = false;
-        m_stats.m_publish_skipped++;
+        rejectRenderConfiguration(std::string("projection_allocation_failed:") +
+            projectionKindToString(config.m_projection_mode));
         return;
     }
 
     const uint64_t frame_start = StkTime::getMonoTimeMs();
 
-    if (!g_camera_rig->update(m_config, snapshot, dt))
+    if (!g_camera_rig->update(config, snapshot, dt))
     {
         m_stats.m_fallback_reason = "no active relay camera target";
         m_stats.m_true_fulldome = false;
@@ -148,8 +197,19 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
     }
 
     const uint64_t capture_start = StkTime::getMonoTimeMs();
-    if (!g_capture->ensure(m_config.m_cubemap_size) ||
-        !g_capture->render(*g_camera_rig, dt))
+    std::unique_ptr<FullSphereCapture> next_capture;
+    FullSphereCapture* capture = g_capture.get();
+    if (capture->getSize() != config.m_cubemap_size)
+    {
+        next_capture.reset(new FullSphereCapture());
+        capture = next_capture.get();
+    }
+    if (!capture->ensure(config.m_cubemap_size))
+    {
+        rejectRenderConfiguration("full_sphere_allocation_failed");
+        return;
+    }
+    if (!capture->render(*g_camera_rig, dt))
     {
         m_stats.m_fallback_reason = "full-sphere cubemap capture failed";
         m_stats.m_true_fulldome = false;
@@ -160,14 +220,18 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
     m_stats.m_cubemap_render_time_ms = m_stats.m_capture_time_ms;
 
     const uint64_t projection_start = StkTime::getMonoTimeMs();
-    if (!projection->configure(m_config) ||
-        !projection->renderProjection(*g_capture, m_config, m_stats))
+    if (!projection->configure(config) ||
+        !projection->renderProjection(*capture, config, m_stats))
     {
-        m_stats.m_fallback_reason = "full-sphere to projection pass failed";
-        m_stats.m_true_fulldome = false;
-        m_stats.m_publish_skipped++;
+        rejectRenderConfiguration("full_sphere_projection_pass_failed");
         return;
     }
+    if (next_projection) g_projection.swap(next_projection);
+    if (next_capture) g_capture.swap(next_capture);
+    next_projection.reset();
+    next_capture.reset();
+    m_last_applied_config = config;
+    m_has_applied_config = true;
     m_stats.m_projection_time_ms = elapsedMs(projection_start);
     m_stats.m_true_fulldome = true;
     m_stats.m_projection_width = projection->getWidth();
@@ -180,11 +244,11 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
     frame.m_height = projection->getHeight();
     frame.m_projection_mode = projection->kind();
     frame.m_projection_id = projection->id();
-    frame.m_server_name = m_config.m_syphon_server_name;
+    frame.m_server_name = config.m_syphon_server_name;
 
     bool published = false;
     float publish_ms = 0.0f;
-    if (m_config.m_output_mode == IMMERSIVE_OUTPUT_WINDOW)
+    if (config.m_output_mode == IMMERSIVE_OUTPUT_WINDOW)
     {
         if (!g_window_output.get())
             g_window_output.reset(new DebugWindowOutputAdapter());
@@ -192,11 +256,11 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         m_stats.m_output_active = g_window_output->isActive();
         m_stats.m_output_publish_time_ms = publish_ms;
     }
-    else if (m_config.m_output_mode == IMMERSIVE_OUTPUT_SYPHON)
+    else if (config.m_output_mode == IMMERSIVE_OUTPUT_SYPHON)
     {
         if (!g_syphon_output.get())
             g_syphon_output.reset(new SyphonOutputAdapterMac());
-        if (g_syphon_output->initialize(m_config.m_syphon_server_name,
+        if (g_syphon_output->initialize(config.m_syphon_server_name,
                                         frame.m_width,
                                         frame.m_height))
         {
@@ -214,17 +278,19 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         }
     }
 
+    m_stats.m_configuration_applied = published;
     if (!published)
         m_stats.m_publish_skipped++;
     m_stats.recordFrame(elapsedMs(frame_start));
 
-    if (m_config.m_stats_enabled)
+    if (config.m_stats_enabled)
     {
         Log::info("ImmersiveRenderStats",
-            "mode=%s projection=%s size=%u cubemap=%u fps=%.1f frame=%.1fms last=%.1fms p95=%.1fms p99=%.1fms cubemap=%.1fms projection=%.1fms syphon=%.1fms skipped=%u capture=%.1fms output=%.1fms active_driver=%d lap=%d/%d server='%s'",
+            "mode=%s projection=%s size=%ux%u cubemap=%u fps=%.1f frame=%.1fms last=%.1fms p95=%.1fms p99=%.1fms cubemap=%.1fms projection=%.1fms syphon=%.1fms skipped=%u capture=%.1fms output=%.1fms active_driver=%d lap=%d/%d server='%s'",
             outputModeToString(m_stats.m_output_mode),
             projectionModeToString(m_stats.m_projection_mode),
             m_stats.m_projection_width,
+            m_stats.m_projection_height,
             m_stats.m_cubemap_size,
             m_stats.m_avg_fps,
             m_stats.m_avg_frame_time_ms,

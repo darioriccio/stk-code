@@ -60,6 +60,7 @@ public:
     float m_vertical_offset;
     float m_smoothing_factor;
     bool m_horizon_stabilization;
+    bool m_configuration_applied;
     bool m_output_active;
     bool m_output_available;
     bool m_syphon_active;

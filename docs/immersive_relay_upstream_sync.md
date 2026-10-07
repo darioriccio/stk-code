@@ -14,6 +14,7 @@ src/graphics/render_target.cpp
 src/graphics/render_target.hpp
 src/graphics/shader_based_renderer.cpp
 src/main.cpp
+src/main_loop.cpp
 src/modes/world.cpp
 src/race/race_manager.cpp
 src/states_screens/kart_selection.cpp
@@ -54,6 +55,11 @@ nested cubemap face renders. The additional methods are behind
 
 Adds command-line help and delegates relay command-line parsing, race defaults,
 local API startup and shutdown to `RelayMainHooks`.
+
+`src/main_loop.cpp`
+
+Drains authenticated operator jobs between frames when `ENABLE_RELAY_LOCAL_API`
+is enabled. Scene changes never run on the socket thread or inside World::update.
 
 `src/modes/world.cpp`
 

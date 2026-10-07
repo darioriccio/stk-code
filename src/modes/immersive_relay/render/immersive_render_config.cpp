@@ -117,7 +117,7 @@ const char* projectionStatusToString(ImmersiveProjectionMode mode)
     case IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER:
         return "production";
     case IMMERSIVE_PROJECTION_EQUIRECTANGULAR:
-        return "stub";
+        return "production";
     case IMMERSIVE_PROJECTION_CYLINDRICAL:
     case IMMERSIVE_PROJECTION_CUBE_FACES:
     case IMMERSIVE_PROJECTION_WALL_ATLAS:
@@ -175,7 +175,7 @@ const char* projectionOrientationToString(ImmersiveProjectionMode mode)
     case IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER:
         return "disc center is active-driver forward; top is camera up; bottom is track/kart down";
     case IMMERSIVE_PROJECTION_EQUIRECTANGULAR:
-        return "future: longitude 0 is active-driver forward; horizon centered";
+        return "top-left UV: +Z forward=(0.5,0.5), +X right=(0.75,0.5), -X left=(0.25,0.5), -Z back=seam, +Y zenith=top, -Y nadir=bottom";
     case IMMERSIVE_PROJECTION_CYLINDRICAL:
         return "future: center is active-driver forward";
     case IMMERSIVE_PROJECTION_CUBE_FACES:
@@ -266,12 +266,14 @@ bool parseOnOff(const std::string& value, bool* enabled)
 
 bool projectionIsAvailable(ImmersiveProjectionMode mode)
 {
-    return mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER;
+    return mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER ||
+           mode == IMMERSIVE_PROJECTION_EQUIRECTANGULAR;
 }
 
 bool projectionIsProduction(ImmersiveProjectionMode mode)
 {
-    return mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER;
+    return mode == IMMERSIVE_PROJECTION_FISHEYE_DOMEMASTER ||
+           mode == IMMERSIVE_PROJECTION_EQUIRECTANGULAR;
 }
 
 bool projectionIsSquare(ImmersiveProjectionMode mode)
@@ -304,6 +306,11 @@ unsigned int sanitizeEquirectWidth(int requested)
     if (requested == 2048 || requested == 4096 || requested == 8192)
         return (unsigned int)requested;
     return 2048;
+}
+
+bool validEquirectDimensions(unsigned int width, unsigned int height)
+{
+    return (width == 2048 || width == 4096 || width == 8192) && height == width / 2;
 }
 
 void syncLegacyDomemasterSize(ImmersiveRenderConfig* config)

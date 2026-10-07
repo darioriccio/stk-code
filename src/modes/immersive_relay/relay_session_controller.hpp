@@ -64,6 +64,10 @@ struct RelaySessionConfig
     bool m_allow_abort;
     bool m_require_handoff_confirm;
     bool m_auto_confirm_handoff;
+    bool m_music_enabled;
+    bool m_sfx_enabled;
+    float m_music_volume;
+    float m_sfx_volume;
     int m_briefing_seconds;
     int m_countdown_seconds;
     int m_player_count;
@@ -125,7 +129,11 @@ struct RelaySessionSnapshot
 {
     bool m_runtime_enabled;
     bool m_race_attached;
+    bool m_input_locked;
+    std::string m_loaded_track_id;
+    int m_world_elapsed_ms;
     bool m_paused;
+    bool m_presentation_ready;
     RelaySessionState m_state;
     unsigned int m_state_version;
     std::string m_session_id;
@@ -162,6 +170,10 @@ struct RelaySessionSnapshot
     bool m_allow_abort;
     bool m_require_handoff_confirm;
     bool m_auto_confirm_handoff;
+    bool m_music_enabled;
+    bool m_sfx_enabled;
+    float m_music_volume;
+    float m_sfx_volume;
     int m_briefing_seconds;
     int m_countdown_seconds;
     int m_countdown_remaining_ms;
@@ -177,6 +189,9 @@ struct RelaySessionSnapshot
     int m_remaining_ms;
     RelayHandoffPolicy m_handoff_policy;
     RelayPilotRotationSnapshot m_rotation;
+    std::vector<std::string> m_connected_player_ids;
+    float m_handoff_seconds;
+    float m_min_handoff_seconds;
     int m_crew_score;
     int m_crew_multiplier_x100;
     int m_engineer_boost_charge;
@@ -190,6 +205,8 @@ struct RelaySessionSnapshot
     std::string m_active_route_id;
     std::string m_last_crew_event;
     std::string m_last_crew_effect;
+    std::string m_crew_feedback_id;
+    std::string m_crew_feedback_message;
     std::vector<RelayCrewRoleAssignment> m_crew_assignments;
     std::vector<RelayCrewTrackEffect> m_track_effects;
     std::vector<RelayCrewCooldownSnapshot> m_cooldowns;
@@ -213,7 +230,13 @@ private:
     mutable std::mutex m_mutex;
     bool m_runtime_enabled;
     bool m_race_attached;
+    bool m_operator_controlled;
+    bool m_resume_countdown;
+    ArcadeSessionState m_state_before_pause;
+    std::string m_loaded_track_id;
+    int m_world_elapsed_ms;
     bool m_paused;
+    bool m_presentation_ready;
     RelaySessionState m_state;
     RelaySessionState m_state_before_handoff;
     unsigned int m_state_version;
@@ -230,6 +253,7 @@ private:
     std::vector<RelayPlayer> m_players;
     RelayPilotRotation m_rotation;
     CrewRoleManager m_crew_roles;
+    std::vector<std::string> m_connected_player_ids;
     CrewEventDirector m_event_director;
     std::vector<RelayCrewActionRequest> m_pending_crew_actions;
     std::map<std::string, std::string> m_track_effects;
@@ -319,8 +343,7 @@ private:
     void annotatePhoneStatesLocked(
         std::vector<RelayCrewPhoneState>* states,
         int now_ms) const;
-    void limitPhoneActionLoadLocked(
-        std::vector<RelayCrewPhoneState>* states) const;
+
     void updateProgressLocked(int current_lap, float lap_progress,
                               int checkpoint_id, float distance,
                               bool force_rotation);
@@ -335,6 +358,9 @@ public:
 
     void setRuntimeEnabled(bool enabled);
     bool isRuntimeEnabled() const;
+    void setOperatorControlled(bool enabled);
+    bool isWorldHeld() const;
+    void worldLoadFailed(const std::string& reason);
     void setDefaultPreset(const std::string& preset);
     void setDefaultPlayerCount(int player_count);
     void setArcadeUIEnabled(bool enabled);
@@ -358,7 +384,12 @@ public:
     bool configureArcadeSession(const RelaySessionConfig& config,
                                 const std::vector<RelayPlayer>& players,
                                 std::string* reject_reason);
+    void setPresentationReady(bool ready);
     bool operatorStart(std::string* reject_reason);
+    bool pilotReady(const std::string& player_id, std::string* reject_reason);
+    bool setCrewPresence(const std::string& session_id,
+                         const std::vector<std::string>& connected_player_ids,
+                         std::string* reject_reason);
     bool operatorCountdown(bool skip, std::string* reject_reason);
     bool operatorPause(std::string* reject_reason);
     bool operatorResume(std::string* reject_reason);

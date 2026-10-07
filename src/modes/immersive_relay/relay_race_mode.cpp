@@ -14,6 +14,7 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/abstract_kart_animation.hpp"
 #include "karts/controller/kart_control.hpp"
+#include "karts/controller/player_controller.hpp"
 #include "modes/immersive_relay/relay_session_controller.hpp"
 #include "physics/btKart.hpp"
 #include "race/race_manager.hpp"
@@ -210,8 +211,14 @@ void RelayRaceMode::captureHandoffFreezeTransforms()
     {
         AbstractKart* kart = getKart(i);
         if (kart)
+        {
+            // Clear remembered keyboard/gamepad actions, not only KartControl.
+            // A key held by the previous pilot must not revive after handoff.
+            if (kart->getController() && kart->getController()->isPlayerController())
+                static_cast<PlayerController*>(kart->getController())->resetInputState();
             m_handoff_hold_transforms.push_back(
                 kart->getBody()->getWorldTransform());
+        }
         else
             m_handoff_hold_transforms.push_back(btTransform::getIdentity());
     }
@@ -227,7 +234,11 @@ void RelayRaceMode::releaseHandoffFreeze()
     {
         AbstractKart* kart = getKart(i);
         if (kart && kart->getVehicle())
+        {
+            if (kart->getController() && kart->getController()->isPlayerController())
+                static_cast<PlayerController*>(kart->getController())->resetInputState();
             kart->getVehicle()->setAllBrakes(0.0f);
+        }
     }
 
     m_handoff_hold_transforms.clear();
@@ -364,13 +375,20 @@ void RelayRaceMode::updateRelayMessages(const AbstractKart* kart)
     if (rotation.m_handoff_active)
     {
         const int countdown = (rotation.m_handoff_remaining_ms + 999) / 1000;
-        if (countdown <= 3 && countdown > 0 &&
-            countdown != m_last_countdown_value)
+        if (!rotation.m_waiting_for_operator_confirm &&
+            countdown <= 3 && countdown > 0 && countdown != m_last_countdown_value)
         {
             gui->addMessage(StringUtils::toWString(countdown),
                 kart, 0.8f, video::SColor(255, 255, 255, 255),
                 true, true, true);
             m_last_countdown_value = countdown;
+        }
+        else if (rotation.m_waiting_for_operator_confirm && countdown == 0 &&
+                 m_last_countdown_value != 0)
+        {
+            gui->addMessage(StringUtils::utf8ToWide("NUOVO PILOTA: PREMI PRONTO"),
+                kart, 10.0f, video::SColor(255, 255, 255, 255), true, true, true);
+            m_last_countdown_value = 0;
         }
     }
 
@@ -386,9 +404,7 @@ void RelayRaceMode::update(int ticks)
 
     RelaySessionSnapshot snapshot =
         RelaySessionController::get()->getSnapshot();
-    if ((snapshot.m_player_count >= 2 &&
-         snapshot.m_rotation.m_handoff_active) ||
-        snapshot.m_paused)
+    if (RelaySessionController::get()->isWorldHeld())
     {
         if (!m_handoff_freeze_active)
             captureHandoffFreezeTransforms();
@@ -405,7 +421,7 @@ void RelayRaceMode::update(int ticks)
             updateRelayMessages(player_kart);
 
         snapshot = RelaySessionController::get()->getSnapshot();
-        if (snapshot.m_rotation.m_handoff_active || snapshot.m_paused)
+        if (RelaySessionController::get()->isWorldHeld())
             enforceHandoffFreeze();
         else
             releaseHandoffFreeze();
@@ -487,11 +503,7 @@ void RelayRaceMode::update(int ticks)
 
 void RelayRaceMode::updateTime(int ticks)
 {
-    RelaySessionSnapshot snapshot =
-        RelaySessionController::get()->getSnapshot();
-    if ((snapshot.m_player_count >= 2 &&
-         snapshot.m_rotation.m_handoff_active) ||
-        snapshot.m_paused)
+    if (RelaySessionController::get()->isWorldHeld())
     {
         return;
     }
@@ -506,7 +518,7 @@ void RelayRaceMode::newLap(unsigned int kart_index)
     if (player_kart && player_kart->getWorldKartId() == kart_index)
     {
         const int completed_laps = getLapForKart(kart_index);
-        if (completed_laps > 0 && !player_kart->hasFinishedRace())
+        if (completed_laps > 0)
         {
             RelaySessionController::get()->notifyLap(
                 completed_laps, getTime(), isSafeForHandoff(player_kart));

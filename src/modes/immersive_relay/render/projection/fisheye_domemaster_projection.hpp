@@ -24,11 +24,19 @@ class FisheyeDomemasterProjection : public ProjectionAdapter
 {
 private:
     unsigned int m_size;
+    unsigned int m_width;
+    unsigned int m_height;
     unsigned int m_texture;
     unsigned int m_publish_texture;
     unsigned int m_publish_texture_target;
+#ifndef SERVER_ONLY
     std::unique_ptr<FrameBuffer> m_frame_buffer;
+#endif
     bool m_logged_validation;
+
+protected:
+    // Shared six-face GPU projection target and Syphon publication path.
+    bool ensureTarget(unsigned int width, unsigned int height);
 
 public:
     FisheyeDomemasterProjection();
@@ -54,8 +62,8 @@ public:
     unsigned int getTexture() const { return m_publish_texture; }
     unsigned int getTextureTarget() const { return m_publish_texture_target; }
     unsigned int getSize() const { return m_size; }
-    unsigned int getWidth() const { return m_size; }
-    unsigned int getHeight() const { return m_size; }
+    unsigned int getWidth() const { return m_width; }
+    unsigned int getHeight() const { return m_height; }
     void destroy();
     bool blitToDefault() const;
 };

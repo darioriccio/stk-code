@@ -1,0 +1,450 @@
+{
+  "date": "2026-10-07",
+  "verification": "source_only_build_and_runtime_nonrun",
+  "files": {
+    "stk": [
+      {
+        "path": "data/immersive_relay/encounters/default_relay_encounters.json",
+        "sha256": "49a39efdcccfc5206b9dd91175e8e7b3c37ee9e72f148e7f450bf1e0821c6fa2"
+      },
+      {
+        "path": "data/immersive_relay/encounters/snowtuxpeak_relay_encounters.json",
+        "sha256": "5e6221928e8075daff233126bfdd238e4ba0c2b3432f5cd06f4fdefbd769e718"
+      },
+      {
+        "path": "data/shaders/immersive_equirectangular.frag",
+        "sha256": "2da70d6448fadf659a937fb4479c34cf02e0d223bf8a6a5139b2249498306379"
+      },
+      {
+        "path": "data/shaders/immersive_fisheye_domemaster.frag",
+        "sha256": "0684c3c1696be7c1499e5a9c0e75ce6db298fa4c0a3b40fa0e7081e2c99e530c"
+      },
+      {
+        "path": "data/shaders/utils/immersive_sphere_sampling.frag",
+        "sha256": "420c258113709b8f6c3a6630b24da182800369e608484d9e706d7cc434c84871"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/AUDIT.md",
+        "sha256": "9af6a586018fb7f0c79fa6b387930569bb06d68dd0e0d91e423ed4c71d80adb5"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/MVP_COMPLETA_IMPLEMENTAZIONE_2026-10-07.md",
+        "sha256": "1f2120e6a8afedc1e1e31edc6874b72e29c1bdcc5e6b476c2f6c1a3412b68b3e"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/MVP_IMPLEMENTAZIONE.md",
+        "sha256": "4641cb3123597cba65849bd98c3dea92ce44fa786349ce20998ac6093bfd3181"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/README.md",
+        "sha256": "ed3d51b491c0839226fe3c3cdb3d2a3870c72dba1a8a10cfb7c934ea11147b20"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/SURFACES_IMPLEMENTAZIONE_2026-10-07.md",
+        "sha256": "fcd6da97a6ee8069901827f77518a6d149a2d645e10cab881b64c9ce854057a6"
+      },
+      {
+        "path": "docs/immersive/audits/2026-10-07/SURFACES_RICONTROLLO_2026-10-07.md",
+        "sha256": "1ac259fa713b9d76e94b9bef291331b9da4e4a6936aec055c421429663db490d"
+      },
+      {
+        "path": "docs/immersive_relay_future_interactive_tracks.md",
+        "sha256": "c18727eefc0ed2bddae6a664c576fdc7dd5db0e06f65584f0f302949e1740d98"
+      },
+      {
+        "path": "docs/immersive_relay_tholustos_integration.md",
+        "sha256": "9769f9a22f071ea3a9225dd37b8e35db9341acc19e6d71410904e1701d27df83"
+      },
+      {
+        "path": "docs/immersive_relay_upstream_sync.md",
+        "sha256": "e8d9c681a697d489c6131edd17f881cb7612e11cdf47c334252c00d969560fc9"
+      },
+      {
+        "path": "sources.cmake",
+        "sha256": "a51b26ffca1d5a9f8c6d69bb150c6c7fe18403779b9278c77d8b47bd2b336d16"
+      },
+      {
+        "path": "src/input/input_manager.cpp",
+        "sha256": "a36d7ad6a08999e74b032ecea99a753904e4939bcc2e4ceee1274385faf2ed6f"
+      },
+      {
+        "path": "src/main.cpp",
+        "sha256": "bbbd8b2aab4ba5c1358530dd72554089363a3583aee1a6decdf663ffba309d34"
+      },
+      {
+        "path": "src/main_loop.cpp",
+        "sha256": "a000314fe28eae6e0bef1d7037f330f8bc6e9b3e82427adcbe875094f8c621d1"
+      },
+      {
+        "path": "src/modes/immersive_relay/arcade_session_state_machine.cpp",
+        "sha256": "bda17a865d742effb940c8ad0db4835f2ee6bc29caa80e7cf0ccef83661940d5"
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_action_handler.cpp",
+        "sha256": "adf8c12f386d19e69bc90b22890f5362520ef0649352583a4d5e590aeb7fa67d"
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_event_director.cpp",
+        "sha256": "ad10e3c1b1637ee0b7813fab0fd4672df005e22a8141f0c7d24c9967c5f057f3"
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_event_director.hpp",
+        "sha256": "90f3fb832bc4173ae768d316076ed2ec3ccce273a6f4ced1e1f9c4b5080776a0"
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_role_manager.cpp",
+        "sha256": "e4bf79575e664f66c1c2a88be01067c7614e5ff5483a909e89ae332c38101095"
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_role_manager.hpp",
+        "sha256": "0c0285629e504fcf37f402cd040a219503e427a58103e4eb4877d0502666c685"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_main_hooks.cpp",
+        "sha256": "54175488593223b0167f5e5732ca8075a5488f20d95861f8681de2a8c288213a"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_pilot_rotation.cpp",
+        "sha256": "096dd3219eb2132239a03326cb48b01fabe24525aa022912e810924bec5865ce"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_pilot_rotation.hpp",
+        "sha256": "0d65e970b2b1e38f8459a999e3a8399be6aa5b28c07b8f59927cb2ec3f8035b5"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+        "sha256": "4cc872b452c64e18648953b819500d9728341fd37dc7658bd93461aa40850afd"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+        "sha256": "d1d1ec2b0adfd47e2729e36623ae07250ba4eb051bb6b2aad6756f5f80421d6d"
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+        "sha256": "565914f549350598d6f65e93b42b19489c037330b06c0d47f96535c890134957"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/local_control_server.cpp",
+        "sha256": "a9c9d1a8705bdd07694b3be1a901344de497c75f647b15fbc6dc990f2502b7b2"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+        "sha256": "4b8cf30520a2323a9a77597f368bc4e82728f590898b62b52a6c97d9a79c91c2"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+        "sha256": "2b8196339fca2dbbd4ddf17e3e34ee7966f8eb260abebc290bf9d5f6d4078a6c"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.hpp",
+        "sha256": "fce748d95cadf5ed87e4651dec55d06abea05c8a634c78e15257c267859732c0"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_input_control.cpp",
+        "sha256": "0e337e3c8ec88ffa5ffe41086efb236d45d3d9d9d13f95924f4a651e70e2bb98"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_input_control.hpp",
+        "sha256": "7af395da1ada6be000c345fedde82b3358fdd76d728009d0edfe28e8f6a13474"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_state_publisher.cpp",
+        "sha256": "c36abc96b85a2823078addea5990bac0f083ceb26bd038234ae837a913d944b0"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_world_controller.cpp",
+        "sha256": "ec634599361ee5c4dba845b9e85fe43d9e624771439e837c91494749402904dc"
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_world_controller.hpp",
+        "sha256": "2a59dd9f35fef1f4f83e3a1bbfda6401d05f1610bd6c5881b86041d34fcb55b3"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/cubemap_render_target.cpp",
+        "sha256": "b9dc2392dbee227dc148ab3e882d24f20393ea1185ff9cb173d732f9fd451281"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/cubemap_render_target.hpp",
+        "sha256": "6a6faf6f8ed35a5947b3a4bfd7333ef7392e09de7e463244e4851d51c569b735"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/full_sphere_capture.hpp",
+        "sha256": "8e3eed0ecd9713b118129600daa6fe1cfdfd960d0edf6d2c83cfedef62f1dbc0"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_config.cpp",
+        "sha256": "639b1cf8be35d1377035e508d899b91ae64121270f6a6783ae0151b6721c0eb3"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_config.hpp",
+        "sha256": "66a72137e7f84a7946f8a15fc370d476e8434206ec2b4497f20674b18df18ba8"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_pipeline.cpp",
+        "sha256": "087b4e15a75c9e475c6bc44a5c72f6429770036409870bc64894c0b7b3d447d3"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_pipeline.hpp",
+        "sha256": "6185ee6fa6e405846e2eeadb9ad16b0cf5b5ab92e087999e9cbc2962940d05ae"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_stats.cpp",
+        "sha256": "c893ad6930bf0d3aa1d168a5eafee5fd61ca3e419f2e959d2b01b68ff4273587"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_stats.hpp",
+        "sha256": "fc8bf5713df287a55bb84bf390addcc9395fcda3bf44130594e8b8fe589d1603"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/equirectangular_projection.cpp",
+        "sha256": "38ea06c1302e549a9382cc852fcdeb3fa779e48c9ed1adcdd5dc88fb1acdce2b"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/equirectangular_projection.hpp",
+        "sha256": "74469ec6831e1f1cd30f7a2b82808fe6fd36c31b6ac4e292adbe6dbc37a07586"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/fisheye_domemaster_projection.cpp",
+        "sha256": "674f3139079795ce55dbe4e6241295223b9f78af4d68271bb876ba480df1335d"
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/fisheye_domemaster_projection.hpp",
+        "sha256": "492725daa09c962ee789d8c57f5ca2770eafc71d8a4455b7c8260c6fba8cd662"
+      },
+      {
+        "path": "tools/immersive/BuildRelayMVP.sh",
+        "sha256": "fad1b5aaf3238b226763c41cd572f6f5dcb9629b3a4ac9ae32cf510add4c5b28"
+      },
+      {
+        "path": "tools/immersive/CheckRelayProjectionSource.py",
+        "sha256": "ffc4cd026aeec58992496c2281ca6d913912e91e7b56368237107b43acb2094b"
+      },
+      {
+        "path": "tools/immersive/ProbeRelayCooperativeMVP.py",
+        "sha256": "7512001ae9a7aafba8e349a9667351e52a4563930661c080eed365238d00fab0"
+      },
+      {
+        "path": "tools/immersive/ProbeRelayInputMVP.py",
+        "sha256": "dd45ad7dca9a94cb8f929c55c5cb38784f0550925773a61f1202282f89570515"
+      },
+      {
+        "path": "tools/immersive/ProbeRelayMVP.py",
+        "sha256": "b6ff2fd58e43f90f916bde0260a4b8a0a2643998804ba3ca7f98b4aa1bfa95f5"
+      },
+      {
+        "path": "tools/immersive/ProbeRelayProjectionMVP.py",
+        "sha256": "9d5d5d2ca9b0d0e21edded2e12c3f9b373d278bffc0cfab383edd0f0fdfa739e"
+      },
+      {
+        "path": "tools/immersive/RunRelayArcadeMenu.command",
+        "sha256": "1cc40f9bbbfb935446e4e3877f09e3fb809113946defa5c975af4f580ebf50da"
+      },
+      {
+        "path": "tools/immersive/RunRelayKeyboardTest.command",
+        "sha256": "5b5d37740f316d3222181e664a9c6f1f126ec2e0391e690533e95d39260f7cc0"
+      },
+      {
+        "path": "tools/immersive/RunRelayTholusOS.command",
+        "sha256": "334f21113b44e9f65e292f3d7f7df694f1bb906d930c4e7f60927bb572df3846"
+      }
+    ],
+    "tholus": [
+      {
+        "path": "Modules/AmbientPlay/Debug/AmbientPlayOperatorController.swift",
+        "sha256": "2bfeab8c1324bb95e52add7c5fd60d6712f6e40557e21157574d55ecd5448da9"
+      },
+      {
+        "path": "Modules/AmbientPlay/Debug/AmbientPlayOperatorView.swift",
+        "sha256": "224957898da304cb67d9f7ac70f6e209851a6d457dfa2f7548af21f2db5b3bcf"
+      },
+      {
+        "path": "Modules/CalibrationEngine/MetalRenderer/DomeMetalRenderer.swift",
+        "sha256": "a8bb3ca1fc5dea59ec03d752a71987c007c14a22569ae05c5c5fd9de02989d9f"
+      },
+      {
+        "path": "Modules/CalibrationEngine/MetalRenderer/DomeOverlayRenderer.swift",
+        "sha256": "19bae761ce8673012a9ff754df5056c8d0db4f1c6766585e4d35570d6049400d"
+      },
+      {
+        "path": "Modules/CalibrationEngine/MetalRenderer/DomeRendererViewModel.swift",
+        "sha256": "31d69b49efad263c1e9985198fd03e4978c18a1edf696a4d5f4a6c28b5909686"
+      },
+      {
+        "path": "Modules/CalibrationEngine/MetalRenderer/DomeShaders.metal",
+        "sha256": "66afeb4dc28ffac92141f59754dedf3e6f1ea73b8440d91492252890b4f1ea6d"
+      },
+      {
+        "path": "Modules/GameShowControl/ExternalImmersiveGameAdapter.swift",
+        "sha256": "638f3c3aa9896f61a504c249172bad515d6a7b56150a47f779515e565cb4ce02"
+      },
+      {
+        "path": "Modules/GameShowControl/GameShowControlCatalog.swift",
+        "sha256": "7548a9d16fd38ee0106ce04833d57ca95885b86ba7d6c2652691cdd0ad8015f5"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSTKDiagnosticSink.swift",
+        "sha256": "e24e343f89bb8ab6c6f40f2be7f38f99dd16c44bf82f40326baf2f2b2a74e32f"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSTKDomeOverlayBridge.swift",
+        "sha256": "3ab378223be310ec8fb65696799f5d4a6798954ff376a85f3053204fe4ecae65"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSTKProcessLauncher.swift",
+        "sha256": "eb17e5890b152c1d16bf06f407d50af9328d73f2a2522db3d0a056ee26ae5887"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSTKSurfaceRoutingBridge.swift",
+        "sha256": "ec43ad82acf52cba1a28b7b09794345c412a38aee282a60187b5af276c39f403"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIClient.swift",
+        "sha256": "b625902f74561c7c29a6593bcff89d93936a87329e541f757f00f794f8958022"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIModels.swift",
+        "sha256": "eb7d3b985f219ca676ae318a4981569f9459de8e54567be37c9d5041529f38ce"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md",
+        "sha256": "35a465324209f27e97a83f284bac36f9e370873858c3b641462083b40ad219f1"
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+        "sha256": "bf49769804552a60f7893dd5ed151f86cffab6a2cae30637aa49f80729e4a9fc"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesConnectionViews.swift",
+        "sha256": "08530bbb174559e0a26f9df6ce17c3002be86daaea7282bf0ee954b2a6d8bf9d"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesPhoneParticipationView.swift",
+        "sha256": "e7fb7c1de1c04a9c8ebfc9578250c59dae8bec9df3cd7672b7b9e6440e8388b1"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesSTKInputDeviceView.swift",
+        "sha256": "6222d5a3eb030e0472a23bdd7016520a8d1fa6faafd0b2fce131270f38bc1577"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesSTKSurfaceOutputView.swift",
+        "sha256": "623f5ef1c5853143a6dfd88838aaf89fa3be29c1394bcff555b0cd502459b5d8"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesWorkspaceEntryView.swift",
+        "sha256": "1a7c116f078b160771b6ca919380ca0d47e67b24608a420e633c28ba7f5ea337"
+      },
+      {
+        "path": "Modules/GameShowControl/Workspace/GamesWorkspaceStore.swift",
+        "sha256": "f5e81d64b8da86a8581ac858177fe06485c96ac7615cfec2bf8770b42b327040"
+      },
+      {
+        "path": "Modules/LocalServer/EventPages/immersive-stk-phone.css",
+        "sha256": "1425adb1b7c129733ae212249cd12b9b85deb39786b68caa89782be13a48d759"
+      },
+      {
+        "path": "Modules/LocalServer/EventPages/immersive-stk-phone.html",
+        "sha256": "5fd56e961e6b86cb38fa33690e36c44157663ed35e144765517b7e2dea383196"
+      },
+      {
+        "path": "Modules/LocalServer/EventPages/immersive-stk-phone.js",
+        "sha256": "7a097a62077123e9e202d3320de93c811b12acad6f85768c5dd9e775bde0247c"
+      },
+      {
+        "path": "Modules/LocalServer/LocalServerManager.swift",
+        "sha256": "f3afad4c1ae3fdfedd8f7fe886b1b7fabeca6bb15ae2914bd230864b434a9fb7"
+      },
+      {
+        "path": "Modules/Shared/DomeOutputFrameState.swift",
+        "sha256": "75c09368537e531645ca901c11184172576087d4681a8c96b8102dd193f86a3e"
+      },
+      {
+        "path": "Modules/Shared/DomeSafeAreaPolicy.swift",
+        "sha256": "eeaeb15a92ea43993e10d0ce0e8b978110706f5ecf7f26326fa75236ecd6fbf1"
+      },
+      {
+        "path": "Modules/Shared/MediaBus.swift",
+        "sha256": "df3d371fa51c6cb8700191f380e80cf4bd12ce97d75389853c2a04b901463443"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/DomeVideoCompositeShaders.metal",
+        "sha256": "dc3178db3645c5fedc464bc87d6dc5cdc55154857cc257f79498c1755180f5fa"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/LayeredVideoDeckEngine.swift",
+        "sha256": "eb5c3ed7e03077b6a357c0e9d8db7eb313dd764c94e5f8039c8276ce97d5b316"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/LiveVideoCompositeSource.swift",
+        "sha256": "514d0e2381cb915166764fe8f7c752a23171ca796daa1153133951ce771bc855"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/SurfaceCompositionImmersiveMapping.swift",
+        "sha256": "95c96febdd6b6591c7215bea2328eca51640a0474b4b0a35dbb1a76a2227fc25"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/SurfaceVideoCompositeShaders.metal",
+        "sha256": "c3467bbd4fb30854a330fe112763f9a21faa5bd772580a010ccf5196881b92ca"
+      },
+      {
+        "path": "Modules/Shared/VideoCompositing/SurfaceVideoCompositor.swift",
+        "sha256": "74670ff12204e872d7c925a95e3eaac1bf2aca4989109b14b67167d7471e7b82"
+      },
+      {
+        "path": "Modules/VideoInputs/VideoInputManager.swift",
+        "sha256": "c7e675f4e9db31d2284fbea90c1fd94466e09c7478439528516f04cfd5e23fb2"
+      },
+      {
+        "path": "Modules/VideoPlayer/VideoPlayerViewModel.swift",
+        "sha256": "905867e01d22b9917124a992a0d319608fc95714f70a736914f253415c94343c"
+      },
+      {
+        "path": "Packages/TholusCore/Sources/TholusCore/Validation/EventValidator.swift",
+        "sha256": "7d61a79b88ce9fff8ff92ab638c193a179581131138438034b656a8a98d00072"
+      },
+      {
+        "path": "Packages/TholusMediaModel/Sources/TholusMediaModel/LiveVideoCompositeSource.swift",
+        "sha256": "76a53120a6d3696f7b4530e833d5e507d8e11587add8fbf94f4d82407544bb6f"
+      },
+      {
+        "path": "Packages/TholusMediaModel/Sources/TholusMediaModel/RuntimeOverlayModels.swift",
+        "sha256": "accf531a644753368b94eccbe03756c98d885d9a09dd01419cb9e20c3a5d86c9"
+      },
+      {
+        "path": "Packages/TholusMediaModel/Sources/TholusMediaModel/SurfaceCompositionImmersiveGPU.swift",
+        "sha256": "e157c9917325c5ce3a2d6c38cfab91e927732828f838acd2f81b32adc6ccfc20"
+      },
+      {
+        "path": "Packages/TholusMediaModel/Sources/TholusMediaModel/SurfaceCompositionImmersiveMapping.swift",
+        "sha256": "07fa05a3d76aef1740c039d278a559f95ea10ddab320417073493a8252932644"
+      },
+      {
+        "path": "Packages/TholusMediaModel/Sources/TholusMediaModel/SurfaceCompositionImmersiveProjection.swift",
+        "sha256": "377b0455b390fec21c8de637385b513bd94fe7502b016ddfeb3e39cc0f82685d"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/AmbientMotionBridgeTests.swift",
+        "sha256": "236c9866262d344bb8226cf3107d45eeaee7b80ead23351b00ed4d7b668e145f"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/GamesPhonePresenceTests.swift",
+        "sha256": "a0d3efde85250c4c05208a6c639de761af2b432de01a79cf900b2df6bacae4d7"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/ImmersiveSTKPresentationTests.swift",
+        "sha256": "ce0c47c16a309c702445e263bb2b3001cdb32f241b5e30d4518acead2937b1b7"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/ImmersiveSTKSurfaceRoutingTests.swift",
+        "sha256": "8c2922e5addc08bba1f176d1b56cb268605ae53fce3b1bcc49270c33e6ad38c2"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/ImmersiveSTKSurfaceRuntimeTests.swift",
+        "sha256": "71bb0477d877173ffbad058a5f8b6566f8f52e93c50b8a83ed5a5f9c28d6d096"
+      },
+      {
+        "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+        "sha256": "7b6048ba85b385b9a409846e8789b8c1d5df2fe97b3b9ac3cfffd139fb7dd860"
+      }
+    ]
+  }
+}

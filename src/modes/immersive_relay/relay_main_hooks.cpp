@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_RELAY_LOCAL_API
 #include "modes/immersive_relay/remote/local_control_server.hpp"
+#include "modes/immersive_relay/remote/relay_game_dispatcher.hpp"
 #endif
 
 #include <cstdlib>
@@ -52,11 +53,21 @@ void handleCommandLineOptions()
         RelaySessionController::get()->setRuntimeEnabled(true);
         RaceManager::get()->setMinorMode(RaceManager::MINOR_MODE_NORMAL_RACE);
     }
+    if (CommandLine::has("--relay-presentation-required"))
+    {
+        RelaySessionController::get()->setRuntimeEnabled(true);
+        RelaySessionController::get()->setPresentationReady(false);
+    }
     if (CommandLine::has("--relay-arcade-ui"))
     {
         RelaySessionController::get()->setRuntimeEnabled(true);
         RelaySessionController::get()->setArcadeUIEnabled(true);
         RaceManager::get()->setMinorMode(RaceManager::MINOR_MODE_NORMAL_RACE);
+    }
+    if (CommandLine::has("--relay-operator-controlled"))
+    {
+        RelaySessionController::get()->setRuntimeEnabled(true);
+        RelaySessionController::get()->setOperatorControlled(true);
     }
     if (CommandLine::has("--relay-session-preset", &s))
     {
@@ -100,6 +111,29 @@ void handleCommandLineOptions()
         render_config.m_domemaster_size = sanitized;
         render_config.m_projection_width = sanitized;
         render_config.m_projection_height = sanitized;
+    }
+    bool projection_dimensions_seen = false;
+    if (CommandLine::has("--immersive-projection-width", &n))
+    {
+        render_config_seen = true; projection_dimensions_seen = true;
+        render_config.m_projection_width = n > 0 ? (unsigned int)n : 0;
+    }
+    if (CommandLine::has("--immersive-projection-height", &n))
+    {
+        render_config_seen = true; projection_dimensions_seen = true;
+        render_config.m_projection_height = n > 0 ? (unsigned int)n : 0;
+    }
+    if (render_config.m_projection_mode == ImmersiveRelay::IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
+    {
+        if (!projection_dimensions_seen)
+        { render_config.m_projection_width = 2048; render_config.m_projection_height = 1024; }
+        if (!ImmersiveRelay::validEquirectDimensions(render_config.m_projection_width, render_config.m_projection_height))
+        {
+            Log::warn("main", "Invalid equirectangular dimensions; require 2048x1024, 4096x2048 or 8192x4096. Output disabled.");
+            render_config.m_output_mode = ImmersiveRelay::IMMERSIVE_OUTPUT_NONE;
+        }
+        // The full sphere keeps a level front; dome camera pitch is not implicit.
+        render_config.m_pitch_deg = 0.0f;
     }
     if (CommandLine::has("--immersive-cubemap-size", &n))
     {
@@ -182,7 +216,7 @@ void handleCommandLineOptions()
                 render_config.m_projection_mode))
         {
             Log::warn("main",
-                "Immersive projection '%s' is %s in this build; only fisheye_domemaster is production in Phase 4.6.",
+                "Immersive projection '%s' is %s in this build; it has no implemented adapter.",
                 ImmersiveRelay::projectionKindToString(
                     render_config.m_projection_mode),
                 ImmersiveRelay::projectionStatusToString(
@@ -270,6 +304,7 @@ void shutdown()
     ImmersiveRelay::ImmersiveRenderPipeline::get()->shutdown();
     ImmersiveRelay::ImmersiveRenderPipeline::destroy();
 #ifdef ENABLE_RELAY_LOCAL_API
+    RelayGameDispatcher::stop();
     LocalControlServer::get()->stop();
     LocalControlServer::destroy();
 #endif

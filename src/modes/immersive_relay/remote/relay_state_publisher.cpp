@@ -246,9 +246,7 @@ void writeArcadeSession(std::ostringstream& out,
     out << ",\"handoff_active\":"
         << (r.m_handoff_active ? "true" : "false");
     out << ",\"input_locked\":"
-        << ((r.m_handoff_active || snapshot.m_paused ||
-             snapshot.m_arcade_state == ARCADE_STATE_PAUSED)
-            ? "true" : "false");
+        << (snapshot.m_input_locked ? "true" : "false");
     out << ",\"handoff_countdown\":";
     if (r.m_handoff_active)
         out << handoff_countdown;
@@ -332,6 +330,12 @@ void writeArcadeSession(std::ostringstream& out,
         << (snapshot.m_require_handoff_confirm ? "true" : "false");
     out << ",\"auto_confirm_handoff\":"
         << (snapshot.m_auto_confirm_handoff ? "true" : "false");
+    out << ",\"handoff_seconds\":" << snapshot.m_handoff_seconds;
+    out << ",\"min_handoff_seconds\":" << snapshot.m_min_handoff_seconds;
+    out << ",\"music_enabled\":" << (snapshot.m_music_enabled ? "true" : "false");
+    out << ",\"sfx_enabled\":" << (snapshot.m_sfx_enabled ? "true" : "false");
+    out << ",\"music_volume\":" << snapshot.m_music_volume;
+    out << ",\"sfx_volume\":" << snapshot.m_sfx_volume;
     out << "}";
     out << ",\"report\":";
     if (snapshot.m_arcade_state == ARCADE_STATE_RESULTS ||
@@ -367,15 +371,25 @@ std::string RelayStatePublisher::stateJson(
     out << ",\"relay_enabled\":" << (snapshot.m_runtime_enabled ? "true" : "false");
     out << ",\"arcade_ui\":" << (snapshot.m_arcade_ui ? "true" : "false");
     out << ",\"race_attached\":" << (snapshot.m_race_attached ? "true" : "false");
+    out << ",\"presentation_ready\":" << (snapshot.m_presentation_ready ? "true" : "false");
     out << ",\"paused\":" << (snapshot.m_paused ? "true" : "false");
     out << ",\"state\":\"" << RelaySessionController::stateToString(snapshot.m_state) << "\"";
     out << ",\"arcade_state\":\""
         << ArcadeSessionStateMachine::stateToString(
             snapshot.m_arcade_state) << "\"";
     out << ",\"state_version\":" << snapshot.m_state_version;
+    out << ",\"connected_player_ids\":[";
+    for (unsigned int i = 0; i < snapshot.m_connected_player_ids.size(); ++i)
+    {
+        if (i) out << ',';
+        out << '\"' << jsonEscape(snapshot.m_connected_player_ids[i]) << '\"';
+    }
+    out << ']';
     out << ",\"session_id\":\"" << jsonEscape(snapshot.m_session_id) << "\"";
     out << ",\"preset\":\"" << jsonEscape(snapshot.m_preset) << "\"";
     out << ",\"track_id\":\"" << jsonEscape(snapshot.m_track_id) << "\"";
+    out << ",\"loaded_track_id\":\"" << jsonEscape(snapshot.m_loaded_track_id) << "\"";
+    out << ",\"world_elapsed_ms\":" << snapshot.m_world_elapsed_ms;
     out << ",\"gameplay_seconds\":" << snapshot.m_gameplay_seconds;
     out << ",\"slot_seconds\":" << snapshot.m_slot_seconds;
     out << ",\"player_count\":" << snapshot.m_player_count;
@@ -439,6 +453,8 @@ std::string RelayStatePublisher::stateJson(
         << jsonEscape(snapshot.m_last_crew_event) << "\"";
     out << ",\"last_crew_effect\":\""
         << jsonEscape(snapshot.m_last_crew_effect) << "\"";
+    out << ",\"crew_feedback\":{\"id\":\"" << jsonEscape(snapshot.m_crew_feedback_id)
+        << "\",\"message\":\"" << jsonEscape(snapshot.m_crew_feedback_message) << "\"}";
     out << ",\"adaptive_difficulty_enabled\":"
         << (snapshot.m_adaptive_difficulty.m_enabled ? "true" : "false");
     out << ",\"adaptive_difficulty_profile\":\""
@@ -728,6 +744,7 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << "{";
     out << "\"ok\":true";
     out << ",\"api_version\":1";
+    out << ",\"feature_flags\":[\"crew_presence\",\"pilot_ready\",\"continuous_crew_actions\",\"input_devices\",\"presentation_readiness_gate\"]";
     out << ",\"service\":\"immersive_supertuxkart\"";
     out << ",\"status\":\"" << (api_active ? "ready" : "starting") << "\"";
     out << ",\"relay_enabled\":"
@@ -760,7 +777,10 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << ",\"supported_projections\":[";
     out << "{\"type\":\"fisheye_domemaster\",\"status\":\"production\","
            "\"aspect\":\"1:1\",\"coverage\":\"front-facing 180\"}";
-    out << ",{\"type\":\"equirectangular\",\"status\":\"stub\"}";
+    out << ",{\"type\":\"equirectangular\",\"status\":\"production\","
+           "\"aspect\":\"2:1\",\"coverage\":\"360x180 full sphere\","
+           "\"widths\":[2048,4096,8192],\"venue_validation\":\"pending\","
+           "\"orientation\":\"top-left UV; +Z center; +X right; +Y top; -Z seam\"}";
     out << ",{\"type\":\"cylindrical\",\"status\":\"stub\"}";
     out << ",{\"type\":\"cube_faces\",\"status\":\"stub\"}";
     out << ",{\"type\":\"wall_atlas\",\"status\":\"stub\"}";
@@ -778,6 +798,12 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << ",\"target\":{\"projection\":\"fisheye_domemaster\","
            "\"domemaster_size\":2048,\"cubemap_size\":1024,"
            "\"status\":\"pending_mac_mini_m1_benchmark\"}";
+    out << ",\"equirectangular_debug\":{\"projection\":\"equirectangular\","
+           "\"projection_width\":2048,\"projection_height\":1024,\"cubemap_size\":512,\"status\":\"implemented_unverified\"}";
+    out << ",\"equirectangular_safe\":{\"projection\":\"equirectangular\","
+           "\"projection_width\":2048,\"projection_height\":1024,\"cubemap_size\":768,\"status\":\"default_unverified\"}";
+    out << ",\"equirectangular_target\":{\"projection\":\"equirectangular\","
+           "\"projection_width\":4096,\"projection_height\":2048,\"cubemap_size\":1024,\"status\":\"pending_benchmark\"}";
     out << "}";
     out << ",\"camera_presets\":{";
     out << "\"safe\":{\"mode\":\"stabilized_chase\","
@@ -785,7 +811,7 @@ std::string RelayStatePublisher::capabilitiesJson(
            "\"vertical_offset\":0.40,\"smoothing_factor\":0.16,"
            "\"horizon_stabilization\":true,\"roll_limit_deg\":12}";
     out << "}";
-    out << ",\"player_count\":{\"min\":2,\"max\":6}";
+    out << ",\"player_count\":{\"min\":1,\"max\":6}";
     out << ",\"lap_policy\":\"player_count_based\"";
     out << ",\"handoff_policy\":\"lap_based_handoff\"";
     out << ",\"crew_roles\":[\"navigator\",\"engineer\",\"defender\","
@@ -797,6 +823,7 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << "\"GET /state\"";
     out << ",\"GET /operator/state\"";
     out << ",\"GET /capabilities\"";
+    out << ",\"GET /tracks\"";
     out << ",\"POST /operator/configure\"";
     out << ",\"POST /operator/start\"";
     out << ",\"POST /operator/countdown\"";
@@ -808,6 +835,7 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << ",\"POST /operator/handoff/confirm\"";
     out << ",\"POST /operator/render-preset\"";
     out << ",\"POST /render/config\"";
+    out << ",\"POST /render/readiness\"";
     out << ",\"POST /crew/action\"";
     out << "]";
     out << "}";

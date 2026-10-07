@@ -151,6 +151,9 @@ bool CubemapRenderTarget::ensure(unsigned int size)
     if (m_size == size && m_camera_node && m_faces[0].get())
         return true;
 
+    GLint maximum = 0;
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maximum);
+    if (!size || size > (unsigned int)maximum) return false;
     destroy();
     m_size = size;
     m_camera_node = irr_driver->addCameraSceneNode();
@@ -202,6 +205,26 @@ bool CubemapRenderTarget::ensure(unsigned int size)
     glGenFramebuffers(1, (GLuint*)&m_copy_frame_buffer);
     glGenFramebuffers(1, (GLuint*)&m_depth_copy_frame_buffer);
 
+    bool allocation_valid = m_cube_texture && m_depth_cube_texture &&
+                            m_copy_frame_buffer && m_depth_copy_frame_buffer;
+    const GLuint cubes[2] = { (GLuint)m_cube_texture, (GLuint)m_depth_cube_texture };
+    for (unsigned int c=0; c<2 && allocation_valid; c++)
+    {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubes[c]);
+        for (unsigned int i=0; i<CUBEMAP_FACE_COUNT && allocation_valid; i++)
+        {
+            GLint width=0, height=0;
+            glGetTexLevelParameteriv(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_TEXTURE_WIDTH, &width);
+            glGetTexLevelParameteriv(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_TEXTURE_HEIGHT, &height);
+            allocation_valid = width == (GLint)size && height == (GLint)size;
+        }
+    }
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    if (!allocation_valid)
+    {
+        Log::error("CubemapRenderTarget", "Cannot allocate %ux%u sphere capture.", size, size);
+        destroy(); return false;
+    }
     for (unsigned int i = 0; i < CUBEMAP_FACE_COUNT; i++)
     {
         std::ostringstream name;

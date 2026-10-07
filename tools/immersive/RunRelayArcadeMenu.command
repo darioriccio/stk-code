@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="${0:A:h}"
 REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 APP="$REPO_DIR/cmake_build_relay_phase1/bin/supertuxkart.app/Contents/MacOS/supertuxkart"
 

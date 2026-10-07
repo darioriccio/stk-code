@@ -68,6 +68,7 @@ private:
     bool m_operator_confirm_required;
     bool m_operator_confirmed;
     float m_handoff_started_at;
+    float m_confirmation_at;
     float m_last_handoff_at;
     float m_next_timeout_at;
     float m_handoff_seconds;

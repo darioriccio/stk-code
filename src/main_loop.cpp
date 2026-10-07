@@ -19,6 +19,12 @@
 
 #include "main_loop.hpp"
 
+// THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: main-thread local API commands
+#ifdef ENABLE_RELAY_LOCAL_API
+#include "modes/immersive_relay/remote/relay_game_dispatcher.hpp"
+#endif
+// THOLUS_IMMERSIVE_RELAY_HOOK_END
+
 #ifdef MOBILE_STK
 #include "addons/addons_manager.hpp"
 #endif
@@ -457,6 +463,11 @@ void MainLoop::run()
         PROFILER_PUSH_CPU_MARKER("Main loop", 0xFF, 0x00, 0xF7);
         TimePoint frame_start = std::chrono::steady_clock::now();
 
+        // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: change worlds between frames
+#ifdef ENABLE_RELAY_LOCAL_API
+        RelayGameDispatcher::drain();
+#endif
+        // THOLUS_IMMERSIVE_RELAY_HOOK_END
         left_over_time += getLimitedDt();
         int num_steps   = stk_config->time2Ticks(left_over_time);
         float dt = stk_config->ticks2Time(1);
