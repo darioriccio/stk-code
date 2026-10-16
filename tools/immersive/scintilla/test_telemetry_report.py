@@ -50,6 +50,7 @@ class ReportTests(unittest.TestCase):
             {'type': 'input_note', 't': 4 * S, 'kind': 'rejected', 'reason': 'fire_rate_limited'},
         ))['aim']
         self.assertEqual((s['presses'], s['automatic']), (4, 1))
+        self.assertEqual(s['toolPresses'], 1)
         self.assertEqual(s['results'], {'hit': 2, 'miss': 2})
         self.assertAlmostEqual(s['hitRate'], .5)
         self.assertAlmostEqual(s['nearMissShare'], .5)  # 0.5 deg within one radius, 3 deg is not
@@ -113,21 +114,24 @@ class ReportTests(unittest.TestCase):
             {'type': 'sample', 't': 1, 'gameplay': True, 'attackable': 0, 'capsules': 0, 'defense': 'cooldown', 'boostReady': False},
             {'type': 'sample', 't': 2, 'gameplay': False, 'attackable': 0},
             {'type': 'latency_flash', 't': 3},
+            {'type': 'rescue', 't': 3, 'lap': 0, 'trackM': 411.6},
             {'type': 'latency_presented', 't': 4, 'poseUs': 1000, 'receivedUs': 21000, 'captureUs': 31000,
              'presentedLowUs': 71000, 'presentedHighUs': 88000},
             {'type': 'presentation', 't': 5, 'captureToPresentedP50Ms': 40, 'captureToPresentedP90Ms': 55},
             {'type': 'sample', 't': 6, 'gameplay': False, 'frameMaxMs': 17},
             {'type': 'sample', 't': 7, 'gameplay': False, 'frameMaxMs': 300},
-            {'type': 'sample', 't': 8, 'gameplay': False, 'frameMaxMs': 700},
+            {'type': 'sample', 't': 8, 'gameplay': False, 'frameMaxMs': 700, 'depthSkippedPinned': 2, 'depthSkippedBudget': 1},
         ))
         activity, latency = s['activity'], s['latency']
         self.assertEqual(activity['samples'], 2)
+        self.assertEqual((activity['rescues'], activity['rescueTrackM']), (1, [412]))
         self.assertAlmostEqual(activity['nothingToDoShare'], .5)
         self.assertEqual((latency['probes'], latency['presented']), (1, 1))
         self.assertEqual((latency['poseToReceivedMsP50'], latency['receivedToCaptureMsP50'],
                           latency['captureToPresentedMsP50'], latency['poseToPresentedMsP50']), (20, 10, 40, 70))
         self.assertEqual(latency['framePresentationP50Ms'], 40)
         self.assertEqual((latency['frameMaxMs'], latency['stallsOver250Ms'], latency['stallsOver600Ms']), (700, 2, 1))
+        self.assertEqual(latency['depthSkipped'], 3)
 
     def test_stall_rows_count_even_without_samples(self):
         latency = self.summary(session({'type': 'stall', 't': 1, 'ms': 1150.5}, {'type': 'stall', 't': 2, 'ms': 300}))['latency']

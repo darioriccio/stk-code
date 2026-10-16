@@ -188,6 +188,7 @@ struct Runtime::Impl
     std::deque<InputNote> notes;
     VisibilityOracle visibility;
     FramePinOracle pin;
+    FramePendingOracle depthPending;
     QueryLeaseOracle queryLease;
     LiveTargetOracle live;
 
@@ -646,6 +647,7 @@ std::vector<HitEvent> Runtime::drainResolved(){std::vector<HitEvent> out(m->reso
 std::vector<InputNote> Runtime::drainNotes(){std::vector<InputNote> out(m->notes.begin(),m->notes.end());m->notes.clear();return out;}
 const ScintillaTuning::Input& Runtime::tuning()const{return m->tuning;}
 void Runtime::setFramePinOracle(const FramePinOracle& o){m->pin=o;}
+void Runtime::setFramePendingOracle(const FramePendingOracle& o){m->depthPending=o;}
 void Runtime::setQueryLeaseOracle(const QueryLeaseOracle& o){m->queryLease=o;}
 void Runtime::setLiveTargetOracle(const LiveTargetOracle& o){m->live=o;}
 void Runtime::reset(const std::string& reason){m->invalidate(reason);}
@@ -1305,6 +1307,9 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
                 if(reply.status!=200)
                 {
                     const J response=Parser(reply.json).parse();
+                    // Earlier accepted proof and readiness stand; nothing is disarmed.
+                    if(std::string(operation)=="presentation"&&reply.status==409&&text(response,"reason")=="depth_history_pending")
+                    {presentationAccepted=false;presentationReason="depth_history_pending";continue;}
                     if(std::string(operation)=="presentation"&&reply.status==409&&(text(response,"reason")=="frame_history_unavailable"||text(response,"reason")=="depth_history_unavailable"))
                     {presentationAccepted=false;presentationReason=text(response,"reason");m->historyReady=false;m->stop(presentationReason);continue;}
                     m->invalidate("invalid_update_context");return reply;
@@ -1433,7 +1438,9 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
             if(m->pin)for(const auto& run:runs)
             {
                 auto frame=std::find_if(m->frames.begin(),m->frames.end(),[&](const Frame& f){return f.id==run.id;});
-                if(!m->pin(*frame))return error(409,"depth_history_unavailable");
+                // A copy still in flight on the GPU is a few milliseconds from
+                // usable: refuse this proof only, the next one names it again.
+                if(!m->pin(*frame))return error(409,m->depthPending&&m->depthPending(*frame)?"depth_history_pending":"depth_history_unavailable");
             }
             if(!m->historyReady){m->activationNotBefore=std::max(m->activationNotBefore,now);m->historyReady=true;}
             m->presented=std::move(runs);m->proofHostFrom=hostFrom;m->proofHostUntil=hostUntil;m->timingRevision=revision;m->resolve(now);return ok("presentation_recorded");

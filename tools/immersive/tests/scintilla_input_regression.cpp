@@ -511,6 +511,34 @@ void restrictiveHistoryHintDisarmsAndRecoveryRequiresPostReadinessRelease()
  CHECK(r.route("/spatial/input",edgeAt("after_recovery_press","pressed",9,1002100,0,"secondary"),1003000).status==200);
  CHECK(r.reticles()[0].toolHeld&&r.stateJSON().find("\"prepared\":true")!=std::string::npos);
 }
+void pendingDepthCopyRefusesOnlyThatProofWithoutDisarming()
+{
+ Runtime r;ready(r);r.addFrame(frame(1));
+ CHECK(r.route("/spatial/input",edgeAt("pending_release","released",0,999990,0,"secondary"),1000000).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("pending_hold","pressed",1,999990,0,"secondary"),1000000).status==200);
+ CHECK(r.reticles()[0].toolHeld);
+ bool copied=false,inFlight=true;unsigned asked=0;
+ r.setFramePinOracle([&](const Frame&)->std::shared_ptr<void>{return copied?std::make_shared<unsigned>(1):std::shared_ptr<void>();});
+ r.setFramePendingOracle([&](const Frame&){++asked;return inFlight;});
+ const std::string batch="{\"contract\":\"tholus.stk-spatial/1\",\"presentation\":"+presentation()+",\"inputs\":[]}";
+ Reply deferred=r.route("/spatial/update",batch,1000000);
+ CHECK(deferred.status==200&&deferred.json.find("\"presentationAccepted\":false")!=std::string::npos);
+ CHECK(deferred.json.find("depth_history_pending")!=std::string::npos&&asked==1);
+ // Grant, readiness and the held tool are all untouched.
+ CHECK(r.reticles()[0].toolHeld&&r.stateJSON().find("\"historyReady\":true")!=std::string::npos);
+ CHECK(r.stateJSON().find("\"prepared\":true")!=std::string::npos);
+ copied=true;
+ // The same proof is accepted once the copy completes; the held press then
+ // resolves normally against it.
+ Reply accepted=r.route("/spatial/update",batch,1001000);
+ CHECK(accepted.status==200&&accepted.json.find("presentationAccepted")==std::string::npos);
+ CHECK(r.stateJSON().find("\"historyReady\":true")!=std::string::npos);
+ // A copy that is gone rather than in flight still withdraws readiness.
+ copied=false;inFlight=false;
+ Reply lost=r.route("/spatial/update",batch,1001500);
+ CHECK(lost.json.find("depth_history_unavailable")!=std::string::npos);
+ CHECK(r.stateJSON().find("\"historyReady\":false")!=std::string::npos);
+}
 void actualDepthReadinessOverridesPositiveHintWithoutRevokingGrant()
 {
  Runtime r;ready(r);r.addFrame(frame(1));

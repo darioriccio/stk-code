@@ -142,10 +142,17 @@ void RelayPlayerController::reset()
 
 void RelayPlayerController::update(int ticks)
 {
+    // The player pass recentres an unheld steer before the autopilot runs, and
+    // the AI limits its own change per tick to the same rate: the two cancel
+    // and the kart barely turns. Hand the AI back the steer it last chose.
+    const float steer = m_controls->getSteer();
     LocalPlayerController::update(ticks);
     // The autopilot writes the same kart controls after the player pass.
     if (m_autopilot)
+    {
+        m_controls->setSteer(steer);
         m_autopilot->update(ticks);
+    }
 
     if (!RelaySessionController::get()->isHumanInputLocked())
     {

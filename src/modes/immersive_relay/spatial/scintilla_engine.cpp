@@ -38,6 +38,7 @@
 #include "config/stk_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/explosion_animation.hpp"
+#include "karts/rescue_animation.hpp"
 #include "modes/immersive_relay/scintilla_defense_physics.hpp"
 #include "physics/physics.hpp"
 #include "physics/stk_dynamics_world.hpp"
@@ -1030,6 +1031,10 @@ void setEnabled(bool value)
     });
     consumer.setVisibilityOracle(visible);
     consumer.setFramePinOracle(pinFrame);
+    consumer.setFramePendingOracle([](const Frame& frame){
+        auto record=std::find_if(depths.begin(),depths.end(),[&](const std::shared_ptr<DepthFrame>& d){return d->id==frame.id&&d->stream==frame.stream;});
+        return record!=depths.end()&&!signaled((*record)->copyFence);
+    });
     consumer.setQueryLeaseOracle(queryLease);
 #else
     consumer.setLiveTargetOracle([](uint64_t,uint64_t){return false;});
@@ -1682,6 +1687,9 @@ int64_t telemetryNextSample=0,telemetryNextPresentation=0;
 // Longest main-loop interval since the last sample: stalls delay relay input
 // and clock renewals as much as they delay frames.
 int64_t telemetryLastTickUs=0,telemetryFrameMaxUs=0;
+// Frames whose depth was not retained since the last sample, by reason. A
+// proof naming such a frame is refused (depth_history_unavailable).
+unsigned telemetryDepthPinned=0,telemetryDepthBudget=0,telemetryDepthInvalid=0;
 std::map<uint64_t,ScintillaCombat::Snapshot> telemetryCombat;
 std::map<uint64_t,ScintillaMission::Snapshot> telemetryMission;
 std::map<std::string,BeamProof> telemetryBeams;
@@ -1690,6 +1698,8 @@ int64_t telemetryBoostUntil=0;
 std::array<ScintillaMission::Slot,ScintillaMission::Profile::SlotCount> telemetrySlots;
 bool telemetryResult=false,telemetryGameplay=false,telemetryFinished=false;
 int telemetryLap=-1;
+// The pilot kart was being rescued (after a crash or a fall) at the last tick.
+bool telemetryRescue=false;
 std::vector<std::string> telemetryRoster;
 uint64_t telemetryPresentedFrame=0;
 std::vector<double> telemetryPresentationMs;
@@ -1718,7 +1728,7 @@ void closeTelemetry(const std::string& reason)
     telemetryWrite(telemetryLine("close").text("reason",reason));
     telemetryWriter.close();consumer.setTelemetry(false);
     telemetryCombat.clear();telemetryMission.clear();telemetryBeams.clear();telemetryDefense=Defense::View();
-    telemetryBoostUntil=0;telemetrySlots={};telemetryResult=telemetryGameplay=telemetryFinished=false;telemetryLap=-1;
+    telemetryBoostUntil=0;telemetrySlots={};telemetryResult=telemetryGameplay=telemetryFinished=telemetryRescue=false;telemetryLap=-1;
     telemetryFlashes.clear();telemetryFlashLogged.clear();telemetryPresentationMs.clear();telemetryRoster.clear();
 }
 void openTelemetry()
@@ -1742,6 +1752,7 @@ void openTelemetry()
     if(!telemetryWriter.open(path,&telemetryError))return;
     telemetryError.clear();consumer.setTelemetry(true);
     telemetryNextSample=telemetryNextPresentation=0;telemetryPresentedFrame=0;telemetryLastTickUs=telemetryFrameMaxUs=0;
+    telemetryDepthPinned=telemetryDepthBudget=telemetryDepthInvalid=0;
     telemetryWrite(telemetryLine("header").text("schema",ScintillaTelemetry::Schema).text("startedAtUtc",iso)
         .text("producerUUID",producerUUID()).unsignedInteger("raceEpoch",raceEpoch)
         .text("track",RaceManager::get()->getTrackName()).integer("physicsFps",stk_config->getPhysicsFPS())
@@ -1815,14 +1826,17 @@ void telemetrySample(int64_t now)
     const auto* linear=dynamic_cast<LinearWorld*>(world);
     telemetryWrite(telemetryLine("sample").number("speed",human->getSpeed()).integer("position",human->getPosition())
         .integer("lap",linear?linear->getLapForKart(human->getWorldKartId()):-1)
+        .number("trackM",linear?linear->getDistanceDownTrackForKart(human->getWorldKartId(),false):-1)
         .number("aheadM",ahead).number("behindM",behind).integer("attackable",attackable)
         .integer("capsules",missionPlacements.size()).integer("secured",mission.securedCount())
         .text("defense",defensePhaseName(defense.view().phase)).number("energy",defense.energy()).number("heat",defense.heat())
         .flag("boostReady",defense.boostStatus(ScintillaDefensePhysics::eligibleHuman(human))==Defense::Status::BoostReady)
         .flag("humanTransient",ScintillaDefensePhysics::humanTransient(human))
         .integer("reticles",valid).integer("beams",held).flag("gameplay",telemetryGameplay)
-        .number("frameMaxMs",telemetryFrameMaxUs/1000.0));
-    telemetryFrameMaxUs=0;
+        .number("frameMaxMs",telemetryFrameMaxUs/1000.0)
+        .integer("depthSkippedPinned",telemetryDepthPinned).integer("depthSkippedBudget",telemetryDepthBudget)
+        .integer("depthInvalid",telemetryDepthInvalid));
+    telemetryFrameMaxUs=0;telemetryDepthPinned=telemetryDepthBudget=telemetryDepthInvalid=0;
 }
 // Every frame, also while held or after the grant lapsed: the stall that ends
 // an input grant is the one most worth recording.
@@ -1926,6 +1940,10 @@ void telemetryTick()
         auto* linear=dynamic_cast<LinearWorld*>(World::getWorld());
         const int lap=linear?linear->getLapForKart(human->getWorldKartId()):-1;
         if(lap!=telemetryLap){telemetryLap=lap;telemetryWrite(telemetryLine("lap").integer("lap",lap).integer("position",human->getPosition()));}
+        const bool rescue=dynamic_cast<const RescueAnimation*>(human->getKartAnimation())!=nullptr;
+        if(rescue&&!telemetryRescue)telemetryWrite(telemetryLine("rescue").integer("lap",lap)
+            .number("trackM",linear?linear->getDistanceDownTrackForKart(human->getWorldKartId(),false):-1));
+        telemetryRescue=rescue;
         if(human->hasFinishedRace()&&!telemetryFinished){telemetryFinished=true;
             telemetryWrite(telemetryLine("finish").integer("position",human->getPosition()).number("time",human->getFinishTime()));}
     }
@@ -2454,15 +2472,15 @@ void retainDepth(const FullSphereCapture& capture)
     const unsigned size=capture.getSize();
     const size_t bytes=(size_t)size*size*6*4;
     const size_t slots=std::min<size_t>(12,bytes?depthBudget/bytes:0);
-    if(!slots)return;
+    if(!slots){++telemetryDepthBudget;return;}
     pollRetiredGraphics();
     while(!depths.empty() && (depths.size()>=slots || allocatedDepthBytes>depthBudget-bytes)) {
         // An outstanding read holds its depth frame. Never recycle its storage,
         // or submit another allocation while a copy has unproven completion.
-        if(depths.front().use_count()!=1 || !signaled(depths.front()->copyFence))return;
+        if(depths.front().use_count()!=1 || !signaled(depths.front()->copyFence)){++telemetryDepthPinned;return;}
         depths.pop_front();
     }
-    if(allocatedDepthBytes>depthBudget-bytes)return;
+    if(allocatedDepthBytes>depthBudget-bytes){++telemetryDepthBudget;return;}
     GLState saved;
     if(!depthFbo) {
             glGenFramebuffers(1,&depthFbo);glBindFramebuffer(GL_FRAMEBUFFER,depthFbo);
@@ -2484,7 +2502,7 @@ void retainDepth(const FullSphereCapture& capture)
     }
     next->copyFence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);glFlush();
     if(!next->copyFence)valid=false;
-    if(valid)depths.push_back(next);else retiredDepths.push_back(next);
+    if(valid)depths.push_back(next);else{retiredDepths.push_back(next);++telemetryDepthInvalid;}
 #endif
 }
 void finishFrame(bool published)

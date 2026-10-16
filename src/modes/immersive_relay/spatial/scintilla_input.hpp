@@ -165,6 +165,8 @@ public:
     typedef std::function<Visibility(const Frame&, const Target&, const Vec3&, double)> VisibilityOracle;
     typedef std::function<bool(uint64_t, uint64_t)> LiveTargetOracle;
     typedef std::function<std::shared_ptr<void>(const Frame&)> FramePinOracle;
+    // True while a frame's depth copy exists but has not completed on the GPU.
+    typedef std::function<bool(const Frame&)> FramePendingOracle;
     typedef std::function<std::shared_ptr<void>(uint64_t)> QueryLeaseOracle;
     Runtime();
     ~Runtime();
@@ -183,6 +185,7 @@ public:
     const std::deque<HitEvent>& events() const;
     void setVisibilityOracle(const VisibilityOracle& oracle);
     void setFramePinOracle(const FramePinOracle& oracle);
+    void setFramePendingOracle(const FramePendingOracle& oracle);
     void setQueryLeaseOracle(const QueryLeaseOracle& oracle);
     void setLiveTargetOracle(const LiveTargetOracle& oracle);
     void setProducerProjection(const Projection& projection);

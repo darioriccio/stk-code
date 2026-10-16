@@ -86,6 +86,8 @@ def summarise(records, path=''):
         }
     aim = {
         'presses': len(presses), 'automatic': automatic,
+        # Secondary (beam/tool) presses resolved on a target.
+        'toolPresses': sum(1 for r in by_type['input'] if r.get('control') == 'secondary'),
         'perParticipant': dict(per_participant),
         'results': dict(results),
         'hitRate': share(results.get('hit', 0), len(presses)),
@@ -176,6 +178,10 @@ def summarise(records, path=''):
         'threatShare': share(sum(1 for s in active if s.get('defense') not in ('idle', 'cooldown', None)), len(active)),
         'nothingToDoShare': share(sum(1 for s in active if not busy(s)), len(active)),
         'pressesPerMinute': {p: c / (duration / 60) for p, c in per_participant.items()} if duration else {},
+        # Pilot crashes and falls: each rescue stops the kart for about a second.
+        'rescues': len(by_type['rescue']),
+        'rescuesPerMinute': len(by_type['rescue']) / (duration / 60) if duration else None,
+        'rescueTrackM': sorted(round(r['trackM']) for r in by_type['rescue'] if isinstance(r.get('trackM'), (int, float))),
     }
 
     # Latency probe: pose -> STK receipt -> capture -> presented by TholusOS.
@@ -197,6 +203,8 @@ def summarise(records, path=''):
         'frameMaxMsP50': quantile(frames, .5), 'frameMaxMs': max(frames) if frames else None,
         'stallsOver250Ms': sum(1 for f in frames if f > 250), 'stallsOver600Ms': sum(1 for f in frames if f > 600),
     })
+    latency['depthSkipped'] = sum(s.get('depthSkippedPinned', 0) + s.get('depthSkippedBudget', 0) + s.get('depthInvalid', 0)
+                                  for s in samples)
     # Explicit stall rows are written every frame, also after the grant lapsed.
     stalls = [r['ms'] for r in by_type['stall'] if isinstance(r.get('ms'), (int, float))]
     if stalls:
@@ -241,7 +249,7 @@ def markdown(summary):
         '',
         '| Area | Valori |',
         '|---|---|',
-        f"| Colpi | {a['presses']} (di cui automatici {a['automatic']}), centrati {percent(a['hitRate'])}; esiti: {counts(a['results'])} |",
+        f"| Colpi | {a['presses']} (di cui automatici {a['automatic']}), centrati {percent(a['hitRate'])}; esiti: {counts(a['results'])}; fascio/attrezzo premuto {a['toolPresses']} volte |",
         f"| Rifiuti all'ingresso | {counts(a['admissionRejections'])} |",
         f"| Mancati | scarto dal bordo mediano {decimal(a['missEdgeDegP50'])}°, p90 {decimal(a['missEdgeDegP90'])}°; quasi centrati {percent(a['nearMissShare'])} |",
         f"| Ritardo reticolo | posa vs reticolo mostrato: mediana {decimal(a['poseLagDegP50'])}°, p90 {decimal(a['poseLagDegP90'])}° |",
@@ -251,9 +259,10 @@ def markdown(summary):
         f"| Carico | capsule offerte {m['capsulesOffered']}, aperte {m['capsulesOpened']}, raccolte {m['capsulesCollected']}, scadute {m['capsulesExpired']}; moduli sganciati {m['tethers']}, recuperati {m['tethersRecovered']}, persi {m['tethersLost']} |",
         f"| Esito | {m['result'] or '—'} |",
         f"| Attività crew | rivali colpibili {percent(x['attackableShare'])}, capsule {percent(x['capsuleShare'])}, minacce {percent(x['threatShare'])}, **niente da fare {percent(x['nothingToDoShare'])}** |",
+        f"| Pilota | salvataggi {x['rescues']} ({decimal(x['rescuesPerMinute'])}/min) |",
         f"| Latenza (lampi) | {l['presented']}/{l['probes']} presentati; posa→schermo mediana {decimal(l['poseToPresentedMsP50'])} ms, p90 {decimal(l['poseToPresentedMsP90'])} ms (posa→STK {decimal(l['poseToReceivedMsP50'])}, STK→cattura {decimal(l['receivedToCaptureMsP50'])}, cattura→schermo {decimal(l['captureToPresentedMsP50'])}) |",
         f"| Latenza (tutti i fotogrammi) | cattura→presentazione mediana {decimal(l['framePresentationP50Ms'])} ms, p90 {decimal(l['framePresentationP90Ms'])} ms |",
-        f"| Fluidità STK | frame più lungo per campione: mediana {decimal(l['frameMaxMsP50'])} ms, massimo {decimal(l['frameMaxMs'])} ms; blocchi >250 ms {l['stallsOver250Ms']}, >600 ms {l['stallsOver600Ms']} |",
+        f"| Fluidità STK | frame più lungo per campione: mediana {decimal(l['frameMaxMsP50'])} ms, massimo {decimal(l['frameMaxMs'])} ms; blocchi >250 ms {l['stallsOver250Ms']}, >600 ms {l['stallsOver600Ms']}; fotogrammi senza profondità {l['depthSkipped']} |",
         '',
         '| Distanza | Centrati | Mancati | % | Raggio angolare mediano |',
         '|---|---:|---:|---:|---:|',
