@@ -226,7 +226,7 @@ std::string escapeReportJson(const std::string& value)
     return out.str();
 }
 
-void writeRoleReportMap(std::ofstream& file,
+void writeRoleReportMap(std::ostream& file,
                         const std::map<RelayCrewRole, int>& values)
 {
     file << "{";
@@ -243,7 +243,7 @@ void writeRoleReportMap(std::ofstream& file,
     file << "}";
 }
 
-void writeStringIntReportMap(std::ofstream& file,
+void writeStringIntReportMap(std::ostream& file,
                              const std::map<std::string, int>& values)
 {
     file << "{";
