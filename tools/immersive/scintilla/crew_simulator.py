@@ -29,6 +29,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 SPATIAL = 'tholus.stk-spatial/1'
+MISSION = 'tholus.stk-scintilla-mission/1'
+MISSION_IDENTITY = ('producerUUID', 'raceEpoch', 'intentRevision', 'missionRevision', 'rosterRevision', 'inputSessionID',
+                    'inputEpoch', 'routeRevision', 'projectionContextId', 'anchorManifestHash', 'introManifestHash',
+                    'layoutProfile', 'layoutRevision')
 INPUT = 'tholus.spatial-input/1'
 SESSION, GENERATION, CONTEXT, ROUTE = 'software-session', 'software-generation', 'software-projection', 'software-route'
 RAY = {'originM': [0, 0, 0], 'direction': [0, 0, -1], 'basis': 'room.rhs-y-up-front-minus-z/1'}
@@ -247,9 +251,13 @@ class Simulation:
                       handoff_policy='lap_based_handoff', handoff_seconds=6, min_handoff_seconds=6,
                       handoff_operator_confirm=True, auto_confirm_handoff=False))
         self.api.call('/spatial/enable', {})
-        d = self.api.call('/scintilla/defense/state')
-        self.api.call('/scintilla/defense/intent', dict(contract='tholus.stk-scintilla-defense/1', raceEpoch=d['raceEpoch'],
-                                                        intentRevision=d['intentRevision'], required=True))
+        if a.mission:
+            # SC4 intent also makes SC2 and SC3 required, in one commit.
+            self.mission('intent', required=True)
+        else:
+            d = self.api.call('/scintilla/defense/state')
+            self.api.call('/scintilla/defense/intent', dict(contract='tholus.stk-scintilla-defense/1', raceEpoch=d['raceEpoch'],
+                                                            intentRevision=d['intentRevision'], required=True))
         state = self.api.call('/state')
         pilot = state.get('active_pilot_id', 'p1')
         self.players = [f'p{i}' for i in range(1, a.crew + 2)]
@@ -280,6 +288,11 @@ class Simulation:
                       clockSamples=samples, routeRevision=ROUTE, projection=projection))
         self.post([self.message(m, {'type': 'sourceState', 'sequence': 0, 'state': 'tracked', 'reason': 'prepared'})
                    for m in self.members], presentation=False)
+        if a.mission:
+            # The operator skips the 40 s briefing video explicitly, as allowed.
+            intro = self.api.call('/scintilla/mission/state')['intro']
+            self.mission('intro-complete', variantId=intro['variantId'], completion='operator_skipped',
+                         playbackID=str(uuid.uuid4()))
         self.prepare_gameplay()
 
     def prepare_gameplay(self):
@@ -294,6 +307,30 @@ class Simulation:
                       routeRevision=ROUTE, projectionContextId=CONTEXT,
                       visibilityEvidenceID='software-crew-simulator-no-physical-evidence',
                       visibleRegions=[dict(left=0, top=0, right=1, bottom=1)]))
+
+    def mission(self, operation, **fields):
+        """One SC4 request against the producer's current identity tuple."""
+        state = self.api.call('/scintilla/mission/state')
+        body = dict(contract=MISSION, schemaVersion=1, requestId=str(uuid.uuid4()), profileId='sc4_cargo_three_slots_v1',
+                    profileRevision='1', expected={key: state[key] for key in MISSION_IDENTITY}, **fields)
+        reply = self.api.call('/scintilla/mission/' + operation, body, expect=None)
+        if not reply.get('ok'):
+            raise RuntimeError(f'mission {operation}: {reply.get("error")}')
+        return reply
+
+    def prepare_mission(self, timeout=20):
+        """SC4 prepare needs SC1-SC3 prepared and fresh presented cargo-layout frames."""
+        deadline, reason = time.monotonic() + timeout, 'prepared false'
+        while time.monotonic() < deadline:
+            self.post([])
+            try:
+                if self.mission('prepare').get('prepared'):
+                    return
+                reason = 'prepared false'
+            except RuntimeError as error:
+                reason = str(error)
+            time.sleep(.05)
+        raise RuntimeError('mission prepare did not bind: ' + reason)
 
     def rearm(self):
         inputs = []
@@ -332,6 +369,8 @@ class Simulation:
                       expectedInputEpoch=str(i['inputEpoch']), expectedRosterRevision=d['rosterRevision'],
                       bindings=[{'sourceId': m.source, 'participantId': m.participant} for m in self.members]))
         self.prepare_gameplay()
+        if self.args.mission:
+            self.prepare_mission()
         current = self.api.call('/state')
         if current.get('arcade_state') not in ('running', 'final_lap'):
             self.api.call('/operator/resume', {}, expect=None)
@@ -491,13 +530,24 @@ class Simulation:
         threat = defense.get('phase') == 'telegraph'
         defender = member.role in ('defender', 'solo') or (member.role == 'shooter' and len(self.members) <= 3 and not any(
             m.role == 'defender' for m in self.members))
+        # Cargo duty: a dedicated member if any, else the shooter (with two
+        # people the opener keeps opening rivals).
+        cargo = member.role in ('support', 'solo', 'defender') or (
+            member.role == 'shooter' and not any(m.role in ('support', 'defender') for m in self.members))
+        tethers = [t for t in targets if t['kind'] == 'tether' and t.get('eligible') and t.get('phase') == 'tether_recoverable']
+        if tethers and cargo:
+            # A module on the cable is lost 3 s after it appears: first priority.
+            tether = self.pick(member, tethers, 'tether')
+            return ('tether', tether['id'], tether, 'tool')
         if threat and defender and nodes:
             node = nodes.get(SECTOR_NODES.get(defense.get('sector'), ''))
             if node:
                 return ('node', node['name'], node, 'tool')
-        capsules = [t for t in targets if t['kind'] == 'capsule' and t.get('eligible')]
-        if capsules and member.role in ('support', 'solo', 'defender'):
+        breached = [t for t in rivals if t.get('phase') == 'breached' and t.get('opener') != member.participant]
+        capsules = [t for t in targets if t['kind'] == 'capsule' and t.get('eligible') and t.get('phase') in ('shell', 'open')]
+        if capsules and cargo and not (breached and member.role == 'shooter'):
             capsule = self.pick(member, capsules, 'capsule')
+            # Primary opens the shell; a new tool press held 0.6 s collects it.
             return ('capsule', capsule['id'], capsule, 'primary' if capsule['phase'] == 'shell' else 'tool')
         if not rivals:
             if defense.get('boostReady') and member.role in ('support', 'defender', 'solo') and nodes.get('boost') \
@@ -585,6 +635,11 @@ class Simulation:
                 # press again once back on target, as a person would.
                 self.edge(member, 'secondary', 'released', inputs, host)
                 self.stats['beamRetries'] = self.stats.get('beamRetries', 0) + 1
+            elif member.tool and goal[0] in ('capsule', 'tether') and now - member.tool_since > 1.4:
+                # Collection or recovery takes 0.6 s of continuous hold; still
+                # there after more than twice that, the hold did not count.
+                self.edge(member, 'secondary', 'released', inputs, host)
+                self.stats['cargoRetries'] = self.stats.get('cargoRetries', 0) + 1
 
     def edge(self, member, control, edge, inputs, host, point=None):
         member.action_seq += 1
@@ -607,6 +662,8 @@ class Simulation:
         poller.start()
         self.wait_view()
         self.post([])
+        if self.args.mission:
+            self.prepare_mission()
         self.api.call('/operator/start', {})
         self.api.call('/operator/countdown', dict(skip=True))
         # Rearming counts only once gameplay is active: every source starts with
@@ -712,6 +769,8 @@ def main(argv=None):
     parser.add_argument('--tremor-deg', type=float, default=.35)
     parser.add_argument('--fire-interval-ms', type=float, default=260)
     parser.add_argument('--seed', type=int, default=1)
+    parser.add_argument('--mission', action='store_true',
+                        help='prepare and play SC4 cargo; needs a qualification installed for this exact build and setup')
     args = parser.parse_args(argv)
     process = log = None
     if args.launch:
@@ -773,6 +832,7 @@ def main(argv=None):
                           'rejectionReasons': simulation.stats['reasons'],
                           'maxLoopGapS': simulation.stats.get('maxLoopGapS'),
                           'beamRetries': simulation.stats.get('beamRetries', 0),
+                          'cargoRetries': simulation.stats.get('cargoRetries', 0),
                           'aimTicks': simulation.stats.get('aimTicks', 0), 'onTargetTicks': simulation.stats.get('onTargetTicks', 0),
                           'targetSpeedDegSP50': q([m[0] for m in simulation.target_motion], .5),
                           'targetSpeedDegSP90': q([m[0] for m in simulation.target_motion], .9),
