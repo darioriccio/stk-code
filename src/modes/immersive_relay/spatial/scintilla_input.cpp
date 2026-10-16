@@ -399,6 +399,10 @@ struct Runtime::Impl
                 const uint64_t proofInstance=missionKind(p.event.kind)?p.event.historicalMission.instance:p.event.historical.instance;
                 const bool lost=source.proofVisible&&(!visible||source.proofTarget!=target||source.proofInstance!=proofInstance||source.proofKind!=p.event.kind||
                    (missionKind(p.event.kind)&&!sameMission(source.proofMission,p.event.historicalMission)));
+                // Why a held beam left its target: off it (miss), another one,
+                // or not judgeable (ambiguous/occluded/depth). Telemetry only.
+                if(lost&&source.held[1])note("beam_lost",i,"secondary",visible&&source.proofTarget!=target?"other_target":
+                    result=="hit"&&!p.event.historicalEligible?"not_attackable":result);
                 if(graceUs()>0&&(departed||lost)){
                     // Tolerated: keep the last positive proof, only advance ordering.
                     noteNegative(source,p.event.evaluatedUs);source.proofSerial=p.proofSerial;

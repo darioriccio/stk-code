@@ -70,6 +70,8 @@ class ReportTests(unittest.TestCase):
             {'type': 'sample', 't': 60 * S},
         ))['combat']
         self.assertEqual((s['breachesOpened'], s['breachesExpired'], s['staggers']), (2, 1, 1))
+        # acquiring at 0 -> breached at 1 s: one hold of one second.
+        self.assertEqual((s['acquisitions'], s['lockHoldSP50'], s['locksLostShort']), (1, 1.0, 0))
         self.assertAlmostEqual(s['staggersPerMinute'], 1.0)
         self.assertEqual(s['shotOutcomes'], {'stagger_pending': 1, 'shield_rebound': 1})
 

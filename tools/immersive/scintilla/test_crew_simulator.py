@@ -111,6 +111,16 @@ class HumanTests(unittest.TestCase):
         # Two independent axes: radial offset is Rayleigh with mean sigma*sqrt(pi/2).
         self.assertAlmostEqual(statistics.mean(samples), .35 * math.sqrt(math.pi / 2), delta=.08)
 
+    def test_target_choice_is_sticky_until_the_target_leaves(self):
+        member = sim.Member(participant='p2', source='w', human=sim.Human(rng=random.Random(1)), role='opener')
+        a, b = {'id': 1, 'angularRadiusDeg': 2.0}, {'id': 2, 'angularRadiusDeg': 2.1}
+        self.assertIs(sim.Simulation.pick(member, [a, b], 'rival'), b)
+        member.goal_key = ('rival', 1)
+        self.assertIs(sim.Simulation.pick(member, [a, b], 'rival'), a)   # keeps its target
+        self.assertIs(sim.Simulation.pick(member, [b], 'rival'), b)      # until it is gone
+        member.goal_key = ('capsule', 1)
+        self.assertIs(sim.Simulation.pick(member, [a, b], 'rival'), b)   # another kind does not count
+
     def test_no_goal_keeps_the_hand_still(self):
         human = sim.Human(rng=random.Random(1), tremor_deg=0)
         start = human.hand

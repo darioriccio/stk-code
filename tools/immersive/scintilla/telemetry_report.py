@@ -114,11 +114,22 @@ def summarise(records, path=''):
             expired += 1
         last_phase[target] = phase
     staggers = sum(1 for r in by_type['combat_shot'] if r.get('effectApplied'))
+    # Lock durations: how long an opener held a target before breaching or losing it.
+    holds, opened = [], {}
+    for r in by_type['combat']:
+        target, phase = r.get('target'), r.get('phase')
+        if phase == 'acquiring':
+            opened[target] = r['t']
+        elif target in opened and phase in ('shielded', 'breached'):
+            holds.append(((r['t'] - opened.pop(target)) / 1e6, phase == 'breached'))
     combat = {
         'shotOutcomes': dict(shot_reasons), 'staggers': staggers,
         'staggersPerMinute': staggers / (duration / 60) if duration else None,
         'breachesOpened': breaches, 'breachesExpired': expired,
         'acquisitions': phases.get('acquiring', 0),
+        'lockHoldSP50': quantile([d for d, _ in holds], .5),
+        'lockHoldSP90': quantile([d for d, _ in holds], .9),
+        'locksLostShort': sum(1 for d, breached in holds if not breached and d < .2),
     }
 
     # Defense: threats from warning to outcome.
@@ -254,6 +265,7 @@ def markdown(summary):
         f"| Mancati | scarto dal bordo mediano {decimal(a['missEdgeDegP50'])}°, p90 {decimal(a['missEdgeDegP90'])}°; quasi centrati {percent(a['nearMissShare'])} |",
         f"| Ritardo reticolo | posa vs reticolo mostrato: mediana {decimal(a['poseLagDegP50'])}°, p90 {decimal(a['poseLagDegP90'])}° |",
         f"| Combattimento | brecce aperte {c['breachesOpened']}, scadute {c['breachesExpired']}, sobbalzi {c['staggers']} ({decimal(c['staggersPerMinute'])}/min); esiti: {counts(c['shotOutcomes'])} |",
+        f"| Blocchi del fascio | {c['acquisitions']} avviati; durata mediana {decimal(c['lockHoldSP50'], 2)} s, p90 {decimal(c['lockHoldSP90'], 2)} s; persi entro 0,2 s {c['locksLostShort']} |",
         f"| Difesa | minacce {d['threatsStarted']} ({decimal(d['threatsPerMinute'])}/min), parate {d['blocked']}, impatti {d['impacts']}, annullate {d['cancelled']}; esiti: {counts(d['outcomes'])} |",
         f"| Energia | minimo {decimal(d['energyMin'], 0)}, media {decimal(d['energyMean'], 0)}; turbo {d['boosts']}; kart in boost/salto {percent(d['humanTransientShare'])} del tempo |",
         f"| Carico | capsule offerte {m['capsulesOffered']}, aperte {m['capsulesOpened']}, raccolte {m['capsulesCollected']}, scadute {m['capsulesExpired']}; moduli sganciati {m['tethers']}, recuperati {m['tethersRecovered']}, persi {m['tethersLost']} |",

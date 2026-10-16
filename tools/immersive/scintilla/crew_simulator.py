@@ -204,6 +204,7 @@ class Simulation:
         self.next_probe = 0.0
         self.last_renew = 0.0
         self.capture_us = []
+        self.target_motion = []  # (deg/s across the dome, angular radius deg)
 
     # Clock samples measured like the TholusOS pump; the three tightest of eight
     # keep the producer's offset interval (and so its pose ageing) narrow.
@@ -365,7 +366,10 @@ class Simulation:
                     t3 = host_us()
                     if t3 - t0 > 20000:  # TholusOS rejects a clock probe slower than 20 ms
                         self.stats['clockProbesOver20Ms'] = self.stats.get('clockProbesOver20Ms', 0) + 1
-                    if 0 <= t3 - t0 <= 20000:  # as TholusOS: only fast probes renew
+                    # STK's own limit. The tightest three are used; a stricter cut,
+                    # as in native TholusOS, starves renewals here because this
+                    # thread shares the GIL with the crew loop.
+                    if 0 <= t3 - t0 <= 50000:
                         with self.lock:
                             self.exchanges.append({'hostSentUs': t0, 'serverReceivedUs': c['serverReceivedUs'],
                                                    'serverSentUs': c['serverSentUs'], 'hostReceivedUs': t3})
@@ -467,6 +471,17 @@ class Simulation:
         return reply
 
     # ---- Behaviour ----
+    @staticmethod
+    def pick(member, candidates, kind):
+        """Keep the current target while it stays a candidate, as a person would;
+        otherwise take the largest one. Switching every tick between two similar
+        rivals would restart the reaction time and never press at all."""
+        if member.goal_key and member.goal_key[0] == kind:
+            for candidate in candidates:
+                if candidate['id'] == member.goal_key[1]:
+                    return candidate
+        return max(candidates, key=lambda t: t['angularRadiusDeg'])
+
     def goal_for(self, member, view, now):
         targets = view.get('targets', [])
         rivals = [t for t in targets if t['kind'] == 'rival' and t.get('eligible')]
@@ -482,7 +497,7 @@ class Simulation:
                 return ('node', node['name'], node, 'tool')
         capsules = [t for t in targets if t['kind'] == 'capsule' and t.get('eligible')]
         if capsules and member.role in ('support', 'solo', 'defender'):
-            capsule = max(capsules, key=lambda t: t['angularRadiusDeg'])
+            capsule = self.pick(member, capsules, 'capsule')
             return ('capsule', capsule['id'], capsule, 'primary' if capsule['phase'] == 'shell' else 'tool')
         if not rivals:
             if defense.get('boostReady') and member.role in ('support', 'defender', 'solo') and nodes.get('boost') \
@@ -490,17 +505,17 @@ class Simulation:
                 return ('node', 'boost', nodes['boost'], 'tool')
             return None
         if member.role == 'opener':
-            target = max(rivals, key=lambda t: t['angularRadiusDeg'])
+            target = self.pick(member, rivals, 'rival')
             return ('rival', target['id'], target, 'tool')
         if member.role == 'solo':
-            target = max(rivals, key=lambda t: t['angularRadiusDeg'])
+            target = self.pick(member, rivals, 'rival')
             return ('rival', target['id'], target, 'primary')
         open_targets = [t for t in rivals if t.get('phase') == 'breached' and t.get('opener') != member.participant]
         if open_targets:
-            target = max(open_targets, key=lambda t: t['angularRadiusDeg'])
+            target = self.pick(member, open_targets, 'rival')
             return ('rival', target['id'], target, 'primary')
         # Pre-aim at the opener's choice so the breach can be hit quickly.
-        target = max(rivals, key=lambda t: t['angularRadiusDeg'])
+        target = self.pick(member, rivals, 'rival')
         return ('rival', target['id'], target, None) if others_hold or member.role == 'shooter' else None
 
     def target_dir(self, goal, view):
@@ -530,6 +545,11 @@ class Simulation:
         desired = None
         if reacting:
             desired, radius = self.target_dir(goal, view)
+            # How fast the chosen target moves across the dome, and how large it is.
+            previous = getattr(member, 'tracked', None)
+            if previous and previous[0] == key and previous[1] != view['frame']['id'] and now > previous[3]:
+                self.target_motion.append((angle_deg(previous[2], desired) / (now - previous[3]), radius))
+            member.tracked = (key, view['frame']['id'], desired, now)
         pointing = member.human.step(desired, dt)
         point = uv(self.projection, pointing)
         member.aim_seq += 1
@@ -546,6 +566,9 @@ class Simulation:
         if drawn is None:
             return
         on_target = angle_deg(direction(self.projection, *drawn), desired) <= radius
+        # How often a reacting member's drawn reticle is on its target.
+        self.stats['aimTicks'] = self.stats.get('aimTicks', 0) + 1
+        self.stats['onTargetTicks'] = self.stats.get('onTargetTicks', 0) + on_target
         if goal[3] == 'primary' and on_target and not member.primary and now - member.last_shot >= self.args.fire_interval_ms / 1000:
             if self.rng.random() < dt / member.human.click_delay_s:  # motor delay, memoryless
                 self.edge(member, 'primary', 'pressed', inputs, host, point)
@@ -556,6 +579,12 @@ class Simulation:
                 member.tool_since, member.tool_key = now, key
             elif member.tool and goal[0] == 'node' and goal[1] == 'boost' and now - member.tool_since > .7:
                 self.edge(member, 'secondary', 'released', inputs, host)
+            elif member.tool and goal[0] == 'rival' and now - member.tool_since > .8 and \
+                    goal[2].get('phase') not in ('acquiring', 'breached'):
+                # The beam did not take (missed, occluded, ambiguous): let go and
+                # press again once back on target, as a person would.
+                self.edge(member, 'secondary', 'released', inputs, host)
+                self.stats['beamRetries'] = self.stats.get('beamRetries', 0) + 1
 
     def edge(self, member, control, edge, inputs, host, point=None):
         member.action_seq += 1
@@ -743,6 +772,11 @@ def main(argv=None):
                           'updates': simulation.stats['updates'], 'rejectedInputs': simulation.stats['rejected'],
                           'rejectionReasons': simulation.stats['reasons'],
                           'maxLoopGapS': simulation.stats.get('maxLoopGapS'),
+                          'beamRetries': simulation.stats.get('beamRetries', 0),
+                          'aimTicks': simulation.stats.get('aimTicks', 0), 'onTargetTicks': simulation.stats.get('onTargetTicks', 0),
+                          'targetSpeedDegSP50': q([m[0] for m in simulation.target_motion], .5),
+                          'targetSpeedDegSP90': q([m[0] for m in simulation.target_motion], .9),
+                          'targetRadiusDegP50': q([m[1] for m in simulation.target_motion], .5),
                           'apiMaxMs': api.max_ms, 'slowCalls': len(api.slow), 'slowCallsFirst': api.slow[:10]}, indent=2))
         return 1 if failure else 0
     finally:

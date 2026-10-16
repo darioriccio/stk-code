@@ -107,6 +107,13 @@ class CombatSourceAndMath(unittest.TestCase):
         self.assertIn('resolveQueue(pending,now)', INPUT)
         self.assertIn('resolveQueue(pendingAims,now)', INPUT)
 
+    def test_depth_query_clears_foreign_gl_errors_before_reading(self):
+        # GL errors are sticky. One left by unrelated rendering made every
+        # depth visibility query fail and every held beam drop within 30 ms.
+        visible = ENGINE.split('Visibility visible(', 1)[1].split('\n}\n', 1)[0]
+        self.assertLess(visible.index('while(glGetError()!=GL_NO_ERROR)'), visible.index('glReadPixels('))
+        self.assertLess(visible.index('glReadPixels('), visible.index('q.failed=glGetError()!=GL_NO_ERROR'))
+
     def test_shared_range_and_historical_window_are_used(self):
         distance = 0.35/math.sin(math.radians(0.75))
         self.assertAlmostEqual(distance, 26.738794036250827)

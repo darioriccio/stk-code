@@ -217,6 +217,11 @@ bool sameProjection(const Projection& a,const Projection& b)
 bool currentPublished(const Frame& frame)
 {return frame.stream==stream&&frame.generation==generation&&sameProjection(frame.projection,current.projection);}
 double dot(const SpatialVec3& a,const SpatialVec3& b) { return a.x*b.x+a.y*b.y+a.z*b.z; }
+// Why depth visibility was unavailable since the last telemetry sample: no
+// frame lease, point outside the face, incomplete FBO, failed read or fence,
+// failed poll; and GL errors left pending by other rendering code.
+enum VisibilityLoss {LossLease,LossRange,LossFbo,LossRead,LossPoll,StaleGlError,VisibilityLossCount};
+unsigned visibilityLoss[VisibilityLossCount]={};
 #ifndef SERVER_ONLY
 struct GLState {
     GLint readFbo,drawFbo,texture,activeUnit,pack;
@@ -350,18 +355,18 @@ std::shared_ptr<void> pinFrame(const Frame& frame)
 Visibility visible(const Frame& frame,const Target&,const SpatialVec3& direction,double distance)
 {
     std::shared_ptr<DepthFrame> record=std::static_pointer_cast<DepthFrame>(frame.visibilityLease);
-    if(!record||record->id!=frame.id||record->stream!=frame.stream)return Visibility::Unavailable;
+    if(!record||record->id!=frame.id||record->stream!=frame.stream){++visibilityLoss[LossLease];return Visibility::Unavailable;}
     const SpatialVec3 d(dot(direction,frame.cameraRight),dot(direction,frame.cameraUp),dot(direction,frame.cameraForward));
     double ma,sc,tc; unsigned face;
     const double ax=std::abs(d.x),ay=std::abs(d.y),az=std::abs(d.z);
     if(ax>=ay && ax>=az) {face=d.x>=0?0:1;ma=ax;sc=d.x>=0?-d.z:d.z;tc=d.y;}
     else if(ay>=az) {face=d.y>=0?2:3;ma=ay;sc=d.x;tc=d.y>=0?-d.z:d.z;}
     else {face=d.z>=0?4:5;ma=az;sc=d.z>=0?d.x:-d.x;tc=d.y;}
-    if(ma<=0)return Visibility::Unavailable;
+    if(ma<=0){++visibilityLoss[LossRange];return Visibility::Unavailable;}
     const unsigned size=record->size;
     const double tangent=std::tan(frame.faceFovDeg*3.14159265358979323846/360);
     const double u=(sc/(ma*tangent)+1)*0.5,v=(tc/(ma*tangent)+1)*0.5;
-    if(u<0 || u>=1 || v<0 || v>=1)return Visibility::Unavailable;
+    if(u<0 || u>=1 || v<0 || v>=1){++visibilityLoss[LossRange];return Visibility::Unavailable;}
     QueryKey key={frame.id,face,(unsigned)(u*size),(unsigned)(v*size)};
     auto found=queries.find(key);
     if(found==queries.end()) {
@@ -381,7 +386,10 @@ Visibility visible(const Frame& frame,const Target&,const SpatialVec3& direction
         glBindFramebuffer(GL_READ_FRAMEBUFFER,depthFbo);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER,GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D,record->textures[face],0);
         glReadBuffer(GL_NONE);
-        if(glCheckFramebufferStatus(GL_READ_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)return Visibility::Unavailable;
+        if(glCheckFramebufferStatus(GL_READ_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE){++visibilityLoss[LossFbo];return Visibility::Unavailable;}
+        // Errors are sticky: one left by unrelated rendering would otherwise
+        // be read below as this query's failure.
+        while(glGetError()!=GL_NO_ERROR)++visibilityLoss[StaleGlError];
         Query q;q.lastRequestedUs=nowUs();q.frame=record;if(frame.queryOwner)q.owners.insert(frame.queryOwner);glGenBuffers(1,&q.buffer);
         glBindBuffer(GL_PIXEL_PACK_BUFFER,q.buffer);glBufferData(GL_PIXEL_PACK_BUFFER,sizeof(float),NULL,GL_STREAM_READ);
         glPixelStorei(GL_PACK_ALIGNMENT,4);glPixelStorei(GL_PACK_ROW_LENGTH,0);
@@ -390,13 +398,16 @@ Visibility visible(const Frame& frame,const Target&,const SpatialVec3& direction
         q.failed=glGetError()!=GL_NO_ERROR;
         q.fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);glFlush();
         if(!q.fence)q.failed=true;
-        if(q.failed){retiredQueries.push_back(std::move(q));return Visibility::Unavailable;}
+        if(q.failed){++visibilityLoss[LossRead];retiredQueries.push_back(std::move(q));return Visibility::Unavailable;}
         queries.insert(std::make_pair(key,q));return Visibility::Pending;
     }
     for(auto it=found->second.owners.begin();it!=found->second.owners.end();)if(!liveQueryOwners->count(*it))it=found->second.owners.erase(it);else ++it;
     if(frame.queryOwner)found->second.owners.insert(frame.queryOwner);
     found->second.lastRequestedUs=nowUs();
-    if(!poll(found->second))return found->second.failed?Visibility::Unavailable:Visibility::Pending;
+    if(!poll(found->second)){
+        if(!found->second.failed)return Visibility::Pending;
+        ++visibilityLoss[LossPoll];return Visibility::Unavailable;
+    }
     const double z=distance*ma,n=frame.nearPlane,f=frame.farPlane;
     if(z<=n || z>=f)return Visibility::Occluded;
     return DepthVisibility::visible(found->second.depth,static_cast<float>(z),
@@ -1835,7 +1846,11 @@ void telemetrySample(int64_t now)
         .integer("reticles",valid).integer("beams",held).flag("gameplay",telemetryGameplay)
         .number("frameMaxMs",telemetryFrameMaxUs/1000.0)
         .integer("depthSkippedPinned",telemetryDepthPinned).integer("depthSkippedBudget",telemetryDepthBudget)
-        .integer("depthInvalid",telemetryDepthInvalid));
+        .integer("depthInvalid",telemetryDepthInvalid)
+        .raw("visibilityLoss","["+std::to_string(visibilityLoss[LossLease])+","+std::to_string(visibilityLoss[LossRange])+","+
+            std::to_string(visibilityLoss[LossFbo])+","+std::to_string(visibilityLoss[LossRead])+","+
+            std::to_string(visibilityLoss[LossPoll])+","+std::to_string(visibilityLoss[StaleGlError])+"]"));
+    for(auto& count:visibilityLoss)count=0;
     telemetryFrameMaxUs=0;telemetryDepthPinned=telemetryDepthBudget=telemetryDepthInvalid=0;
 }
 // Every frame, also while held or after the grant lapsed: the stall that ends
