@@ -1,3 +1,7 @@
+> **Prima esecuzione dei test del 16 ottobre:** sul branch `scintilla/sc4-test-fixes`
+> la suite nativa passa 251/251 e la build Relay riesce; test app TholusOS 205/211
+> prima dell'ultima correzione: [risultati e limiti](../sc4-test-fixes-2026-10-16/README.md).
+
 # SC4 — implementazione software, 16 ottobre 2026
 
 Codice e asset per carico, fari, esito della missione e introduzione sono consegnati nei repository STK e TholusOS. **La qualifica eseguibile resta aperta:** questa sessione vieta build e avvio nativo. Gli ancoraggi rimangono `development_unqualified`; il profilo pubblico non ammette Ready finché mancano misure native valide e la normale preparazione SC1–SC3.
