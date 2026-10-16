@@ -127,7 +127,10 @@ std::string measurementFingerprint(const ImmersiveRenderConfig& c)
     auto* human=defenseHuman();const auto snapshot=RelaySessionController::get()->getSnapshot();
     if(!human||!Track::getCurrentTrack())return "";
     const double base=human->getKartProperties()->getEngineMaxSpeed();
-    if(!std::isfinite(base)||base<=0||base>200||c.m_face_fov_deg!=90)return "";
+    // Production renders overlapping 120 degree faces; projection, depth and
+    // measurement shaders all use the configured face tangent. Any cubemap
+    // face from 90 to under 180 degrees is measurable; the fingerprint pins it.
+    if(!std::isfinite(base)||base<=0||base>200||!(c.m_face_fov_deg>=90&&c.m_face_fov_deg<180))return "";
     std::ostringstream o;o<<std::setprecision(17);
     o<<"{\"anchorHash\":"<<ScintillaJSON::quote(anchorHash)<<",\"trackHash\":"<<ScintillaJSON::quote(missionAnchors.trackHash)
      <<",\"trackAssetsHash\":"<<ScintillaJSON::quote(measurementAssetsHash)<<",\"shaderHash\":"<<ScintillaJSON::quote(measurementShaderHash)

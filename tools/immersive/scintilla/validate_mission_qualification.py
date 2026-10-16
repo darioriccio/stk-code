@@ -269,7 +269,8 @@ def validate_fingerprint(value: object) -> dict:
     for key in ("output", "cameraMode"):
         require(isinstance(f[key], str) and TOKEN.fullmatch(f[key]) is not None, "invalid_token")
     near = number(f["near"], 1e-6, 1000); number(f["far"], near, 1e7); require(f["far"] > near, "invalid_clip")
-    require(number(f["faceFovDeg"]) == 90, "invalid_face_fov"); number(f["domeTiltDeg"], -90, 90)
+    # Cubemap faces may overlap (production uses 120 degrees); the value is pinned by the fingerprint.
+    require(90 <= number(f["faceFovDeg"]) < 180, "invalid_face_fov"); number(f["domeTiltDeg"], -90, 90)
     require(isinstance(f["camera"], list) and len(f["camera"]) == 8, "invalid_camera")
     for v in f["camera"]:
         number(v, -1e6, 1e6)

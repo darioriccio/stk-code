@@ -111,6 +111,15 @@ def synthetic_pair(*, crew=1, frames_per_group=140, minimum_speed=15, snapshot_s
 
 
 class QualificationMathematics(unittest.TestCase):
+    def test_face_fov_accepts_production_overlap_but_not_degenerate_faces(self):
+        # Production renders overlapping 120 degree cubemap faces.
+        header = synthetic_header(synthetic_manifest())["fingerprint"]
+        for fov in (90, 120, 179.5):
+            q.validate_fingerprint(dict(header, faceFovDeg=fov))
+        for fov in (60, 89.9, 180):
+            with self.assertRaisesRegex(q.Invalid, "invalid_face_fov"):
+                q.validate_fingerprint(dict(header, faceFovDeg=fov))
+
     def test_capsule_angular_limit_and_ideal_straight_line_budget(self):
         # Frozen independent reference values in the SC4 plan's calcoli.json.
         self.assertAlmostEqual(2 / math.sin(math.radians(1.5)), 76.40310002822089, places=10)
