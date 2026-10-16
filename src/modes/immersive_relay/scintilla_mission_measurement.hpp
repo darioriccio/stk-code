@@ -19,7 +19,10 @@ static const unsigned MaxFrames=18000,MaxPending=8,MaxObjects=4,MaxTraces=8;
 static const double QualifiedSpeedShare=.95;
 inline double qualifiedEnvelope(double bound){return bound/QualifiedSpeedShare;}
 static const std::size_t MaxBytes=64u*1024u*1024u,MaxLine=65536;
-static const int64_t MaxGapUs=50000,LiveProofMaxAgeUs=50000;
+// A capsule proof stays live for one capture gap plus its query readback.
+// Proofs are sampled at 30 Hz and read back about two frames later, so a
+// 50 ms age left the runtime without a live proof a third of the time.
+static const int64_t MaxGapUs=50000,LiveProofMaxAgeUs=100000;
 // A completed capsule query is usable only inside this exact availability
 // interval. Capture continuity and live proof age are distinct contracts.
 inline bool capsuleProofAvailable(int64_t capture,int64_t readback,int64_t at)
@@ -88,15 +91,23 @@ class Evidence {
     double base=0,tilt=0;std::string projection,phase;unsigned layoutRevision=2;
     std::array<Window,576> capWindows;std::array<Window,48> tetherWindows;
     std::array<double,576> capBest;std::array<double,48> tetherBest;
-    std::set<std::size_t> previousKeys,previousVisible;
-    std::array<int64_t,576> previousReadback;
+    // Recent capsule proofs of the current run: capture, readback, visible.
+    struct Proof{int64_t captureUs,readbackUs;bool visible;};
+    std::set<std::size_t> previousKeys;
+    std::array<std::deque<Proof>,576> proofs;
     std::array<bool,576> activationProven;
     bool haveHeader=false,haveFooter=false,natural=false,normal=false,stress=false,broken=false;
     uint64_t count=0,lastFrame=0,lastIndex=0;int64_t lastUs=0,lastTick=0,lastReadbackUs=0,lastReadbackTick=0;int lastLap=-1;
     double lastFraction=0;Vec lastPosition;
-    void clearRuns(){for(auto&w:capWindows)w.reset();for(auto&w:tetherWindows)w.reset();previousKeys.clear();previousVisible.clear();}
+    void clearRuns(){for(auto&w:capWindows)w.reset();for(auto&w:tetherWindows)w.reset();previousKeys.clear();for(auto&p:proofs)p.clear();}
+    // What the runtime sees at `at`: the latest proof already read back.
+    bool proofAt(std::size_t key,int64_t at)const
+    {
+        const Proof* latest=nullptr;for(const auto& p:proofs[key])if(p.readbackUs<=at)latest=&p;
+        return latest&&latest->visible&&capsuleProofAvailable(latest->captureUs,latest->readbackUs,at);
+    }
 public:
-    Evidence(const ScintillaMissionAnchors::Manifest& m,const std::string& fingerprint):manifest(m),expectedFingerprint(fingerprint){capBest.fill(0);tetherBest.fill(0);activationProven.fill(false);previousReadback.fill(0);}
+    Evidence(const ScintillaMissionAnchors::Manifest& m,const std::string& fingerprint):manifest(m),expectedFingerprint(fingerprint){capBest.fill(0);tetherBest.fill(0);activationProven.fill(false);}
     void beginTrace(){haveHeader=haveFooter=false;count=lastFrame=lastIndex=0;lastUs=lastTick=lastReadbackUs=lastReadbackTick=0;lastLap=-1;clearRuns();}
     void header(const J& j)
     {
@@ -192,17 +203,18 @@ public:
                 if(inWindow!=(fraction>=group.activationFraction&&fraction<group.expiryFraction))throw Invalid("measurement_window_flag");
                 if(activation){if(!inWindow||lastLap<0||!(double(lastLap)+lastFraction<double(lap)+group.activationFraction&&double(lap)+group.activationFraction<=double(lap)+fraction))throw Invalid("measurement_activation");
                     if(activationUs<=lastUs||activationUs>us)throw Invalid("measurement_activation_clock");
-                    if(continuous&&geometry&&previousVisible.count(key)&&capsuleProofAvailable(lastUs,previousReadback[key],activationUs))activationProven[key]=true;}}
+                    if(continuous&&geometry&&proofAt(key,activationUs))activationProven[key]=true;}}
             const bool available=tether||capsuleProofAvailable(us,readbackUs,readbackUs);
             const bool overlap=tether||(previousKeys.count(key)&&capsuleProofsOverlap(lastUs,readbackUs));
-            if(!tether&&!inWindow&&geometry&&available&&(continuous||repeated)){visibleKeys.insert(key);previousReadback[key]=readbackUs;}
+            if(!tether&&!inWindow&&geometry&&available&&(continuous||repeated))visibleKeys.insert(key);
             if(!overlap||!available)window->reset();
             const bool valid=continuous&&geometry&&inWindow&&available;
             if(valid){window->observe(us,tick,minimum,fps,tether,readbackUs,readbackTick);*best=std::max(*best,window->best);}
             else if(!repeated||!geometry||!inWindow)window->reset();
         }
-        for(const auto key:previousKeys)if(!keys.count(key)){if(key<576)capWindows[key].reset();else tetherWindows[key-576].reset();}
-        previousKeys=keys;previousVisible=visibleKeys;lastUs=us;lastTick=tick;lastFrame=frame;lastIndex=index;lastReadbackUs=readbackUs;lastReadbackTick=readbackTick;lastLap=lap;lastFraction=fraction;lastPosition=kart;
+        for(const auto key:previousKeys)if(!keys.count(key)){if(key<576){capWindows[key].reset();proofs[key].clear();}else tetherWindows[key-576].reset();}
+        for(const auto key:keys)if(key<576){auto& history=proofs[key];history.push_back({us,readbackUs,visibleKeys.count(key)!=0});while(history.size()>MaxPending+1)history.pop_front();}
+        previousKeys=keys;lastUs=us;lastTick=tick;lastFrame=frame;lastIndex=index;lastReadbackUs=readbackUs;lastReadbackTick=readbackTick;lastLap=lap;lastFraction=fraction;lastPosition=kart;
     }
     void footer(const J& j)
     {

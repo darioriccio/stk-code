@@ -29,8 +29,12 @@ MAX_LINE = 65536
 MAX_BYTES = 64 * 1024 * 1024
 MAX_FRAMES = 18000
 MAX_TRACES = 8
+MAX_PENDING = 8
 MAX_GAP_US = 50000
-LIVE_PROOF_MAX_AGE_US = 50000
+# A capsule proof stays live for one capture gap plus its query readback.
+# Proofs are sampled at 30 Hz and read back about two frames later, so a
+# 50 ms age left the runtime without a live proof a third of the time.
+LIVE_PROOF_MAX_AGE_US = 100000
 # Share of the native base speed a window must hold (native QualifiedSpeedShare).
 QUALIFIED_SPEED_SHARE = .95
 TETHER_OFFSETS = [[-6, 7, 4], [6, 7, 4]]
@@ -335,9 +339,19 @@ class Evidence:
     natural_finish: bool = False
     frames: int = 0
     activations: set = field(default_factory=set)
+    proofs: dict = field(default_factory=dict)
+
+    def proof_at(self, key, at: int) -> bool:
+        """What the runtime sees at `at`: the latest proof already read back."""
+        latest = None
+        for proof in self.proofs.get(key, ()):
+            if proof[1] <= at:
+                latest = proof
+        return latest is not None and latest[2] and capsule_proof_available(latest[0], latest[1], at)
 
     def read(self, stream: BinaryIO, manifest: dict, manifest_hash: str) -> tuple[str, int]:
         hasher = hashlib.sha256(); size = 0; header = None; footer = None; windows = {}; previous = None; count = 0
+        self.proofs = {}
         while True:
             raw = stream.readline(MAX_LINE + 1)
             if not raw:
@@ -390,7 +404,7 @@ class Evidence:
         require(f["anchorHash"] == manifest_hash and f["trackHash"] == manifest["trackHash"], "anchor_hash_mismatch")
         groups = validate_groups(row["groups"], manifest)
         limits = closed(row["limits"], {"maxFrames", "maxPending", "maxGapUs", "liveProofMaxAgeUs"})
-        require(limits == {"maxFrames": MAX_FRAMES, "maxPending": 8, "maxGapUs": MAX_GAP_US, "liveProofMaxAgeUs": LIVE_PROOF_MAX_AGE_US}, "invalid_limits")
+        require(limits == {"maxFrames": MAX_FRAMES, "maxPending": MAX_PENDING, "maxGapUs": MAX_GAP_US, "liveProofMaxAgeUs": LIVE_PROOF_MAX_AGE_US}, "invalid_limits")
         if self.fingerprint_json is not None:
             require(self.fingerprint_json == row["fingerprintJSON"] and self.groups == groups, "mixed_fingerprint")
         else:
@@ -437,6 +451,7 @@ class Evidence:
         if not contiguous or not active or not continuous or not published:
             for window in windows.values():
                 window.reset_run()
+            self.proofs.clear()
         if active and continuous and published:
             self.scenarios.add(scenario)
         present = set()
@@ -453,7 +468,7 @@ class Evidence:
                 prefetch[key] = valid and not in_window and capsule_proof_available(capture, readback, readback)
                 if activation:
                     require(previous is not None and previous[2] < uint(obj["activationUs"], INT64_MAX) <= capture, "invalid_activation_clock")
-                if activation and valid and contiguous and previous is not None and previous[4].get(key, False) and capsule_proof_available(previous[2], previous[8], uint(obj["activationUs"], INT64_MAX)):
+                if activation and valid and contiguous and previous is not None and self.proof_at(key, uint(obj["activationUs"], INT64_MAX)):
                     definition = self.groups[obj["group"]]
                     crossing = lap + definition["activationFraction"]
                     if previous[5] < crossing <= lap + fraction:
@@ -472,6 +487,11 @@ class Evidence:
         for key, window in windows.items():
             if key not in present:
                 window.reset_run()
+        for key in list(self.proofs):
+            if key not in prefetch:
+                del self.proofs[key]
+        for key, visible in prefetch.items():
+            self.proofs.setdefault(key, deque(maxlen=MAX_PENDING + 1)).append((capture, readback, visible))
         return index, frame_id, capture, tick, prefetch, lap + fraction, lap, kart, readback, readback_tick
 
     def _object(self, obj: object, header: dict, camera: dict, candidates: list, lap: int, fraction: float):

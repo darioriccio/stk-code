@@ -51,7 +51,7 @@ struct AdmissionFixture {
  J header(const std::string& phase)const {
   std::ostringstream o;o<<std::setprecision(17)<<R"({"type":"header","contract":"tholus.stk-scintilla-measurement/1","schemaVersion":1,"recordingID":"00000000-0000-4000-8000-000000000001","producerUUID":"00000000-0000-4000-8000-000000000002","raceEpoch":"1","provenance":"native_render_depth","fingerprint":)"<<fingerprint<<",\"fingerprintJSON\":"<<quote(fingerprint)<<R"(,"fingerprintHash":"unused_by_pure_fixture","groups":[)";
   for(unsigned i=0;i<4;++i){if(i)o<<',';o<<"{\"id\":"<<quote(manifest.groups[i].id)<<",\"activationFraction\":"<<manifest.groups[i].activationFraction<<",\"expiryFraction\":"<<manifest.groups[i].expiryFraction<<R"(,"laps":[0],"capsules":[{"center":[30,0,10],"radius":2}]})";}
-  o<<R"(],"limits":{"maxFrames":18000,"maxPending":8,"maxGapUs":50000,"liveProofMaxAgeUs":50000},"phasePolicy":"diagnostic_constant_per_trace","phase":)"<<quote(phase)<<R"(,"actualLayoutRevision":0})";return Parser(o.str()).parse();
+  o<<R"(],"limits":{"maxFrames":18000,"maxPending":8,"maxGapUs":50000,"liveProofMaxAgeUs":)"<<LiveProofMaxAgeUs<<R"(},"phasePolicy":"diagnostic_constant_per_trace","phase":)"<<quote(phase)<<R"(,"actualLayoutRevision":0})";return Parser(o.str()).parse();
  }
  J frame(unsigned sequence,unsigned group,unsigned local,const std::string& phase,int64_t delay)const {
   const int64_t capture=1000000+int64_t(sequence)*33333,tick=sequence*4;
@@ -66,8 +66,12 @@ struct AdmissionFixture {
  }
 };
 void availabilityIntervalsHaveInclusiveExpiryAndRequireReadback(){
- CHECK(capsuleProofAvailable(100000,115000,150000));CHECK(!capsuleProofAvailable(100000,115000,150001));CHECK(!capsuleProofAvailable(100000,115000,114999));
- CHECK(capsuleProofsOverlap(100000,150000));CHECK(!capsuleProofsOverlap(100000,150001));
+ const int64_t live=LiveProofMaxAgeUs;
+ CHECK(capsuleProofAvailable(100000,115000,100000+live));CHECK(!capsuleProofAvailable(100000,115000,100001+live));CHECK(!capsuleProofAvailable(100000,115000,114999));
+ CHECK(capsuleProofsOverlap(100000,100000+live));CHECK(!capsuleProofsOverlap(100000,100001+live));
+ // A 30 Hz sample read back two 60 fps frames later is still live when the
+ // next sample is read back (measured on the dome Mac: 33 ms + 28 ms).
+ CHECK(capsuleProofsOverlap(100000,100000+33334+33334));
 }
 void capsuleDurationStartsAtReadbackButTetherRetainsCaptureContract(){
  Window cap,tether;for(int i=0;i<=60;++i){const int64_t us=1000000+int64_t(i)*100000/3;cap.observe(us,120+i*4,15,120,false,us+33333,124+i*4);}
@@ -75,8 +79,8 @@ void capsuleDurationStartsAtReadbackButTetherRetainsCaptureContract(){
  for(int i=0;i<=90;++i){const int64_t us=1000000+int64_t(i)*100000/3;tether.observe(us,120+i*4,15,120,true,us+90000,132+i*4);}CHECK(tether.best==15);
 }
 void actualEvidenceRejectsSlowAndIndividuallyFreshButGappedQueries(){
- AdmissionFixture f;std::string reason;CHECK(f.qualifies(15000,&reason));CHECK(reason.empty());CHECK(f.qualifies(16666,&reason));
- CHECK(!f.qualifies(20000,&reason));CHECK(reason=="measurement_capsule_window_missing");CHECK(!f.qualifies(90000,&reason));CHECK(reason=="measurement_capsule_window_missing");
+ AdmissionFixture f;std::string reason;CHECK(f.qualifies(15000,&reason));CHECK(reason.empty());CHECK(f.qualifies(50000,&reason));
+ CHECK(!f.qualifies(70000,&reason));CHECK(reason=="measurement_capsule_window_missing");CHECK(!f.qualifies(110000,&reason));CHECK(reason=="measurement_capsule_window_missing");
 }
 void actualEvidenceRejectsLegacyAndImpossibleAvailabilityFields(){
  AdmissionFixture f;auto missing=[](J&j,const std::string&key){j.object.erase(key);};
@@ -86,6 +90,19 @@ void actualEvidenceRejectsLegacyAndImpossibleAvailabilityFields(){
 }
 // Parser::parse() accepts only an object root (production rule); wrap scalars.
 J scalar(const std::string& json){return Parser("{\"v\":"+json+"}").parse().object.at("v");}
+void activationUsesTheLatestProofAlreadyReadBack(){
+ // Readback 28 ms after a 30 Hz capture: at the crossing the newest sample is
+ // still in flight, so the runtime holds the one before it, as here.
+ AdmissionFixture f;std::string reason;CHECK(f.qualifies(28000,&reason));CHECK(reason.empty());
+ // That proof decides: a visible sample not yet read back cannot rescue an
+ // occluded one the runtime already holds.
+ Evidence e(f.manifest,f.fingerprint);
+ for(const auto& phase:{"shell","open"}){e.beginTrace();e.header(f.header(phase));unsigned sequence=0;
+  for(unsigned g=0;g<4;++g)for(unsigned i=0;i<140;++i){auto row=f.frame(++sequence,g,i,phase,28000);
+   if(g==0&&i==1)row.object["objects"].array.front().object["visiblePixels"]=scalar("50");e.frame(row);}
+  e.footer(Parser(R"({"type":"footer","frameCount":"560","complete":true,"reason":"","naturalFinish":true,"officialLap":1})").parse());}
+ CHECK(!e.qualified(nullptr,&reason));CHECK(reason=="measurement_activation_not_proven");
+}
 void crewHeaderRequiresDistinctClosedV3Contract(){
  for(const auto* profile:{"sc5_crew_standard_v1","sc5_crew_party_v1"}){
   AdmissionFixture f;J config=Parser(f.fingerprint).parse();
@@ -104,6 +121,7 @@ void crewHeaderRequiresDistinctClosedV3Contract(){
 }
 int main(int argc,char**argv){const std::map<std::string,void(*)()> cases={
  {"capsuleWindowRequiresStrictlyMoreThanTwoSeconds",capsuleWindowRequiresStrictlyMoreThanTwoSeconds},
+ {"activationUsesTheLatestProofAlreadyReadBack",activationUsesTheLatestProofAlreadyReadBack},
  {"tetherWindowAcceptsExactThreeSeconds",tetherWindowAcceptsExactThreeSeconds},
  {"shortFastSpikeCannotRaiseASustainedEnvelope",shortFastSpikeCannotRaiseASustainedEnvelope},
  {"laterSustainedSpeedCanRaiseItsOwnBound",laterSustainedSpeedCanRaiseItsOwnBound},

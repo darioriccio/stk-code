@@ -124,7 +124,8 @@ check("measurement records actual availability after reading query results",
 check("capsule runtime and evidence share the same closed proof interval",
       "Measure::capsuleProofAvailable(proof.captureUs,proof.readbackUs,nowUs())" in body(measurement, "bool measurementPlacementPermitted(") and
       "capsuleProofsOverlap(lastUs,readbackUs)" in evidence and
-      "capsuleProofAvailable(lastUs,previousReadback[key],activationUs)" in evidence and
+      "if(continuous&&geometry&&proofAt(key,activationUs))activationProven[key]=true;" in evidence and
+      "return latest&&latest->visible&&capsuleProofAvailable(latest->captureUs,latest->readbackUs,at);" in evidence and
       "activationUs<=lastUs||activationUs>us" in evidence)
 check("qualification separates capsule availability from tether geometry",
       "tether?us:readbackUs" in evidence and "tether?tick:readbackTick" in evidence and

@@ -50,7 +50,7 @@ def synthetic_header(manifest, crew=1, laps=1, phase="shell"):
             "recordingID": "00000000-0000-4000-8000-000000000001", "producerUUID": "00000000-0000-4000-8000-000000000002",
             "raceEpoch": "9007199254740993", "provenance": "synthetic_fixture", "fingerprint": fingerprint,
             "fingerprintJSON": raw, "fingerprintHash": q.digest(raw.encode()), "groups": groups,
-            "limits": {"maxFrames": 18000, "maxPending": 8, "maxGapUs": 50000, "liveProofMaxAgeUs": 50000},
+            "limits": {"maxFrames": 18000, "maxPending": 8, "maxGapUs": 50000, "liveProofMaxAgeUs": q.LIVE_PROOF_MAX_AGE_US},
             "phasePolicy": q.PHASE_POLICY, "phase": phase, "actualLayoutRevision": 0}
 
 
@@ -186,11 +186,15 @@ class QualificationMathematics(unittest.TestCase):
                 self.assertEqual(window.best, expected)
 
     def test_capsule_proof_interval_exact_boundary_and_activation_availability(self):
-        self.assertTrue(q.capsule_proof_available(100000, 115000, 150000))
-        self.assertFalse(q.capsule_proof_available(100000, 115000, 150001))
+        live = q.LIVE_PROOF_MAX_AGE_US
+        self.assertTrue(q.capsule_proof_available(100000, 115000, 100000 + live))
+        self.assertFalse(q.capsule_proof_available(100000, 115000, 100001 + live))
         self.assertFalse(q.capsule_proof_available(100000, 115000, 114999))
-        self.assertTrue(q.capsule_proofs_overlap(100000, 150000))
-        self.assertFalse(q.capsule_proofs_overlap(100000, 150001))
+        self.assertTrue(q.capsule_proofs_overlap(100000, 100000 + live))
+        self.assertFalse(q.capsule_proofs_overlap(100000, 100001 + live))
+        # A 30 Hz sample read back two 60 fps frames later is still live when
+        # the next sample is read back (measured on the dome Mac: 33 + 28 ms).
+        self.assertTrue(q.capsule_proofs_overlap(100000, 100000 + 33334 + 33334))
 
     def test_capsule_duration_starts_at_actual_readback_in_both_clocks(self):
         window = q.Window(120, 2000000, True)
@@ -224,9 +228,10 @@ class SyntheticNegativeCaptures(unittest.TestCase):
         self.assertEqual(evidence.bounds[("capsule", 0, 0, 0, "shell")], 15)
 
     def test_readback_spacing_jointly_controls_capsule_admission(self):
-        # At30Hz, delay20ms is individually younger than50ms but leaves
-        # 3.333ms holes. Delay16.666ms overlaps;90ms is unusable altogether.
-        for delay, expected in ((15000, True), (16666, True), (20000, False), (49999, False), (90000, False)):
+        # At 30 Hz a proof must stay live until the next one is read back:
+        # 28 ms (measured) and 66.666 ms overlap; 70 ms leaves 3.333 ms holes
+        # although each proof is individually young; 110 ms is unusable.
+        for delay, expected in ((15000, True), (28000, True), (66666, True), (70000, False), (110000, False)):
             with self.subTest(delay=delay):
                 manifest = synthetic_manifest(); evidence = q.Evidence()
                 for phase in ("shell", "open"):
@@ -246,12 +251,16 @@ class SyntheticNegativeCaptures(unittest.TestCase):
                 self.assertNotIn("tether_window_below_base_speed", evidence.reasons)
 
     def test_readback_after_crossing_cannot_retroactively_prove_activation(self):
+        # Only the sample just before the crossing shows the capsule, and it is
+        # read back after the crossing: the runtime held no visible proof.
         manifest = synthetic_manifest(); evidence = q.Evidence()
         for phase in ("shell", "open"):
             rows = synthetic_rows(synthetic_header(manifest, phase=phase), manifest)
             for row in rows[1:-1]:
+                local = (int(row["index"]) - 1) % 140
                 for obj in row["objects"]:
                     if obj["activation"]: obj["activationUs"] = str(int(row["captureUs"]) - 24000)
+                    if obj["kind"] == "capsule" and local < 2: obj["visiblePixels"] = 99
             read_rows(evidence, rows, manifest)
         evidence.finish()
         self.assertIn("activation_not_proven", evidence.reasons)
@@ -268,7 +277,32 @@ class SyntheticNegativeCaptures(unittest.TestCase):
             read_rows(evidence, rows, manifest)
         evidence.finish()
         self.assertNotIn("capsule_window_below_base_speed", evidence.reasons)
-        self.assertIn("activation_not_proven", evidence.reasons)  # Batch completes after crossing.
+        # The crossing's own batch completes after it, but the runtime still
+        # holds the previous batch's proof, 40 ms old: activation is proven.
+        self.assertNotIn("activation_not_proven", evidence.reasons)
+
+    def test_activation_uses_the_latest_proof_already_read_back(self):
+        # Readback 28 ms after a 30 Hz capture: at the crossing the newest
+        # sample is still in flight and the runtime holds the one before it.
+        def evidence_for(occluded_local):
+            manifest = synthetic_manifest(); evidence = q.Evidence()
+            for phase in ("shell", "open"):
+                rows = synthetic_rows(synthetic_header(manifest, phase=phase), manifest)
+                for row in rows[1:-1]:
+                    index = int(row["index"]); capture = 1000000 + index * 33333
+                    row["captureUs"] = str(capture); row["tick"] = str(index * 4)
+                    row["readbackUs"] = str(capture + 28000); row["readbackTick"] = str(index * 4 + 4)
+                    for obj in row["objects"]:
+                        if obj["activation"]: obj["activationUs"] = str(capture - 10000)
+                        if obj["kind"] == "capsule" and (index - 1) % 140 == occluded_local: obj["visiblePixels"] = 99
+                read_rows(evidence, rows, manifest)
+            evidence.finish()
+            return evidence
+        self.assertNotIn("activation_not_proven", evidence_for(None).reasons)
+        # That proof decides: a visible sample not yet read back cannot
+        # rescue an occluded one the runtime already holds.
+        self.assertIn("activation_not_proven", evidence_for(1).reasons)
+        self.assertNotIn("activation_not_proven", evidence_for(0).reasons)
 
     def test_c2_objects_are_independent_and_missing_second_is_rejected(self):
         self.assertEqual(synthetic_pair(crew=2).reasons, {"non_native_provenance"})
@@ -528,11 +562,12 @@ class CrewQualificationV3(unittest.TestCase):
             self.assertFalse(q.world_rect_free(inside,v,inside,v,width,height,3))
             self.assertTrue(q.world_rect_free(outside,v,outside,v,width,height,3))
 
-    def test_v3_requires_actual_v3_mask_and_retains_fifty_ms_availability(self):
+    def test_v3_requires_actual_v3_mask_and_retains_live_proof_availability(self):
         manifest,header=self.header();header["actualLayoutRevision"]=0
         with self.assertRaises(q.Invalid): q.Evidence()._header(header,manifest,q.digest(encoded(manifest)))
-        self.assertTrue(q.capsule_proof_available(100000,149999,150000))
-        self.assertFalse(q.capsule_proof_available(100000,150001,150001))
+        live=q.LIVE_PROOF_MAX_AGE_US
+        self.assertTrue(q.capsule_proof_available(100000,99999+live,100000+live))
+        self.assertFalse(q.capsule_proof_available(100000,100001+live,100001+live))
 
     def test_party_requires_measured_windows_at_the_extra_native_speed(self):
         manifest,header=self.header(True);evidence=q.Evidence()
