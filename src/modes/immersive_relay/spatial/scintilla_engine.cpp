@@ -28,6 +28,9 @@
 #include "karts/abstract_kart_animation.hpp"
 #include "tracks/drive_graph.hpp"
 #include "modes/immersive_relay/relay_session_controller.hpp"
+#ifdef ENABLE_RELAY_LOCAL_API
+#include "modes/immersive_relay/remote/relay_game_dispatcher.hpp"
+#endif
 #include "modes/immersive_relay/render/camera/immersive_camera_rig.hpp"
 #include "modes/immersive_relay/render/full_sphere_capture.hpp"
 #include "modes/immersive_relay/render/immersive_render_config.hpp"
@@ -418,6 +421,15 @@ void target(uint64_t id,const void* pointer,const SpatialVec3& center,double rad
 #endif
 }
 int64_t nowUs() { return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+#ifdef ENABLE_RELAY_LOCAL_API
+// Socket-thread /spatial/clock: the same steady clock, registered only while
+// Scintilla input is enabled and answered only while the runtime would be.
+static bool socketClock(int64_t* now)
+{
+    if(!RelaySessionController::get()->isRuntimeEnabled())return false;
+    *now=nowUs();return true;
+}
+#endif
 Runtime& input(){return consumer;}
 bool enabled(){return active;}
 namespace {
@@ -1008,6 +1020,9 @@ void setEnabled(bool value)
 {
     if(active==value)return;
     active=value;invalidate(value?"scintilla_enabled":"scintilla_disabled");
+#ifdef ENABLE_RELAY_LOCAL_API
+    RelayGameDispatcher::setSpatialClock(value?&socketClock:nullptr);
+#endif
 #ifndef SERVER_ONLY
     consumer.setLiveTargetOracle([](uint64_t id,uint64_t instance){
         if(id>=ScintillaMission::Runtime::CapsuleEntityBase)return liveMissionTarget(id,instance);
@@ -1664,6 +1679,9 @@ ScintillaTelemetry::Writer telemetryWriter;
 uint64_t telemetryRace=0;
 std::string telemetryError;
 int64_t telemetryNextSample=0,telemetryNextPresentation=0;
+// Longest main-loop interval since the last sample: stalls delay relay input
+// and clock renewals as much as they delay frames.
+int64_t telemetryLastTickUs=0,telemetryFrameMaxUs=0;
 std::map<uint64_t,ScintillaCombat::Snapshot> telemetryCombat;
 std::map<uint64_t,ScintillaMission::Snapshot> telemetryMission;
 std::map<std::string,BeamProof> telemetryBeams;
@@ -1723,7 +1741,7 @@ void openTelemetry()
     const std::string path=directory+"/scintilla-"+stamp+"-race"+std::to_string(raceEpoch)+"-"+producerUUID().substr(0,8)+".ndjson";
     if(!telemetryWriter.open(path,&telemetryError))return;
     telemetryError.clear();consumer.setTelemetry(true);
-    telemetryNextSample=telemetryNextPresentation=0;telemetryPresentedFrame=0;
+    telemetryNextSample=telemetryNextPresentation=0;telemetryPresentedFrame=0;telemetryLastTickUs=telemetryFrameMaxUs=0;
     telemetryWrite(telemetryLine("header").text("schema",ScintillaTelemetry::Schema).text("startedAtUtc",iso)
         .text("producerUUID",producerUUID()).unsignedInteger("raceEpoch",raceEpoch)
         .text("track",RaceManager::get()->getTrackName()).integer("physicsFps",stk_config->getPhysicsFPS())
@@ -1802,7 +1820,19 @@ void telemetrySample(int64_t now)
         .text("defense",defensePhaseName(defense.view().phase)).number("energy",defense.energy()).number("heat",defense.heat())
         .flag("boostReady",defense.boostStatus(ScintillaDefensePhysics::eligibleHuman(human))==Defense::Status::BoostReady)
         .flag("humanTransient",ScintillaDefensePhysics::humanTransient(human))
-        .integer("reticles",valid).integer("beams",held).flag("gameplay",telemetryGameplay));
+        .integer("reticles",valid).integer("beams",held).flag("gameplay",telemetryGameplay)
+        .number("frameMaxMs",telemetryFrameMaxUs/1000.0));
+    telemetryFrameMaxUs=0;
+}
+// Every frame, also while held or after the grant lapsed: the stall that ends
+// an input grant is the one most worth recording.
+void telemetryFrame(int64_t now)
+{
+    if(telemetryLastTickUs&&telemetryWriter.isOpen()){
+        const int64_t gap=now-telemetryLastTickUs;telemetryFrameMaxUs=std::max(telemetryFrameMaxUs,gap);
+        if(gap>=250000)telemetryWrite(telemetryLine("stall").number("ms",gap/1000.0));
+    }
+    telemetryLastTickUs=now;
 }
 void telemetryTick()
 {
@@ -2153,6 +2183,7 @@ Reply prepareCombat(const std::string& body)
 }
 void updateCombat(int ticks,bool gameplayActive)
 {
+    telemetryFrame(nowUs());
     if(!gameplayActive||RelaySessionController::get()->isWorldHeld())breakMissionMeasurementContinuity();
     // Presentation recovery is serviced even during the technical world hold.
     // It uses real presented frames, never a gameplay-active synthetic proof.

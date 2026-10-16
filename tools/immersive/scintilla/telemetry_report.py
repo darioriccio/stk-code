@@ -190,6 +190,19 @@ def summarise(records, path=''):
         'framePresentationP50Ms': quantile([r.get('captureToPresentedP50Ms') for r in by_type['presentation']], .5),
         'framePresentationP90Ms': quantile([r.get('captureToPresentedP90Ms') for r in by_type['presentation']], .9),
     }
+    # Main-loop stalls: STK serves relay input between frames, so a long frame
+    # delays aims and clock renewals too (the input grant lapses after 1 s).
+    frames = [s['frameMaxMs'] for s in samples if isinstance(s.get('frameMaxMs'), (int, float))]
+    latency.update({
+        'frameMaxMsP50': quantile(frames, .5), 'frameMaxMs': max(frames) if frames else None,
+        'stallsOver250Ms': sum(1 for f in frames if f > 250), 'stallsOver600Ms': sum(1 for f in frames if f > 600),
+    })
+    # Explicit stall rows are written every frame, also after the grant lapsed.
+    stalls = [r['ms'] for r in by_type['stall'] if isinstance(r.get('ms'), (int, float))]
+    if stalls:
+        latency['frameMaxMs'] = max([latency['frameMaxMs'] or 0] + stalls)
+        latency['stallsOver250Ms'] = max(latency['stallsOver250Ms'], len(stalls))
+        latency['stallsOver600Ms'] = max(latency['stallsOver600Ms'], sum(1 for f in stalls if f > 600))
     return {
         'file': str(path), 'track': header.get('track'), 'raceEpoch': header.get('raceEpoch'),
         'startedAtUtc': header.get('startedAtUtc'), 'crew': header.get('crew'),
@@ -240,6 +253,7 @@ def markdown(summary):
         f"| Attività crew | rivali colpibili {percent(x['attackableShare'])}, capsule {percent(x['capsuleShare'])}, minacce {percent(x['threatShare'])}, **niente da fare {percent(x['nothingToDoShare'])}** |",
         f"| Latenza (lampi) | {l['presented']}/{l['probes']} presentati; posa→schermo mediana {decimal(l['poseToPresentedMsP50'])} ms, p90 {decimal(l['poseToPresentedMsP90'])} ms (posa→STK {decimal(l['poseToReceivedMsP50'])}, STK→cattura {decimal(l['receivedToCaptureMsP50'])}, cattura→schermo {decimal(l['captureToPresentedMsP50'])}) |",
         f"| Latenza (tutti i fotogrammi) | cattura→presentazione mediana {decimal(l['framePresentationP50Ms'])} ms, p90 {decimal(l['framePresentationP90Ms'])} ms |",
+        f"| Fluidità STK | frame più lungo per campione: mediana {decimal(l['frameMaxMsP50'])} ms, massimo {decimal(l['frameMaxMs'])} ms; blocchi >250 ms {l['stallsOver250Ms']}, >600 ms {l['stallsOver600Ms']} |",
         '',
         '| Distanza | Centrati | Mancati | % | Raggio angolare mediano |',
         '|---|---:|---:|---:|---:|',

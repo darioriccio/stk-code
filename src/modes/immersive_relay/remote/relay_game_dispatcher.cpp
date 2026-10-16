@@ -1,7 +1,9 @@
 #ifdef ENABLE_RELAY_LOCAL_API
 #include "modes/immersive_relay/remote/relay_game_dispatcher.hpp"
 
+#include <atomic>
 #include <chrono>
+#include <sstream>
 #include <condition_variable>
 #include <deque>
 #include <exception>
@@ -28,6 +30,7 @@ using RelayGameDispatcher::Request;
 std::mutex queue_mutex;
 std::deque<std::shared_ptr<Request> > queue;
 bool stopped = false;
+std::atomic<RelayGameDispatcher::SpatialClock> spatial_clock(nullptr);
 }
 
 RelayGameDispatcher::Ticket RelayGameDispatcher::submit(
@@ -38,6 +41,16 @@ RelayGameDispatcher::Ticket RelayGameDispatcher::submit(
     request->body=body;request->api_active=api_active;request->port=port;
     // Preserve snapshot reads that remain responsive while a scene is loading.
     const std::string route_path=path.substr(0,path.find('?'));
+    // A queued probe would add up to a frame (or a stall) to its round trip and
+    // widen every offset interval derived from it.
+    int64_t received=0,sent=0;const SpatialClock clock=spatial_clock.load();
+    if(method=="GET"&&route_path=="/immersive/v1/spatial/clock"&&api_active&&clock&&clock(&received)&&clock(&sent))
+    {
+        std::ostringstream out;out<<"{\"ok\":true,\"serverReceivedUs\":"<<received<<",\"serverSentUs\":"<<sent<<"}";
+        std::lock_guard<std::mutex> lock(queue_mutex);
+        request->response=stopped?RelayHttpResponse(503,"{\"ok\":false,\"error\":\"game_stopping\"}"):RelayHttpResponse(200,out.str());
+        request->done=true;return request;
+    }
     if(method!="POST"&&route_path.compare(0,std::string("/immersive/v1/spatial/").size(),"/immersive/v1/spatial/")!=0&&route_path.compare(0,std::string("/immersive/v1/scintilla/").size(),"/immersive/v1/scintilla/")!=0&&route_path!="/immersive/v1/tracks"&&
        route_path!="/immersive/v1/karts"&&route_path!="/immersive/v1/input/devices"&&route_path!="/immersive/v1/input/state"&&route_path!="/immersive/v1/capabilities")
     {request->response=RelayCommandRouter::route(method,path,body,api_active,port);request->done=true;return request;}
@@ -130,8 +143,14 @@ void RelayGameDispatcher::drain()
     }
 }
 
+void RelayGameDispatcher::setSpatialClock(SpatialClock clock)
+{
+    spatial_clock.store(clock);
+}
+
 void RelayGameDispatcher::stop()
 {
+    spatial_clock.store(nullptr);
     std::deque<std::shared_ptr<Request> > pending;
     {
         std::lock_guard<std::mutex> lock(queue_mutex);

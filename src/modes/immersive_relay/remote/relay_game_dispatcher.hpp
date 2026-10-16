@@ -3,6 +3,7 @@
 
 #ifdef ENABLE_RELAY_LOCAL_API
 #include "modes/immersive_relay/remote/relay_command_router.hpp"
+#include <cstdint>
 #include <memory>
 
 // The socket thread never loads or resets a world. The main loop drains jobs
@@ -21,6 +22,12 @@ RelayHttpResponse dispatch(const std::string& method, const std::string& path,
 void enqueueLocalReady();
 void drain();
 void stop();
+// Spatial clock probes measure the transport, not frame pacing. While a clock
+// is registered (from the game thread) and returns true, the socket thread
+// answers GET /spatial/clock at once; otherwise the probe is queued and the
+// router reports why the clock is unavailable. nullptr unregisters it.
+typedef bool (*SpatialClock)(int64_t* now_us);
+void setSpatialClock(SpatialClock clock);
 }
 #endif
 #endif

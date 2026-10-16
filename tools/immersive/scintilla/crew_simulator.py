@@ -99,6 +99,12 @@ def rotate(d, yaw_deg, pitch_deg):
 
 # ---- Presentation proofs, standing in for TholusOS. ----
 LOOKBACK_US = 65_000
+# The producer drops the grant 1 s after the last accepted renewal, checked
+# when a request is processed: renew often enough that one stalled request
+# (a long STK frame, a slow reply) still leaves room for the next.
+RENEW_EVERY_S = .25
+RENEW_INLINE_AFTER_S = .5
+SLOW_CALL_MS = 250
 MIN_PROOF_US = 30_000  # as TholusOS: the consumer only resolves events of the last 60 ms
 
 
@@ -115,6 +121,10 @@ def presentation_runs(frames, offset_us, latency_us, view_server_us, now_host, p
     runs = []
     for i, frame in enumerate(frames):
         start = frame['captureUs'] - offset_us + latency_us
+        if i == 0:
+            # Its predecessor is not listed: at the exact boundary both frames
+            # were plausible, and an earlier proof said so. Start just after it.
+            start += 1
         end = frames[i + 1]['captureUs'] - offset_us + latency_us if i + 1 < len(frames) \
             else view_server_us - offset_us + latency_us
         end = min(end, now_host - 1000)
@@ -353,7 +363,9 @@ class Simulation:
                     t0 = host_us()
                     c = self.api.call('/spatial/clock')
                     t3 = host_us()
-                    if 0 <= t3 - t0 <= 50000:
+                    if t3 - t0 > 20000:  # TholusOS rejects a clock probe slower than 20 ms
+                        self.stats['clockProbesOver20Ms'] = self.stats.get('clockProbesOver20Ms', 0) + 1
+                    if 0 <= t3 - t0 <= 20000:  # as TholusOS: only fast probes renew
                         with self.lock:
                             self.exchanges.append({'hostSentUs': t0, 'serverReceivedUs': c['serverReceivedUs'],
                                                    'serverSentUs': c['serverSentUs'], 'hostReceivedUs': t3})
@@ -394,7 +406,7 @@ class Simulation:
             with self.lock:
                 latest = self.views[-1] if self.views else None
             if latest:
-                start, runs = presentation_runs(latest['frames'][-10:], self.proof_offset_us, self.args.display_latency_ms * 1000,
+                start, runs = presentation_runs(latest['frames'][-24:], self.proof_offset_us, self.args.display_latency_ms * 1000,
                                                 latest['nowUs'], host_us(), self.proof_from)
                 # The producer maps the window through its clock interval: a proof
                 # shorter than that interval is invalid and ends the session.
@@ -404,11 +416,11 @@ class Simulation:
                     body['presentation'] = dict(contract=SPATIAL, inputSessionID=SESSION, routingGeneration=GENERATION,
                                                 frameStream=latest['stream'], timingRevision='software-display',
                                                 proofFromUs=start, proofUntilUs=self.proof_until, runs=runs)
-        if presentation and time.monotonic() - self.last_renew > .3:
+        if presentation and time.monotonic() - self.last_renew > RENEW_EVERY_S:
             with self.lock:
                 renew = self.renewal()
-            if renew is None and self.last_renew and time.monotonic() - self.last_renew > .7:
-                # Fallback before the producer's 1 s clock limit: probe inline.
+            if renew is None and self.last_renew and time.monotonic() - self.last_renew > RENEW_INLINE_AFTER_S:
+                # Fallback well before the producer's 1 s clock limit: probe inline.
                 try:
                     samples = self.clock_samples()
                     renew = dict(contract=SPATIAL, inputSessionID=SESSION, routingGeneration=GENERATION,
@@ -438,6 +450,8 @@ class Simulation:
         if 'presentation' in body:
             self.sent_proofs.append({k: body['presentation'][k] for k in ('proofFromUs', 'proofUntilUs', 'runs')})
         self.update_ms.append((time.monotonic() - started) * 1000)
+        if self.update_ms[-1] > 50 and 'firstUpdateOver50MsS' not in self.stats and getattr(self, 'race_started', None):
+            self.stats['firstUpdateOver50MsS'] = round(time.monotonic() - self.race_started, 1)
         self.stats['updates'] += 1
         for envelope, result in zip(inputs, reply.get('results', [])):
             if result.get('accepted') is False:
@@ -570,11 +584,12 @@ class Simulation:
         # an UP edge of both controls after the start, as a person would.
         self.wait_active(15)
         self.rearm()
-        start = last = self.last_state = self.last_renew = time.monotonic()
+        start = last = self.last_state = self.last_renew = self.race_started = time.monotonic()
         try:
             while time.monotonic() - start < seconds:
                 now = time.monotonic()
                 dt, last = now - last, now
+                self.stats['maxLoopGapS'] = max(self.stats.get('maxLoopGapS', 0), round(dt, 3))
                 inputs = []
                 for member in self.members:
                     self.update_member(member, now, dt, inputs)
@@ -596,17 +611,25 @@ class Simulation:
 class Api:
     def __init__(self, base, token):
         self.base, self.token = base.rstrip('/'), token
+        # Per-route round trips: a slow reply is the usual cause of a lapsed grant.
+        self.max_ms, self.slow = {}, []
 
     def call(self, path, body=None, expect=(200,)):
         data = None if body is None else json.dumps(body).encode()
         request = urllib.request.Request(self.base + path, data=data, method='GET' if body is None else 'POST',
                                          headers={'Authorization': 'Bearer ' + self.token, 'Content-Type': 'application/json'})
+        started = time.monotonic()
         try:
             response = urllib.request.urlopen(request, timeout=20)
         except urllib.error.HTTPError as error:
             response = error
         with response:
             status, raw = response.status, response.read()
+        elapsed = (time.monotonic() - started) * 1000
+        route = path.split('?')[0]
+        self.max_ms[route] = max(self.max_ms.get(route, 0), round(elapsed, 1))
+        if elapsed > SLOW_CALL_MS:
+            self.slow.append((round(time.monotonic(), 3), route, round(elapsed)))
         value = json.loads(raw or b'{}')
         if expect and status not in expect:
             raise RuntimeError(f'{path} -> {status}: {value}')
@@ -708,13 +731,19 @@ def main(argv=None):
                           'producerFramesPerSecondSeen': round((len(captures) - 1) / span, 1) if span else None,
                           'frameIntervalMsP50': q(gaps, .5), 'frameIntervalMsP90': q(gaps, .9),
                           'updateRoundTripMsP50': q(simulation.update_ms, .5), 'updateRoundTripMsP90': q(simulation.update_ms, .9),
+                          # TholusOS treats an update reply slower than 50 ms as invalid and drops the session.
+                          'updatesOver50Ms': sum(1 for v in simulation.update_ms if v > 50),
+                          'clockProbesOver20Ms': simulation.stats.get('clockProbesOver20Ms', 0),
+                          'firstUpdateOver50MsS': simulation.stats.get('firstUpdateOver50MsS'),
                           'renewals': simulation.stats.get('renewals'), 'maxRenewGapS': simulation.stats.get('maxRenewGapS'),
                           'handoffs': simulation.stats.get('handoffs', 0),
                           'inlineRenewals': simulation.stats.get('inlineRenewals', 0),
                           'frameIntervalMsMax': round(max(gaps), 1) if gaps else None,
                           'telemetry': telemetry, 'crew': [m.participant for m in simulation.members],
                           'updates': simulation.stats['updates'], 'rejectedInputs': simulation.stats['rejected'],
-                          'rejectionReasons': simulation.stats['reasons']}, indent=2))
+                          'rejectionReasons': simulation.stats['reasons'],
+                          'maxLoopGapS': simulation.stats.get('maxLoopGapS'),
+                          'apiMaxMs': api.max_ms, 'slowCalls': len(api.slow), 'slowCallsFirst': api.slow[:10]}, indent=2))
         return 1 if failure else 0
     finally:
         if process and process.poll() is None:

@@ -31,6 +31,7 @@ private:
     int m_lease_directory, m_lease_gate, m_lease_data;
     bool m_writer_gate, m_writer_data;
     void* m_publish_fence;
+    void* m_activity;
     std::string m_server_uuid;
     bool prepareLease();
     bool acquireWriter();

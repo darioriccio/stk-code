@@ -40,6 +40,7 @@ SyphonOutputAdapterMac::SyphonOutputAdapterMac()
     m_lease_directory = m_lease_gate = m_lease_data = -1;
     m_writer_gate = m_writer_data = false;
     m_publish_fence = NULL;
+    m_activity = NULL;
 }
 
 SyphonOutputAdapterMac::~SyphonOutputAdapterMac()
@@ -90,6 +91,12 @@ bool SyphonOutputAdapterMac::initialize(const std::string& server_name,
         shutdown(); return false;
     }
     m_initialized = true;
+    // The producer window is normally hidden behind its consumer and may run
+    // without sound: App Nap would then coalesce its timers and lower its
+    // priority, stalling frames and the relay API that carries live input.
+    m_activity = [[[NSProcessInfo processInfo]
+        beginActivityWithOptions:NSActivityUserInitiated | NSActivityLatencyCritical
+                          reason:@"Immersive relay live output"] retain];
     Log::info("SyphonOutputAdapterMac",
               "Publishing immersive projection via Syphon server '%s' at %ux%u.",
               server_name.c_str(), width, height);
@@ -247,6 +254,12 @@ void SyphonOutputAdapterMac::closeLease()
 void SyphonOutputAdapterMac::shutdown()
 {
     closeLease();
+    if (m_activity)
+    {
+        [[NSProcessInfo processInfo] endActivity:(id)m_activity];
+        [(id)m_activity release];
+        m_activity = NULL;
+    }
     if (m_server)
     {
         SyphonOpenGLServer* server = (SyphonOpenGLServer*)m_server;

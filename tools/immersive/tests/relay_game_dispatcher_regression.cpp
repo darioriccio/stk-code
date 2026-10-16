@@ -67,6 +67,30 @@ void cancelAfterRoutingBeginsPreservesUncertainEffectSemantics()
     drain();duringRoute=nullptr;
     CHECK(calls.size()==1&&poll(request,&response)&&response.m_status_code==200);
 }
+int64_t fakeNow=0;bool fakeOpen=false;
+bool fakeClock(int64_t* now){if(!fakeOpen)return false;*now=fakeNow++;return true;}
+void spatialClockIsAnsweredOnTheSocketThreadOnlyWhileOpen()
+{
+    calls.clear();RelayHttpResponse response;
+    // Registered and open: answered at submit, ahead of queued commands.
+    setSpatialClock(&fakeClock);fakeOpen=true;fakeNow=41;
+    const Ticket queued=submit("POST","/queued","{}",true,8890);
+    const Ticket clock=submit("GET","/immersive/v1/spatial/clock","",true,8890);
+    CHECK(!poll(queued,&response)&&poll(clock,&response)&&response.m_status_code==200&&calls.empty());
+    CHECK(response.m_body=="{\"ok\":true,\"serverReceivedUs\":41,\"serverSentUs\":42}");
+    // Only GET of the exact path, and only for an active API.
+    const Ticket post=submit("POST","/immersive/v1/spatial/clock","{}",true,8890);
+    const Ticket inactive=submit("GET","/immersive/v1/spatial/clock","",false,8890);
+    CHECK(!poll(post,&response)&&!poll(inactive,&response));
+    // Registered but closed (runtime off): the router explains the refusal.
+    fakeOpen=false;const Ticket closed=submit("GET","/immersive/v1/spatial/clock","",true,8890);
+    CHECK(!poll(closed,&response));
+    // Unregistered: queued exactly as before.
+    setSpatialClock(nullptr);fakeOpen=true;const Ticket plain=submit("GET","/immersive/v1/spatial/clock","",true,8890);
+    CHECK(!poll(plain,&response));
+    drain();CHECK(calls.size()==5&&calls[0]=="/queued"&&calls[4]=="/immersive/v1/spatial/clock");
+    CHECK(poll(plain,&response)&&response.m_body=="/immersive/v1/spatial/clock");
+}
 void stoppingCompletesWaitersAndRefusesFurtherQueuedWork()
 {
     calls.clear();RelayHttpResponse response;const Ticket waiting=submit("POST","/waiting","{}",true,8890);
@@ -74,6 +98,8 @@ void stoppingCompletesWaitersAndRefusesFurtherQueuedWork()
     stop();CHECK(poll(waiting,&response)&&response.m_status_code==503&&response.m_body.find("game_stopping")!=std::string::npos);
     CHECK(poll(clock,&response)&&response.m_status_code==503);drain();CHECK(calls.empty());
     const Ticket refused=submit("POST","/after_stop","{}",true,8890);CHECK(poll(refused,&response)&&response.m_status_code==503);
+    setSpatialClock(&fakeClock);fakeOpen=true;const Ticket late=submit("GET","/immersive/v1/spatial/clock","",true,8890);
+    CHECK(poll(late,&response)&&response.m_status_code==503);
 }
 struct Test {const char* name;void(*run)();};
 const Test cases[]={

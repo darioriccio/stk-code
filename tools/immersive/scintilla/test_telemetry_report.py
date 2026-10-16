@@ -116,6 +116,9 @@ class ReportTests(unittest.TestCase):
             {'type': 'latency_presented', 't': 4, 'poseUs': 1000, 'receivedUs': 21000, 'captureUs': 31000,
              'presentedLowUs': 71000, 'presentedHighUs': 88000},
             {'type': 'presentation', 't': 5, 'captureToPresentedP50Ms': 40, 'captureToPresentedP90Ms': 55},
+            {'type': 'sample', 't': 6, 'gameplay': False, 'frameMaxMs': 17},
+            {'type': 'sample', 't': 7, 'gameplay': False, 'frameMaxMs': 300},
+            {'type': 'sample', 't': 8, 'gameplay': False, 'frameMaxMs': 700},
         ))
         activity, latency = s['activity'], s['latency']
         self.assertEqual(activity['samples'], 2)
@@ -124,6 +127,11 @@ class ReportTests(unittest.TestCase):
         self.assertEqual((latency['poseToReceivedMsP50'], latency['receivedToCaptureMsP50'],
                           latency['captureToPresentedMsP50'], latency['poseToPresentedMsP50']), (20, 10, 40, 70))
         self.assertEqual(latency['framePresentationP50Ms'], 40)
+        self.assertEqual((latency['frameMaxMs'], latency['stallsOver250Ms'], latency['stallsOver600Ms']), (700, 2, 1))
+
+    def test_stall_rows_count_even_without_samples(self):
+        latency = self.summary(session({'type': 'stall', 't': 1, 'ms': 1150.5}, {'type': 'stall', 't': 2, 'ms': 300}))['latency']
+        self.assertEqual((latency['frameMaxMs'], latency['stallsOver250Ms'], latency['stallsOver600Ms']), (1150.5, 2, 1))
 
     def test_incomplete_and_invalid_sessions(self):
         self.assertFalse(self.summary(session(footer=False))['complete'])

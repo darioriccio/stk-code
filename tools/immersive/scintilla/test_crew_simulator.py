@@ -73,6 +73,28 @@ class PresentationTests(unittest.TestCase):
                     self.assertEqual(frames_present(prev_runs, t), frames_present(runs, t), t)
             previous, proof_from = (start, runs), start
 
+    def test_window_starting_on_a_frame_boundary_keeps_its_ambiguity(self):
+        # Frames 10 ms apart, three listed per view: the lookback can reach the
+        # first listed frame, whose predecessor (ending at that instant) is gone.
+        offset, latency = 0, 45_000
+        captures = [1_000_000 + 10_000 * i for i in range(40)]
+        previous = None
+        proof_from = None
+        for step in range(4, 40):
+            frames = [{'id': i + 1, 'captureUs': captures[i]} for i in range(step)][-3:]
+            view_now = captures[step - 1] + 1_000
+            now_host = view_now + latency + 5_000
+            start, runs = sim.presentation_runs(frames, offset, latency, view_now, now_host, proof_from)
+            if not runs:
+                continue
+            if previous:
+                prev_from, prev_runs = previous
+                lo, hi = max(start, prev_from), min(runs[-1]['presentedUntilUs'], prev_runs[-1]['presentedUntilUs'])
+                points = {r[k] for r in runs + prev_runs for k in ('presentedFromUs', 'presentedUntilUs')} | {lo, hi}
+                for t in sorted(p for p in points | {p + 1 for p in points} if lo <= p <= hi):
+                    self.assertEqual(frames_present(prev_runs, t), frames_present(runs, t), t)
+            previous, proof_from = (start, runs), start
+
     def test_no_run_before_its_frame_is_on_screen(self):
         frames = [{'id': 1, 'captureUs': 1_000_000}]
         self.assertEqual(sim.presentation_runs(frames, 0, 45_000, 1_001_000, 1_030_000), (None, []))
