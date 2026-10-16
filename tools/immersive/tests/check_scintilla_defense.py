@@ -121,7 +121,8 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
         self.assertIn('else if(active)changeStream();',ENGINE)
 
     def test_world_offense_is_independent_of_defense_threat(self):
-        self.assertIn('contextThreat=surface.context==ScintillaDefense::Context::WorldOffense?0:f->defense.threat',INPUT)
+        # SC5's Party boost, like world offense, is not bound to a threat.
+        self.assertIn('contextThreat=surface.context==ScintillaDefense::Context::WorldOffense||surface.context==ScintillaDefense::Context::PartyBoost?0:f->defense.threat',INPUT)
         self.assertIn('p.threat!=contextThreat',INPUT)
         self.assertIn('p.threat!=source.pressThreat',INPUT) # SC3 still binds warning identity
         for old,new in ((0,1),(1,2),(2,2)):
@@ -218,8 +219,15 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
         self.assertIn('m_kart', (ROOT/'src/physics/btKart.hpp').read_text())
         self.assertIn('m_impactEvent.race=m_race',CORE)
         self.assertIn('m_protectedUntil=m_now+m_profile.protection',CORE)
-        self.assertIn('if(applied){m_energy-=m_profile.boostCost',CORE)
-        self.assertIn('defense.confirmBoost(defense.canApplyBoost()&&ScintillaDefensePhysics::applyBoost',ENGINE)
+        # SC5 services: the normal boost debits the tuned profile amount.
+        self.assertIn('if(applied){m_energy-=m_profile.serviceCost(kind)',CORE)
+        self.assertIn('kind==ServiceKind::NormalBoost?boostCost:',CORE)
+        # SC5 commits optional services in one place: physics first, debit last.
+        services=(IR/'spatial/scintilla_crew_services.hpp').read_text()
+        self.assertLess(services.index('defense.canApplyService(Defense::ServiceKind::NormalBoost)&&'),
+                        services.index('ScintillaDefensePhysics::applyBoost(defenseHuman(),defense.profile().fps)'))
+        self.assertLess(services.index('ScintillaDefensePhysics::applyBoost(defenseHuman(),defense.profile().fps)'),
+                        services.index('defense.confirmService(Defense::ServiceKind::NormalBoost,applied)'))
         self.assertIn('MS_INCREASE_ZIPPER,2,2,0',PHYSICS)
         self.assertIn('if(k->isSpeedIncreaseActive(i))return false',PHYSICS)
         self.assertIn('m_max_speed->isSpeedIncreaseActive(category)',(ROOT/'src/karts/kart.cpp').read_text())
@@ -268,11 +276,13 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
         self.assertTrue(route.index('refreshCombatInput()')<route.index('return RelayHttpResponse(reply.status,response)'))
 
     def test_boost_cost_is_shared_by_accounting_api_and_visible_hud(self):
-        self.assertIn('enum {BoostCost=25}',HEADER)
+        self.assertIn('enum {BoostCost=25,PartyCost=15}',HEADER)
         self.assertNotIn('25*m_profile.q',CORE+HEADER)
         # One profile amount for admission, debit, API and HUD.
         self.assertIn('p.boostCost=std::llround(t.boostCost*p.q)',CORE)
-        self.assertEqual((CORE+HEADER).count('m_profile.boostCost'),4)
+        # Status and HUD read the profile amount; debit goes through serviceCost.
+        self.assertEqual((CORE+HEADER).count('m_profile.boostCost'),2)
+        self.assertIn('kind==ServiceKind::NormalBoost?boostCost:',CORE)
         self.assertIn('"scintilla_boost_cost"),defense.profile().q?double(defense.profile().boostCost)/defense.profile().q',ENGINE)
         self.assertIn('boostCost\\\":\"<<(defense.profile().q?double(defense.profile().boostCost)/defense.profile().q',ENGINE)
         self.assertIn('uniform float scintilla_boost_cost',SHADER)

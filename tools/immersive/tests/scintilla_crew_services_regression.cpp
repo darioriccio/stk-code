@@ -69,7 +69,11 @@ void matureParty() {
 void matureNormal() {
     Defense::Beam b;b.participant="A";b.epoch=2;b.serial=2;b.context=Defense::Context::ServiceBoost;b.held=b.visible=true;
     consumer.beams={b};
-    for(int64_t tick=0;tick<=45;++tick)defense.update(tick,1000+tick*16667,true,observation(),consumer.beams);
+    // The engine commits services in the same tick as the defense update, so
+    // a matured boost is committed where it was acquired. Press at tick 15:
+    // the 30-tick acquisition completes exactly at the party's commit tick 45.
+    for(int64_t tick=0;tick<=45;++tick)defense.update(tick,1000+tick*16667,true,observation(),
+        tick<45-defense.profile().boostAcquire?std::vector<Defense::Beam>{}:consumer.beams);
     CHECK(defense.wantsBoost()&&defense.canApplyService(Defense::ServiceKind::NormalBoost));
 }
 void normalWinsAtTheProductionCommitPointAndCannotChargeTwice() {

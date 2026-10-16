@@ -84,18 +84,20 @@ void actualEvidenceRejectsLegacyAndImpossibleAvailabilityFields(){
  {Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);J text;text.kind=J::String;text.string="1";row.object["readbackUs"]=text;rejected([&]{e.frame(row);});}
  {Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);row.object["objects"].array.front().object.erase("activationUs");rejected([&]{e.frame(row);});}
 }
+// Parser::parse() accepts only an object root (production rule); wrap scalars.
+J scalar(const std::string& json){return Parser("{\"v\":"+json+"}").parse().object.at("v");}
 void crewHeaderRequiresDistinctClosedV3Contract(){
  for(const auto* profile:{"sc5_crew_standard_v1","sc5_crew_party_v1"}){
   AdmissionFixture f;J config=Parser(f.fingerprint).parse();
-  config.object["profileId"]=Parser(quote(profile)).parse();config.object["evaluatedLayoutRevision"]=Parser("3").parse();
-  config.object["crewRulesRevision"]=Parser("\"1\"").parse();config.object["zoneManifestHash"]=Parser(quote(std::string(64,'e'))).parse();
-  config.object["partyEnabled"]=Parser(std::string(profile)=="sc5_crew_party_v1"?"true":"false").parse();
-  for(const auto& pair:std::map<std::string,int>{{"partyCost",15},{"partyGain",1},{"partyHoldTicks",90},{"partyWindowTicks",360},{"partyDurationTicks",60},{"partyFadeTicks",30},{"partyCooldownTicks",720}})config.object[pair.first]=Parser(std::to_string(pair.second)).parse();
-  f.fingerprint=serialize(config);auto header=f.header("shell");header.object["contract"]=Parser("\"tholus.stk-scintilla-measurement/2\"").parse();header.object["schemaVersion"]=Parser("2").parse();header.object["actualLayoutRevision"]=Parser("3").parse();
+  config.object["profileId"]=scalar(quote(profile));config.object["evaluatedLayoutRevision"]=scalar("3");
+  config.object["crewRulesRevision"]=scalar("\"1\"");config.object["zoneManifestHash"]=scalar(quote(std::string(64,'e')));
+  config.object["partyEnabled"]=scalar(std::string(profile)=="sc5_crew_party_v1"?"true":"false");
+  for(const auto& pair:std::map<std::string,int>{{"partyCost",15},{"partyGain",1},{"partyHoldTicks",90},{"partyWindowTicks",360},{"partyDurationTicks",60},{"partyFadeTicks",30},{"partyCooldownTicks",720}})config.object[pair.first]=scalar(std::to_string(pair.second));
+  f.fingerprint=serialize(config);auto header=f.header("shell");header.object["contract"]=scalar("\"tholus.stk-scintilla-measurement/2\"");header.object["schemaVersion"]=scalar("2");header.object["actualLayoutRevision"]=scalar("3");
   {Evidence e(f.manifest,f.fingerprint);e.header(header);}
-  for(const auto& pair:std::map<std::string,std::string>{{"contract","\"tholus.stk-scintilla-measurement/1\""},{"schemaVersion","1"},{"actualLayoutRevision","0"}}){auto changed=header;changed.object[pair.first]=Parser(pair.second).parse();Evidence e(f.manifest,f.fingerprint);rejected([&]{e.header(changed);});}
-  auto changed=header;changed.object["fingerprint"].object["unknown"]=Parser("1").parse();const auto raw=serialize(changed.object["fingerprint"]);changed.object["fingerprintJSON"]=Parser(quote(raw)).parse();Evidence e(f.manifest,raw);rejected([&]{e.header(changed);});
-  auto badTilt=header;badTilt.object["fingerprint"].object["domeTiltDeg"]=Parser("120").parse();const auto tilted=serialize(badTilt.object["fingerprint"]);badTilt.object["fingerprintJSON"]=Parser(quote(tilted)).parse();Evidence tiltEvidence(f.manifest,tilted);rejected([&]{tiltEvidence.header(badTilt);});
+  for(const auto& pair:std::map<std::string,std::string>{{"contract","\"tholus.stk-scintilla-measurement/1\""},{"schemaVersion","1"},{"actualLayoutRevision","0"}}){auto changed=header;changed.object[pair.first]=scalar(pair.second);Evidence e(f.manifest,f.fingerprint);rejected([&]{e.header(changed);});}
+  auto changed=header;changed.object["fingerprint"].object["unknown"]=scalar("1");const auto raw=serialize(changed.object["fingerprint"]);changed.object["fingerprintJSON"]=scalar(quote(raw));Evidence e(f.manifest,raw);rejected([&]{e.header(changed);});
+  auto badTilt=header;badTilt.object["fingerprint"].object["domeTiltDeg"]=scalar("120");const auto tilted=serialize(badTilt.object["fingerprint"]);badTilt.object["fingerprintJSON"]=scalar(quote(tilted));Evidence tiltEvidence(f.manifest,tilted);rejected([&]{tiltEvidence.header(badTilt);});
  }
 }
 

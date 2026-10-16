@@ -2513,16 +2513,18 @@ void crewNeutralityRequiresFreshObservedUpAfterAuthorityBoundaries()
  CHECK(r.route("/spatial/input",edgeAt("s-up","released",1,999990,0,"secondary"),1000000).status==200);
  CHECK(r.bindingStates()[0].neutral);r.tick(1000010,false);
  CHECK(!r.bindingStates()[0].neutral);
- CHECK(r.route("/spatial/input",edgeAt("held-p-up","released",2,1000020),1000020).status==200);
- CHECK(r.route("/spatial/input",edgeAt("held-s-up","released",3,1000020,0,"secondary"),1000020).status==200);
+ // Edges are received 10 us after their pose, as above: a pose evaluated at
+ // the receipt instant lies partly in the future of the clock interval.
+ CHECK(r.route("/spatial/input",edgeAt("held-p-up","released",2,1000020),1000030).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("held-s-up","released",3,1000020,0,"secondary"),1000030).status==200);
  CHECK(r.bindingStates()[0].neutral);
  // A valid physical DOWN remains held even when gameplay rejects the press.
- CHECK(r.route("/spatial/input",edgeAt("held-down","pressed",4,1000030),1000030).status==409);
- CHECK(!r.bindingStates()[0].neutral);r.tick(1000030,false);CHECK(!r.bindingStates()[0].neutral);
- CHECK(r.route("/spatial/input",edgeAt("held-release","released",5,1000040),1000040).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("held-down","pressed",4,1000030),1000040).status==409);
+ CHECK(!r.bindingStates()[0].neutral);r.tick(1000040,false);CHECK(!r.bindingStates()[0].neutral);
+ CHECK(r.route("/spatial/input",edgeAt("held-release","released",5,1000040),1000050).status==200);
  CHECK(r.bindingStates()[0].neutral);
  r.allowParticipantRebind(true);r.setParticipants({"person2"});
- CHECK(r.rebindParticipants(participantRebind("1","person2"),"2",1000050).status==200);
+ CHECK(r.rebindParticipants(participantRebind("1","person2"),"2",1000060).status==200);
  CHECK(!r.bindingStates()[0].neutral);
 }
 Frame crewFrame(const Runtime& input,uint64_t id=1,bool party=true,uint64_t turn=0,uint64_t intent=1,uint64_t roster=1)

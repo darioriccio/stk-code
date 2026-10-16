@@ -157,7 +157,9 @@ class CombatSourceAndMath(unittest.TestCase):
                   ([(True, 7, 700, 'capsule', 1)]*10, True),
                   ([(True, 7, 700, 'capsule', 1), (True, 7, 700, 'tether', 1)], False),
                   ([(True, 7, 700, 'capsule', 1), (True, 7, 700, 'capsule', 2), (True, 7, 700, 'capsule', 1)], False)]
-        output = re.search(r'b.visible=([^;]+);', INPUT)[1]
+        # The combat beam proof, not SC5's Party beam declared earlier in the file.
+        beams = INPUT.split('std::vector<BeamProof> Runtime::beamProofs(', 1)[1]
+        output = re.search(r'b.visible=([^;]+);', beams)[1]
         # Built-in tuning: no grace, so interrupted(s,now) is the latched flag.
         output = output.replace('m->interrupted(s,now)', 'interrupted').replace('m->graceUs()', '0')
         output = output.replace('b.held', 'held').replace('s.proofInterrupted', 'interrupted').replace('s.proofVisible', 'visible')

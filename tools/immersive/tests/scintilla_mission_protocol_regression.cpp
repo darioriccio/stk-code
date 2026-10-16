@@ -73,10 +73,12 @@ void introManifestRejectsTimingTraversalAndIntegerWrap(){
  }
  CHECK(std::string(variantForCrew(1))=="C1"&&std::string(variantForCrew(2))=="C2"&&std::string(variantForCrew(5))=="C3plus");
 }
+// Parser::parse() accepts only an object root (production rule); wrap scalars.
+J scalar(const std::string& json){return Parser("{\"v\":"+json+"}").parse().object.at("v");}
 void crewIntroRequiresProfileRulesLayoutAndSixPanels(){
  for(const auto* profile:{"sc5_crew_standard_v1","sc5_crew_party_v1"}){
-  J value=Parser(manifest()).parse();value.object["contract"]=Parser("\"tholus.stk-scintilla-intro/2\"").parse();value.object["schemaVersion"]=Parser("2").parse();
-  value.object["profileId"]=Parser(quote(profile)).parse();value.object["crewRulesRevision"]=Parser("\"1\"").parse();value.object["layoutProfile"]=Parser("\"front_rear_crew_v3\"").parse();value.object["layoutRevision"]=Parser("\"3\"").parse();
+  J value=Parser(manifest()).parse();value.object["contract"]=scalar("\"tholus.stk-scintilla-intro/2\"");value.object["schemaVersion"]=scalar("2");
+  value.object["profileId"]=scalar(quote(profile));value.object["crewRulesRevision"]=scalar("\"1\"");value.object["layoutProfile"]=scalar("\"front_rear_crew_v3\"");value.object["layoutRevision"]=scalar("\"3\"");
   for(auto& variant:value.object["variants"].array){J panels;panels.kind=J::Array;for(unsigned i=0;i<6;++i)panels.array.push_back(Parser("{\"path\":\"panel_"+std::to_string(i)+".png\",\"sha256\":"+quote(std::string(64,'c'))+"}").parse());variant.object["panels"]=panels;}
   CHECK(introManifest(serialize(value),profile).variants[2].maxCrew==5);
   rejected([&]{introManifest(serialize(value));});
@@ -84,8 +86,8 @@ void crewIntroRequiresProfileRulesLayoutAndSixPanels(){
   for(const auto* field:{"crewRulesRevision","layoutProfile","layoutRevision"}){auto changed=value;changed.object.erase(field);rejected([&]{introManifest(serialize(changed),profile);});}
   auto changed=value;changed.object["variants"].array[0].object.erase("panels");rejected([&]{introManifest(serialize(changed),profile);});
  }
- auto v3=Parser(identityJSON()).parse();v3.object["layoutProfile"]=Parser("\"front_rear_crew_v3\"").parse();v3.object["layoutRevision"]=Parser("\"3\"").parse();CHECK(identity(v3).layoutRevision=="3");
- v3.object["layoutRevision"]=Parser("\"2\"").parse();rejected([&]{identity(v3);});
+ auto v3=Parser(identityJSON()).parse();v3.object["layoutProfile"]=scalar("\"front_rear_crew_v3\"");v3.object["layoutRevision"]=scalar("\"3\"");CHECK(identity(v3).layoutRevision=="3");
+ v3.object["layoutRevision"]=scalar("\"2\"");rejected([&]{identity(v3);});
 }
 struct Case{const char* name;void(*run)();};const Case cases[]={
  {"canonicalIdentitiesPreserveWideIntegers",canonicalIdentitiesPreserveWideIntegers},{"requestsAreClosedAndOperationTyped",requestsAreClosedAndOperationTyped},
