@@ -2375,10 +2375,14 @@ void missionInputMaintenanceRestoresOnlyFreshReleaseAndProofs()
  Frame fresh=frame(2);fresh.captureUs=2000020;r.addFrame(fresh);
  r.setVisibilityOracle([](const Frame&,const Target&,const Vec3&,double){return Visibility::Visible;});r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});
  CHECK(r.route("/spatial/presentation",racePresentation(2,2000030,2001000),2001100).status==200);
- const auto blocked=r.route("/spatial/input",edgeAt("maintenance-held","pressed",0,2000500,0,"secondary"),2001100);CHECK(blocked.status==409&&blocked.json.find("release_required")!=std::string::npos);
- CHECK(r.route("/spatial/input",edgeAt("maintenance-fresh-release","released",1,2000600,0,"secondary"),2001100).status==200);
- CHECK(r.route("/spatial/input",edgeAt("maintenance-fresh-press","pressed",2,2000700,0,"secondary"),2001100).status==200);
- CHECK(r.reticles()[0].toolHeld&&r.hasPreparedGrant()&&r.prepared());CHECK(!r.events().empty()&&r.events().back().frameId==2);
+ // History became ready at 2001100: edges acquired earlier stay refused, so
+ // the held/fresh edges below are acquired afterwards and proved by frame 3.
+ Frame next=frame(3);next.captureUs=2000990;r.addFrame(next);
+ const auto blocked=r.route("/spatial/input",edgeAt("maintenance-held","pressed",0,2001500,0,"secondary"),2002100);CHECK(blocked.status==409&&blocked.json.find("release_required")!=std::string::npos);
+ CHECK(r.route("/spatial/input",edgeAt("maintenance-fresh-release","released",1,2001600,0,"secondary"),2002100).status==200);
+ CHECK(r.route("/spatial/presentation",racePresentation(3,2001001,2002000),2002100).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("maintenance-fresh-press","pressed",2,2001700,0,"secondary"),2002100).status==200);
+ CHECK(r.reticles()[0].toolHeld&&r.hasPreparedGrant()&&r.prepared());CHECK(!r.events().empty()&&r.events().back().frameId==3);
 }
 void missionInputMaintenanceClosedProtocolAndInitialLeaseRemainRequired()
 {

@@ -1421,7 +1421,11 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
             if(!source.tracked||!m->active||!m->historyReady||!point){m->disarm(i,!m->historyReady?"history_unavailable":!point?"point_unavailable":"source_or_gameplay_unavailable");return error(409,reticle.result);}
             source.cursorHostUs=acquired;
             source.hasAnchor=true;source.anchorU=u;source.anchorV=v;
-            reticle.u=u;reticle.v=v;reticle.valid=true;reticle.updatedUs=time.lo;reticle.result="aim";if(m->combatEnabled||m->crewEnabled)m->queueAim(i,originalHostTime,time.lo,u,v,now);return ok("aim");
+            reticle.u=u;reticle.v=v;reticle.valid=true;reticle.updatedUs=time.lo;reticle.result="aim";
+            // Resolve now, as presses do: a later aim must not overwrite an
+            // unresolved miss before the gameplay tick reads the beam (M06).
+            if(m->combatEnabled||m->crewEnabled){m->queueAim(i,originalHostTime,time.lo,u,v,now);if(m->prepared&&m->active)m->resolve(now);}
+            return ok("aim");
         }
         const std::string event=tok(message,"eventId"),control=text(message,"control"),edge=text(message,"edge");
         unsigned controlIndex=control=="primary"?0:control=="secondary"?1:control=="grip"?2:3;

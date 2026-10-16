@@ -81,7 +81,7 @@ void actualEvidenceRejectsSlowAndIndividuallyFreshButGappedQueries(){
 void actualEvidenceRejectsLegacyAndImpossibleAvailabilityFields(){
  AdmissionFixture f;auto missing=[](J&j,const std::string&key){j.object.erase(key);};
  for(const auto&key:{"readbackUs","readbackTick"}){Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);missing(row,key);rejected([&]{e.frame(row);});}
- {Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);row.object["readbackUs"]=Parser("\"1\"").parse();rejected([&]{e.frame(row);});}
+ {Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);J text;text.kind=J::String;text.string="1";row.object["readbackUs"]=text;rejected([&]{e.frame(row);});}
  {Evidence e(f.manifest,f.fingerprint);e.header(f.header("shell"));auto row=f.frame(1,0,0,"shell",5000);row.object["objects"].array.front().object.erase("activationUs");rejected([&]{e.frame(row);});}
 }
 void crewHeaderRequiresDistinctClosedV3Contract(){
