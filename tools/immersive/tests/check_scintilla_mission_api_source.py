@@ -162,4 +162,15 @@ check("maintenance closes both start paths independently of required policies",
       "if(consumer.inputMaintenanceActive())return false" in body(engine, "bool combatStartPermitted()") and
       'mission.reset(' not in wrapper and 'consumer.reset(' not in wrapper)
 
+# Evidence lookup: builds reach data/ through a bundle link, and getPath()
+# drops the trailing separator; traces must join the resolved directory.
+reader = body(measurement, "bool loadMissionQualification(")
+located = body(measurement, "std::string measurementEvidenceDirectory()")
+check("qualification evidence resolves the linked asset root and joins traces correctly",
+      "realpath(root.c_str(),resolved)" in located and "qualificationReportAsset()" in located and
+      'StringUtils::getPath(relative)+"/"' in located and
+      'evidenceDirectory+"report.json"' in reader and "const std::string path=evidenceDirectory+rel;" in reader and
+      "getPath(reportPath)+rel" not in reader and "measurementNoSymlink(reportPath)" in reader and
+      "measurementNoSymlink(path)" in reader)
+
 print(f"SC4 API: {len(checks)} source checks passed; HTTP/runtime remains unexecuted.")

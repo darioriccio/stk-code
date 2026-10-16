@@ -308,12 +308,28 @@ bool measurementPlacementPermitted(unsigned group,unsigned capsule,unsigned lap,
     return ScintillaMission::Profile::inRange(ScintillaMission::Kind::Capsule,dot(d,d),shape.radius)&&Measure::footprint(current.projection.kind,current.projection.domeTiltDeg,current.projection.width,current.projection.height,
         Measure::Vec(dot(d,current.cameraRight),dot(d,current.cameraUp),dot(d,current.cameraForward)),shape.radius,effectiveLayoutRevision());
 }
+// The macOS build links data/ into the app bundle (CMake POST_BUILD ln -s),
+// so the asset root itself may be reached through links. Resolve only that
+// root; every directory below it, the report and the traces must still be
+// real, unlinked files. Ends with '/'.
+std::string measurementEvidenceDirectory()
+{
+    const std::string relative=qualificationReportAsset(),report=file_manager->getAsset(relative);
+    if(report.size()<=relative.size()||report.compare(report.size()-relative.size(),relative.size(),relative)!=0)return "";
+    const std::string root=report.substr(0,report.size()-relative.size());
+#ifndef _WIN32
+    char resolved[PATH_MAX];if(!realpath(root.c_str(),resolved))return "";
+    return std::string(resolved)+"/"+StringUtils::getPath(relative)+"/";
+#else
+    return root+StringUtils::getPath(relative)+"/";
+#endif
+}
 bool loadMissionQualification(std::string* reason)
 {
     anchorStatus=missionAnchors.authoringStatus;qualificationFingerprint.clear();qualifiedBounds=Measure::Bounds();
     auto fail=[&](const char*s){measurementProfileReason=s;if(reason)*reason=s;return false;};
     const auto config=ImmersiveRenderPipeline::get()->getConfig();const auto fingerprint=measurementFingerprint(config);
-    const std::string reportPath=file_manager->getAsset(qualificationReportAsset());
+    const std::string evidenceDirectory=measurementEvidenceDirectory(),reportPath=evidenceDirectory.empty()?"":evidenceDirectory+"report.json";
     std::string bytes;if(reportPath.empty()||!measurementNoSymlink(reportPath)||!readMissionFile(reportPath,65536,&bytes))return fail("mission_qualification_evidence_missing");
     try{using namespace ScintillaJSON;const J report=Parser(bytes).parse();closed(report,{"contract","schemaVersion","scope","status","provenance","fingerprintJSON","fingerprintHash","traceFiles","reasons"});
         if(text(report,"contract")!=(effectiveCrewLayout()?"tholus.stk-scintilla-qualification/2":"tholus.stk-scintilla-qualification/1")||num(report,"schemaVersion")!=(effectiveCrewLayout()?2:1)||text(report,"scope")!="native_render_geometry"||text(report,"status")!="qualified_geometry"||text(report,"provenance")!="native_render_depth"||
@@ -322,7 +338,7 @@ bool loadMissionQualification(std::string* reason)
         for(const auto& entry:arr(at(report,"traceFiles"),1,Measure::MaxTraces)){
             closed(entry,{"path","sha256","bytes"});const auto rel=MissionProtocol::path(at(entry,"path"));if(!paths.insert(rel).second)return fail("mission_qualification_duplicate_trace");
             const auto expected=integer(at(entry,"bytes"));if(expected<1||expected>int64_t(Measure::MaxBytes))return fail("mission_qualification_trace_size");total+=expected;if(total>uint64_t(Measure::MaxBytes)*Measure::MaxTraces)return fail("mission_qualification_trace_budget");
-            const std::string path=StringUtils::getPath(reportPath)+rel;std::string trace;
+            const std::string path=evidenceDirectory+rel;std::string trace;
             if(!measurementNoSymlink(path)||!readMissionFile(path,Measure::MaxBytes,&trace)||trace.size()!=std::size_t(expected)||missionSHA256(trace)!=text(entry,"sha256"))return fail("mission_qualification_trace_hash");
             if(trace.back()!='\n')return fail("mission_qualification_trace_newline");
             std::istringstream lines(trace);std::string line;evidence.beginTrace();unsigned n=0;

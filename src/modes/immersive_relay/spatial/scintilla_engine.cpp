@@ -20,6 +20,7 @@
 #include "modes/immersive_relay/scintilla_mission_result_json.hpp"
 #include "modes/immersive_relay/scintilla_tuning.hpp"
 #include "modes/immersive_relay/scintilla_telemetry.hpp"
+#include <climits>
 #include <cstdlib>
 #include <ctime>
 #include "io/file_manager.hpp"
