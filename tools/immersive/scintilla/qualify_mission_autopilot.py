@@ -32,7 +32,7 @@ import validate_mission_qualification as validate  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[3]
 ANCHORS = REPO / 'data/immersive_relay/scintilla/snowtuxpeak_mission_v1.json'
-INSTALL = REPO / 'data/immersive_relay/scintilla/qualification_v1'
+QUALIFICATION = REPO / 'data/immersive_relay/scintilla'
 MEASUREMENT = 'tholus.stk-scintilla-measurement/1'
 PHASES = ('shell', 'open')
 
@@ -74,11 +74,12 @@ def until(condition, timeout, what, interval=.5):
     raise RuntimeError(what)
 
 
-def record(api, players, phase, output, race_timeout):
+def record(api, players, phase, output, race_timeout, crew_profile=None):
     configure(api, players)
+    extra = {'crewProfile': crew_profile} if crew_profile else {}
     # The world loads asynchronously; transient refusals end once it is held.
     started = until(lambda: (lambda r: r if r.get('ok') else log('start: ' + str(r.get('error'))))(
-        request(api, 'start', phase=phase)), 120, 'measurement did not start', interval=2)
+        request(api, 'start', phase=phase, **extra)), 120, 'measurement did not start', interval=2)
     log(f'{phase}: recording {started["recordingID"]} race {started["raceEpoch"]}')
     api.call('/operator/start', {})
     api.call('/operator/countdown', dict(skip=True))
@@ -118,8 +119,14 @@ def preflight(api, players):
     return reply
 
 
-def install(staging, report):
+def install_dir(crew_profile):
+    """Where the native reader looks: SC4 alone, or one SC5 crew profile."""
+    return QUALIFICATION / ('qualification_v2/' + crew_profile if crew_profile else 'qualification_v1')
+
+
+def install(staging, report, crew_profile=None):
     """Copy report and traces, never symlinks; keep a previous install aside."""
+    INSTALL = install_dir(crew_profile)
     if INSTALL.exists():
         previous = staging / ('previous-' + time.strftime('%Y%m%d-%H%M%S'))
         shutil.move(str(INSTALL), str(previous))
@@ -140,6 +147,10 @@ def main(argv=None):
     parser.add_argument('--players', type=int, default=3, choices=range(2, 7), help='P of the session to qualify')
     parser.add_argument('--projection', default='fisheye_domemaster', choices=['fisheye_domemaster', 'equirectangular'])
     parser.add_argument('--race-timeout', type=float, default=900)
+    parser.add_argument('--races-per-phase', type=int, default=2, choices=range(1, 5),
+                        help='the validator keeps, per lap, the best race of a phase (at most 8 traces)')
+    parser.add_argument('--crew-profile', choices=('sc5_crew_standard_v1', 'sc5_crew_party_v1'),
+                        help='SC5 layout v3 measurement, installed under qualification_v2/<profile>')
     parser.add_argument('--no-install', action='store_true', help='validate only')
     args = parser.parse_args(argv)
     staging = args.runtime_dir.resolve() / 'qualification'
@@ -153,10 +164,12 @@ def main(argv=None):
     try:
         until(lambda: process.poll() is None and sim_state(api), 120, 'producer API unavailable', interval=1)
         traces = []
-        for phase in PHASES:
-            exported = record(api, args.players, phase, staging / f'{phase}.ndjson', args.race_timeout)
-            log(f'{phase}: {exported["byteCount"]} bytes, sha256 {exported["sha256"][:12]}')
-            traces.append(staging / f'{phase}.ndjson')
+        for race in range(1, args.races_per_phase + 1):
+            for phase in PHASES:
+                name = f'{phase}-{race}.ndjson'
+                exported = record(api, args.players, phase, staging / name, args.race_timeout, args.crew_profile)
+                log(f'{name}: {exported["byteCount"]} bytes, sha256 {exported["sha256"][:12]}')
+                traces.append(staging / name)
         code = validate.main(['--anchors', str(ANCHORS), '--report', str(staging / 'report.json'),
                               *[a for t in traces for a in ('--trace', str(t))]])
         report = json.loads((staging / 'report.json').read_text())
@@ -165,7 +178,12 @@ def main(argv=None):
             return 1
         if args.no_install:
             return 0
-        install(staging, report)
+        install(staging, report, args.crew_profile)
+        if args.crew_profile:
+            # The SC5 preflight reads the report of the latched crew intent;
+            # the simulator's crew session exercises it.
+            log(f'installed under {install_dir(args.crew_profile)}')
+            return code
         reply = preflight(api, args.players)
         log(f'preflight: qualified={reply.get("qualified")} reason={reply.get("reason")!r}')
         return 0 if reply.get('qualified') and code == 0 else 1

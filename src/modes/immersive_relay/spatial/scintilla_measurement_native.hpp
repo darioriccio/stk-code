@@ -140,7 +140,7 @@ std::string measurementFingerprint(const ImmersiveRenderConfig& c)
      <<",\"output\":"<<ScintillaJSON::quote(outputModeToString(c.m_output_mode))<<",\"near\":0.20000000000000001,\"far\":"<<Track::getCurrentTrack()->getCameraFar()
      <<",\"faceFovDeg\":"<<c.m_face_fov_deg<<",\"domeTiltDeg\":"<<c.m_dome_tilt_deg<<",\"cameraMode\":"<<ScintillaJSON::quote(cameraModeToString(c.m_camera_mode))
      <<",\"camera\":["<<c.m_yaw_deg<<','<<c.m_pitch_deg<<','<<c.m_roll_deg<<','<<c.m_forward_offset<<','<<c.m_vertical_offset<<','<<c.m_lookahead_offset<<','<<c.m_smoothing_factor<<','<<c.m_roll_limit_deg<<']'
-     <<",\"horizonStabilization\":"<<(c.m_horizon_stabilization?"true":"false")<<",\"capsuleRadius\":2,\"tetherRadius\":0.5,\"tetherOffsets\":[[-3,5.5,6],[3,5.5,6]],\"evaluatedLayoutRevision\":"<<effectiveLayoutRevision()<<",\"cubemapSize\":"<<c.m_cubemap_size<<",\"nativeBaseSpeed\":"<<base;
+     <<",\"horizonStabilization\":"<<(c.m_horizon_stabilization?"true":"false")<<",\"capsuleRadius\":2,\"tetherRadius\":0.5,\"tetherOffsets\":[[-"<<ScintillaMission::TetherLateralM<<','<<ScintillaMission::TetherHeightM<<','<<ScintillaMission::TetherForwardM<<"],["<<ScintillaMission::TetherLateralM<<','<<ScintillaMission::TetherHeightM<<','<<ScintillaMission::TetherForwardM<<"]],\"evaluatedLayoutRevision\":"<<effectiveLayoutRevision()<<",\"cubemapSize\":"<<c.m_cubemap_size<<",\"nativeBaseSpeed\":"<<base;
     if(effectiveCrewLayout()){
         const int fps=stk_config->getPhysicsFPS();const auto zoneHash=crewPartyZoneManifestHash();
         if(fps<60||fps>1000||!MissionProtocol::hash(zoneHash))return "";
@@ -270,7 +270,7 @@ void prepareMissionMeasurementFrame(const ImmersiveRenderConfig& config)
     const SpatialVec3 delta(f.kart.x-measurement.previousPosition.x,f.kart.y-measurement.previousPosition.y,f.kart.z-measurement.previousPosition.z);
     if(dot(delta,delta)>step*step*64)f.continuous=false;
     const auto pose=human->getSmoothedTrans();
-    for(unsigned side=0;side<2;++side){const ::Vec3 q(pose(::Vec3(side?3.f:-3.f,5.5f,6.f)));f.candidates[side]=SpatialVec3(q.x(),q.y(),q.z());}
+    for(unsigned side=0;side<2;++side){const ::Vec3 q(pose(::Vec3(side?ScintillaMission::TetherLateralM:-ScintillaMission::TetherLateralM,ScintillaMission::TetherHeightM,ScintillaMission::TetherForwardM)));f.candidates[side]=SpatialVec3(q.x(),q.y(),q.z());}
     auto add=[&](MeasurementObject t){const SpatialVec3 d(t.center.x-current.cameraPosition.x,t.center.y-current.cameraPosition.y,t.center.z-current.cameraPosition.z);
         t.range=ScintillaMission::Profile::inRange(t.tether?ScintillaMission::Kind::Tether:ScintillaMission::Kind::Capsule,dot(d,d),t.radius);
         t.rectangle=Measure::footprint(current.projection.kind,current.projection.domeTiltDeg,current.projection.width,current.projection.height,
@@ -303,7 +303,7 @@ bool measurementPlacementPermitted(unsigned group,unsigned capsule,unsigned lap,
     if(lap>=12||group>=12||capsule>=2||qualificationFingerprint.empty())return false;
     auto* human=defenseHuman();if(!human)return false;
     const unsigned index=lap*24+group*2+capsule;const auto& proof=measurementCoverage[index];
-    if(std::abs(double(human->getSpeed()))>qualifiedBounds.capsules[index]||!proof.visible||!Measure::capsuleProofAvailable(proof.captureUs,proof.readbackUs,nowUs()))return false;
+    if(std::abs(double(human->getSpeed()))>Measure::qualifiedEnvelope(qualifiedBounds.capsules[index])||!proof.visible||!Measure::capsuleProofAvailable(proof.captureUs,proof.readbackUs,nowUs()))return false;
     const SpatialVec3 d(shape.center.x-current.cameraPosition.x,shape.center.y-current.cameraPosition.y,shape.center.z-current.cameraPosition.z);
     return ScintillaMission::Profile::inRange(ScintillaMission::Kind::Capsule,dot(d,d),shape.radius)&&Measure::footprint(current.projection.kind,current.projection.domeTiltDeg,current.projection.width,current.projection.height,
         Measure::Vec(dot(d,current.cameraRight),dot(d,current.cameraUp),dot(d,current.cameraForward)),shape.radius,effectiveLayoutRevision());

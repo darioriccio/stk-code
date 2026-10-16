@@ -17,6 +17,11 @@
 namespace ScintillaMission
 {
 using Tick = int64_t;
+// Kart-relative position of a module on the cable, metres (right, up,
+// forward; mirrored left/right). Measured clear of every layout v2/v3 HUD
+// area at the stabilized chase camera; the earlier (3, 5.5, 6) touched the
+// crew badge row in 99.6% of native frames and could not be recovered.
+const float TetherLateralM=6.f, TetherHeightM=7.f, TetherForwardM=4.f;
 enum class Kind { Capsule=0, Tether=1 };
 enum class Phase { Shell=0, Open=1, Collected=2, Expired=3,
                    TetherAwaitingPresentation=4, TetherRecoverable=5 };

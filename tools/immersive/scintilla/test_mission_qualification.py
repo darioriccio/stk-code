@@ -39,7 +39,7 @@ def synthetic_header(manifest, crew=1, laps=1, phase="shell"):
                    "projection": "equirectangular", "output": "syphon", "near": .2, "far": 1000, "faceFovDeg": 90,
                    "domeTiltDeg": 0, "cameraMode": "first_person", "camera": [0, 35, 0, -.25, .4, 0, .1, 0],
                    "horizonStabilization": True, "capsuleRadius": 2, "tetherRadius": .5,
-                   "tetherOffsets": [[-3, 5.5, 6], [3, 5.5, 6]], "evaluatedLayoutRevision": 2, "nativeBaseSpeed": 15}
+                   "tetherOffsets": [[-6, 7, 4], [6, 7, 4]], "evaluatedLayoutRevision": 2, "nativeBaseSpeed": 15}
     raw = encoded(fingerprint).decode()
     groups = [{key: copy.deepcopy(group[key]) for key in ("id", "activationFraction", "expiryFraction", "laps", "capsules")}
               for group in manifest["groups"]]
@@ -285,6 +285,15 @@ class SyntheticNegativeCaptures(unittest.TestCase):
         evidence = synthetic_pair(frames_per_group=60)
         self.assertIn("capsule_window_below_base_speed", evidence.reasons)
         self.assertIn("tether_window_below_base_speed", evidence.reasons)
+
+    def test_windows_hold_ninety_five_percent_of_native_base_speed(self):
+        # Base 15 m/s: 14.25 m/s throughout still proves the window, 14.2 does not.
+        held = synthetic_pair(minimum_speed=15 * q.QUALIFIED_SPEED_SHARE)
+        self.assertNotIn("capsule_window_below_base_speed", held.reasons)
+        self.assertNotIn("tether_window_below_base_speed", held.reasons)
+        slow = synthetic_pair(minimum_speed=14.2)
+        self.assertIn("capsule_window_below_base_speed", slow.reasons)
+        self.assertIn("tether_window_below_base_speed", slow.reasons)
 
     def test_snapshot_peak_and_max_speed_do_not_cover_native_base(self):
         evidence = synthetic_pair(minimum_speed=12, snapshot_speed=40)

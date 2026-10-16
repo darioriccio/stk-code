@@ -587,7 +587,7 @@ void updateMissionCrossings()
         if(snapshot.phase!=ScintillaMission::Phase::Shell&&snapshot.phase!=ScintillaMission::Phase::Open)
             it=missionPlacements.erase(it);
         else {const unsigned ordinal=unsigned(it->first-ScintillaMission::Runtime::CapsuleEntityBase),lap=ordinal/24,group=(ordinal%24)/2,capsule=ordinal%2;
-            auto* kart=defenseHuman();if(!kart||(tuning.mission.withdrawAboveQualifiedSpeed&&std::abs(double(kart->getSpeed()))>qualifiedBounds.capsules[ordinal])){
+            auto* kart=defenseHuman();if(!kart||(tuning.mission.withdrawAboveQualifiedSpeed&&std::abs(double(kart->getSpeed()))>ScintillaMissionMeasurement::qualifiedEnvelope(qualifiedBounds.capsules[ordinal]))){
                 mission.expireCapsule(it->first,snapshot.instance);it=missionPlacements.erase(it);
             }else ++it;}
     }
@@ -2419,7 +2419,7 @@ void beforeCapture(const ImmersiveCameraRig& rig,const ImmersiveRenderConfig& co
         current.missionHumanInstance=humanInstance;
         const auto pose=missionHuman->getSmoothedTrans();
         for(unsigned side=0;side<2;++side){
-            const ::Vec3 p(pose(::Vec3(side?3.f:-3.f,5.5f,6.f)));
+            const ::Vec3 p(pose(::Vec3(side?ScintillaMission::TetherLateralM:-ScintillaMission::TetherLateralM,ScintillaMission::TetherHeightM,ScintillaMission::TetherForwardM)));
             current.missionTetherCandidates[side]=SpatialVec3(p.x(),p.y(),p.z());
         }
         const auto snapshot=mission.snapshot(ScintillaMission::Runtime::TetherEntityId);

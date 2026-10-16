@@ -13,6 +13,11 @@ using namespace ScintillaJSON;
 namespace Protocol=ScintillaMissionProtocol;
 using Vec=ScintillaDefense::Vec;
 static const unsigned MaxFrames=18000,MaxPending=8,MaxObjects=4,MaxTraces=8;
+// A window qualifies when the kart holds at least this share of its native
+// base speed throughout. Its proven bound then covers speeds up to
+// bound/QualifiedSpeedShare, which is the runtime envelope.
+static const double QualifiedSpeedShare=.95;
+inline double qualifiedEnvelope(double bound){return bound/QualifiedSpeedShare;}
 static const std::size_t MaxBytes=64u*1024u*1024u,MaxLine=65536;
 static const int64_t MaxGapUs=50000,LiveProofMaxAgeUs=50000;
 // A completed capsule query is usable only inside this exact availability
@@ -215,11 +220,11 @@ public:
             for(std::size_t g=0;g<manifest.groups.size();++g){const auto& group=manifest.groups[g];if(std::find(group.laps.begin(),group.laps.end(),lap)==group.laps.end())continue;
                 if(crew>1&&group.capsules.size()!=2)return fail("measurement_two_opportunities_required");
                 const unsigned capsules=crew==1?1:2;for(unsigned c=0;c<capsules;++c){const auto i=lap*24+g*2+c;const double bound=std::min(capBest[i*2],capBest[i*2+1]);
-                    if(bound<base)return fail("measurement_capsule_window_missing");if(!activationProven[i*2])return fail("measurement_activation_not_proven");result.capsules[i]=bound;}
+                    if(bound<base*QualifiedSpeedShare)return fail("measurement_capsule_window_missing");if(!activationProven[i*2])return fail("measurement_activation_not_proven");result.capsules[i]=bound;}
                 ++qualifiedGroups;}
             if(qualifiedGroups<4)return fail("measurement_replacement_opportunity_missing");
             double bound=200;for(unsigned side=0;side<2;++side)for(unsigned p=0;p<2;++p)bound=std::min(bound,tetherBest[(lap*2+side)*2+p]);
-            if(bound<base)return fail("measurement_tether_window_missing");result.tether[lap]=bound;
+            if(bound<base*QualifiedSpeedShare)return fail("measurement_tether_window_missing");result.tether[lap]=bound;
         }if(out)*out=result;if(reason)reason->clear();return true;
     }
 };

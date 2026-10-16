@@ -6,15 +6,15 @@
   "direction": "forward",
   "trackHash": "8f05689ecf910cc595d57aa08b43b15a35e87fbf3bd79e892f9370464dec27e5",
   "authoringStatus": "development_unqualified",
-  "author": "Immersive Relay contributors, SC4 authored geometry 2026-10-16",
+  "author": "Immersive Relay contributors, SC4 authored geometry 2026-10-16; capsules placed from measured camera paths",
   "license": "GPL-3.0-or-later",
   "groups": [
     {
       "id": "snow_supply_1",
-      "activationNode": 2,
-      "expiryNode": 6,
-      "activationFraction": 0.015880273363783306,
-      "expiryFraction": 0.07364560064735394,
+      "activationNode": 6,
+      "expiryNode": 11,
+      "activationFraction": 0.07364560064735394,
+      "expiryFraction": 0.13479114756908356,
       "laps": [
         0,
         1,
@@ -32,18 +32,18 @@
       "capsules": [
         {
           "center": [
-            -266.88437211,
-            7.26156831,
-            66.48969721
+            -297.94660726,
+            16.65142243,
+            31.25857879
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -266.81798299,
-            7.24267221,
-            73.08933624
+            -282.77890381,
+            17.38684387,
+            111.13338368
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -52,10 +52,10 @@
     },
     {
       "id": "snow_supply_2",
-      "activationNode": 12,
-      "expiryNode": 16,
-      "activationFraction": 0.15028114640971113,
-      "expiryFraction": 0.2062128433940647,
+      "activationNode": 19,
+      "expiryNode": 22,
+      "activationFraction": 0.2546934481602467,
+      "expiryFraction": 0.30594757359500846,
       "laps": [
         0,
         1,
@@ -73,18 +73,18 @@
       "capsules": [
         {
           "center": [
-            -340.70495381,
-            14.59298819,
-            -3.06456298
+            -310.87061064,
+            25.31225214,
+            -64.67690891
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -347.30436471,
-            14.59178952,
-            -3.1527352
+            -305.9246253,
+            27.24232548,
+            -63.77577303
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -93,10 +93,10 @@
     },
     {
       "id": "snow_supply_3",
-      "activationNode": 21,
-      "expiryNode": 25,
-      "activationFraction": 0.290939697217365,
-      "expiryFraction": 0.3496787330584685,
+      "activationNode": 29,
+      "expiryNode": 38,
+      "activationFraction": 0.39870358889824314,
+      "expiryFraction": 0.5278720516833749,
       "laps": [
         0,
         1,
@@ -114,18 +114,18 @@
       "capsules": [
         {
           "center": [
-            -281.84916536,
-            25.35985382,
-            -95.49522651
+            -249.81694395,
+            36.24222841,
+            -64.11716999
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -282.43814833,
-            25.36712809,
-            -102.06888958
+            -280.20213562,
+            41.87604463,
+            -39.32180094
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -135,9 +135,9 @@
     {
       "id": "snow_supply_4",
       "activationNode": 40,
-      "expiryNode": 44,
+      "expiryNode": 46,
       "activationFraction": 0.5564512254936417,
-      "expiryFraction": 0.6181097262092057,
+      "expiryFraction": 0.6524988829036067,
       "laps": [
         0,
         1,
@@ -155,18 +155,18 @@
       "capsules": [
         {
           "center": [
-            -261.41309511,
-            31.23996961,
-            34.17863853
+            -256.33249091,
+            39.04245888,
+            6.32507283
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -260.91089063,
-            31.36300282,
-            27.59892322
+            -256.71294884,
+            38.9492519,
+            11.30970563
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -176,9 +176,9 @@
     {
       "id": "snow_supply_5",
       "activationNode": 50,
-      "expiryNode": 58,
+      "expiryNode": 60,
       "activationFraction": 0.6970468215570632,
-      "expiryFraction": 0.7640201538787165,
+      "expiryFraction": 0.7867507757169875,
       "laps": [
         0,
         1,
@@ -196,18 +196,18 @@
       "capsules": [
         {
           "center": [
-            -174.84640399,
-            11.98691328,
-            -25.62165444
+            -183.15743446,
+            22.32300456,
+            -6.94017465
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -175.26416796,
-            12.08475347,
-            -32.20769274
+            -173.81424592,
+            11.59143229,
+            -8.95759897
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -216,10 +216,10 @@
     },
     {
       "id": "snow_supply_6",
-      "activationNode": 62,
-      "expiryNode": 70,
-      "activationFraction": 0.8104893179227799,
-      "expiryFraction": 0.8716500505054263,
+      "activationNode": 73,
+      "expiryNode": 82,
+      "activationFraction": 0.9042842805114475,
+      "expiryFraction": 0.9903986610814196,
       "laps": [
         0,
         1,
@@ -237,18 +237,18 @@
       "capsules": [
         {
           "center": [
-            -163.27663097,
-            4.37833909,
-            -55.60325121
+            -161.90448375,
+            11.944,
+            19.29709369
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -161.44334033,
-            4.40914287,
-            -49.26305433
+            -166.52044596,
+            11.944,
+            7.77593105
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"

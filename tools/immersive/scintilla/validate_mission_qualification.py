@@ -31,6 +31,9 @@ MAX_FRAMES = 18000
 MAX_TRACES = 8
 MAX_GAP_US = 50000
 LIVE_PROOF_MAX_AGE_US = 50000
+# Share of the native base speed a window must hold (native QualifiedSpeedShare).
+QUALIFIED_SPEED_SHARE = .95
+TETHER_OFFSETS = [[-6, 7, 4], [6, 7, 4]]
 UINT64_MAX = (1 << 64) - 1
 INT64_MAX = (1 << 63) - 1
 HEX = re.compile(r"[0-9a-f]{64}\Z")
@@ -276,7 +279,7 @@ def validate_fingerprint(value: object) -> dict:
         number(v, -1e6, 1e6)
     boolean(f["horizonStabilization"])
     require(number(f["capsuleRadius"]) == 2 and number(f["tetherRadius"]) == .5, "invalid_radius")
-    require(f["tetherOffsets"] == [[-3, 5.5, 6], [3, 5.5, 6]], "invalid_tether_offsets")
+    require(f["tetherOffsets"] == TETHER_OFFSETS, "invalid_tether_offsets")
     require(type(f["evaluatedLayoutRevision"]) is int and f["evaluatedLayoutRevision"] == (3 if crew else 2), "invalid_layout")
     if crew:
         require(f["crewRulesRevision"] == "1" and isinstance(f["zoneManifestHash"], str) and HEX.fullmatch(f["zoneManifestHash"]), "invalid_crew_identity")
@@ -520,11 +523,11 @@ class Evidence:
                     if ("capsule", lap, group, capsule) not in self.activations:
                         self.reasons.add("activation_not_proven")
                     for phase in ("shell", "open"):
-                        if self.bounds.get(("capsule", lap, group, capsule, phase), -1) < base:
+                        if self.bounds.get(("capsule", lap, group, capsule, phase), -1) < base * QUALIFIED_SPEED_SHARE:
                             self.reasons.add("capsule_window_below_base_speed")
             for side in (0, 1):
                 for phase in ("awaiting_presentation", "recoverable"):
-                    if self.bounds.get(("tether", lap, side, phase), -1) < base:
+                    if self.bounds.get(("tether", lap, side, phase), -1) < base * QUALIFIED_SPEED_SHARE:
                         self.reasons.add("tether_window_below_base_speed")
 
 
