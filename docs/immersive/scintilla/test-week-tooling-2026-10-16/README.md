@@ -5,10 +5,30 @@ si può verificare via software, e poter cambiare il bilanciamento in pochi
 minuti senza ricompilare. **Nessuna prova con puntatori VIVE, ottica del dome o
 pubblico:** i numeri qui sotto vengono da gare simulate su un Mac molto carico.
 
-Branch `scintilla/test-week-tooling` del worktree
+Branch **`scintilla/test-week-sc5`** del worktree
 `/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/test-fixes-2026-10-16/stk-code`,
-sopra `scintilla/sc4-test-fixes`. I checkout originali non sono stati toccati.
-SC5 non è incluso: è in lavorazione in un'altra sessione.
+sopra `main` (SC0–SC5, `b8ea7a88c`). Il lavoro precedente, nato sopra lo
+snapshot SC0–SC4, è riportato commit per commit; il branch
+`scintilla/test-week-tooling` resta come storico. I checkout originali non
+sono stati toccati.
+
+### Integrazione con SC5
+
+`main` non compilava e la sua suite non era mai stata eseguita:
+
+- due errori di compilazione: le funzioni del rapporto accettavano solo
+  `std::ofstream`, e il testo equipaggio usava `video::IVideoDriver` senza
+  includerne l'header;
+- 9 casi su 355 e 3 controlli sorgente fallivano. Cinque casi missione sono
+  risolti dalla correzione «mire all'arrivo» di questo lavoro; gli altri
+  erano test SC5 scritti male (parser JSON usato su valori scalari, tempi di
+  ricezione nel futuro, turbo fatto maturare senza commit) e controlli non
+  aggiornati al codice SC5.
+
+Nell'integrazione: il lampo della sonda di latenza è ora disegnato anche in
+modalità equipaggio (prima non sarebbe comparso proprio con SC5), e il reset
+del freno Party è stato conservato accanto a quello dell'autopilota. Suite
+finale: **378/378**, tutti i controlli sorgente e i test degli strumenti.
 
 ## 1. Profili di bilanciamento
 
@@ -178,9 +198,36 @@ geometriche e di regola, non di misura:
   spostato, in alcuni giri l'autopilota tiene la velocità piena al massimo
   2,4 s di fila.
 
-Così com'è, **la missione SC4 non può essere abilitata in sala**: serve una
-correzione di geometria (ancoraggi e cavo, o layout HUD) ed eventualmente della
-regola di velocità.
+Così com'era, **la missione SC4 non poteva essere abilitata in sala**.
+
+### Correzione scelta
+
+Valutate tre strade (spostare capsule e cavo, spostare l'HUD, bypass solo
+per la simulazione), con la tolleranza di velocità al 95% decisa:
+
+- **Velocità al 95%.** Una finestra vale se il kart resta almeno al 95% della
+  velocità base nativa (`QualifiedSpeedShare`); in gioco una capsula è
+  ritirata solo sopra limite/0,95. Questa sola regola porta il cavo da 2,4 s a
+  9,7 s nel giro peggiore: era la richiesta della velocità esatta a strozzare.
+- **Cavo:** 6 m di lato, 7 m in alto, 4 m avanti al kart, costanti condivise.
+- **Capsule:** `place_mission_anchors.py` usa le traiettorie della camera
+  misurate e cerca, per ogni gruppo, nodo, scostamento e altezza in cui la
+  sagoma resta intera, a distanza utile e fuori dall'HUD v3 per più di 2,5 s
+  dall'attivazione nel giro peggiore (migliore delle gare registrate per
+  giro, come fa il validatore). Con l'HUD attuale le capsule finiscono
+  **16–40 m ai lati e 6–12 m in alto**, con 2,7–5,9 s di finestra geometrica.
+- **Due gare per fase.** Un rallentamento casuale in un giro di una gara non
+  deve far fallire tutto: il validatore tiene per ogni giro la gara migliore.
+
+Spostare l'HUD darebbe un gioco migliore: senza griglia di icone e barre
+sopra la strada le capsule possono stare **4–9 m accanto alla carreggiata, 3–7 m
+in alto**, con 3,0–5,5 s di finestra, e i rivali davanti smetterebbero di
+finire dietro le icone (`non_targetable_surface`). È però un cambio del layout
+di SC2–SC5 a una settimana dai test: proposto come passo successivo.
+
+**SC5 Party** chiede finestre a velocità base + 1 m/s. Su neve il kart è
+limitato a 15 m/s, quindi Party non può qualificarsi su questa pista senza
+un cambio di regola (per esempio misurare la durata a parità di distanza).
 
 ## 5. Modifiche al gioco (punti 5–9)
 
@@ -356,7 +403,7 @@ Cosa dicono, con i limiti di un Mac sovraccarico:
 
 | Verifica | Esito |
 |---|---|
-| Suite `tools/immersive/tests` (C++, Bullet, Python offline) | **274/274** |
+| Suite `tools/immersive/tests` (C++, Bullet, Python offline) | **378/378** (sopra SC5) |
 | Checker dei sorgenti `check_*.py` e test Python degli strumenti | tutti superati |
 | Build Relay incrementale | riuscita |
 | TholusOS (`scintilla/test-week-tooling` del worktree host) | **non compilato**: `swiftc -parse` e checker `test_scintilla_input_maintenance.py` superati |
@@ -371,11 +418,12 @@ bersaglio e risposte che il vecchio TholusOS avrebbe rifiutato.
 
 - **Una build e un test di TholusOS** quando la macchina è libera:
   `ImmersiveSTKSpatialHTTPTests` e `ImmersiveSTKSpatialInputTests`.
-- Unire in `main` dopo la consegna di SC5. `scintilla_input.cpp` e
-  `scintilla_engine.cpp` sono toccati da entrambi i lavori: conflitti probabili.
+- Unire `scintilla/test-week-sc5` in `main` (fast-forward: il branch parte da
+  `main`).
+- Spostare griglia di icone e barre dalla fascia sopra la strada (vedi
+  «Correzione scelta»), poi riposizionare le capsule vicino alla carreggiata.
+- Decidere la regola di velocità di SC5 Party su neve.
 - Verificare con persone vere `non_targetable_surface` (rivali dietro zone HUD)
   e `ambiguous_presentation`.
-- Qualifica SC4 delle capsule (visibilità misurata a velocità di gara): si può
-  fare con l'autopilota, senza VIVE.
 - Calibrare `test_week_v1` sui dati reali: prima sessione con la sonda di
   latenza, poi gare con il profilo e il report.
