@@ -39,6 +39,7 @@
 #include "modes/immersive_relay/render/camera/immersive_camera_rig.hpp"
 #include "modes/immersive_relay/render/full_sphere_capture.hpp"
 #include "modes/immersive_relay/render/immersive_render_config.hpp"
+#include "utils/log.hpp"
 #include "utils/time.hpp"
 #include "config/stk_config.hpp"
 #include "karts/abstract_kart.hpp"

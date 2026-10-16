@@ -29,6 +29,22 @@ struct MeasurementRecorder {
     std::deque<MeasurementFrame> pending;
 };
 MeasurementRecorder measurement;
+// Diagnostic anchor exploration (STK_RELAY_SCINTILLA_PROBES, one "x y z"
+// centre per line). A recording then measures candidate capsule centres
+// instead of the manifest's, four per sample, least recently measured first,
+// with the same queries, masks and depth. Probes are written as group -2:
+// such traces guide placement and can never qualify.
+struct MeasurementProbes {bool loaded=false;std::vector<SpatialVec3> centers;std::vector<int64_t> lastUs;};
+MeasurementProbes measurementProbes;
+void loadMeasurementProbes()
+{
+    measurementProbes=MeasurementProbes();measurementProbes.loaded=true;
+    const char* path=std::getenv("STK_RELAY_SCINTILLA_PROBES");if(!path||!*path)return;
+    std::ifstream in(path);double x=0,y=0,z=0;
+    while(in>>x>>y>>z&&measurementProbes.centers.size()<20000)measurementProbes.centers.push_back(SpatialVec3(x,y,z));
+    measurementProbes.lastUs.assign(measurementProbes.centers.size(),0);
+    Log::warn("ScintillaMeasurement","Exploring %u probe centres from %s: these traces cannot qualify.",unsigned(measurementProbes.centers.size()),path);
+}
 std::string effectiveCrewProfile()
 {return crew.required()?crew.profileId():measurement.started&&!measurement.closed?measurement.crewProfile:"";}
 bool effectiveCrewLayout(){return !effectiveCrewProfile().empty();}
@@ -216,7 +232,7 @@ void pollMissionMeasurement()
         // intentionally not the GPU completion estimate or the capture time.
         f.readbackUs=nowUs();auto* world=World::getWorld();
         f.readbackTick=world?std::max(0,world->getTimeTicks()):f.tick;
-        for(const auto& o:f.objects)if(!o.tether&&f.lap>=0&&f.lap<12){const unsigned key=f.lap*24+o.group*2+o.capsule;
+        for(const auto& o:f.objects)if(!o.tether&&o.group>=0&&f.lap>=0&&f.lap<12){const unsigned key=f.lap*24+o.group*2+o.capsule;
             auto& proof=measurementCoverage[key];proof.captureUs=f.frame.captureUs;proof.readbackUs=f.readbackUs;proof.tick=f.tick;
             proof.visible=f.published&&o.range&&o.rectangle&&o.status=="ready"&&o.pixels[0]>0&&o.pixels[0]==o.pixels[1]&&o.pixels[0]==o.pixels[2];}
         measuredTetherFrames.push_back(std::make_pair(f.frame.id,tetherVisible));while(measuredTetherFrames.size()>64)measuredTetherFrames.pop_front();
@@ -275,7 +291,20 @@ void prepareMissionMeasurementFrame(const ImmersiveRenderConfig& config)
         t.range=ScintillaMission::Profile::inRange(t.tether?ScintillaMission::Kind::Tether:ScintillaMission::Kind::Capsule,dot(d,d),t.radius);
         t.rectangle=Measure::footprint(current.projection.kind,current.projection.domeTiltDeg,current.projection.width,current.projection.height,
             Measure::Vec(dot(d,current.cameraRight),dot(d,current.cameraUp),dot(d,current.cameraForward)),t.radius,effectiveLayoutRevision());f.objects.push_back(t);};
-    if(f.lap>=0&&f.lap<RaceManager::get()->getNumLaps()){
+    if(f.record&&!measurementProbes.loaded)loadMeasurementProbes();
+    if(f.record&&!measurementProbes.centers.empty()){
+        std::vector<std::pair<int64_t,unsigned> > near;
+        for(unsigned i=0;i<measurementProbes.centers.size();++i){const auto& c=measurementProbes.centers[i];
+            const SpatialVec3 d(c.x-current.cameraPosition.x,c.y-current.cameraPosition.y,c.z-current.cameraPosition.z);
+            if(ScintillaMission::Profile::inRange(ScintillaMission::Kind::Capsule,dot(d,d),2))near.push_back(std::make_pair(measurementProbes.lastUs[i],i));}
+        std::sort(near.begin(),near.end());
+        for(const auto& candidate:near){if(f.objects.size()>=4)break;
+            MeasurementObject t;t.group=-2;t.capsule=int(candidate.second);t.center=measurementProbes.centers[candidate.second];t.radius=2;
+            const SpatialVec3 d(t.center.x-current.cameraPosition.x,t.center.y-current.cameraPosition.y,t.center.z-current.cameraPosition.z);
+            if(!Measure::footprint(current.projection.kind,current.projection.domeTiltDeg,current.projection.width,current.projection.height,
+                Measure::Vec(dot(d,current.cameraRight),dot(d,current.cameraUp),dot(d,current.cameraForward)),t.radius,effectiveLayoutRevision()))continue;
+            measurementProbes.lastUs[candidate.second]=sampleNow;add(t);}
+    }else if(f.lap>=0&&f.lap<RaceManager::get()->getNumLaps()){
         unsigned selected=unsigned(missionAnchors.groups.size());double next=2;
         for(unsigned g=0;g<missionAnchors.groups.size();++g){const auto& group=missionAnchors.groups[g];
             if(std::find(group.laps.begin(),group.laps.end(),unsigned(f.lap))==group.laps.end()||f.fraction>=group.expiryFraction)continue;

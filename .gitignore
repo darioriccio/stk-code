@@ -26,8 +26,9 @@ data/sfx
 data/textures
 data/tracks
 data/wip-tracks
-# Local SC4 qualification: raw traces (tens of MB) valid only for one STK build.
+# Local SC4/SC5 qualification: raw traces (tens of MB) valid only for one STK build.
 data/immersive_relay/scintilla/qualification_v1/
+data/immersive_relay/scintilla/qualification_v2/
 data/.svn
 
 # Ignore doxygen output
