@@ -135,11 +135,6 @@ void RelayPlayerController::enforcePartyBrake()
     m_controls->setAccel(0.0f);m_controls->setBrake(true);m_controls->setNitro(false);
 }
 
-void RelayPlayerController::reset()
-{
-    LocalPlayerController::reset();m_party_raw_brake=0;m_party_brake_ticks=0;
-}
-
 void RelayPlayerController::update(int ticks)
 {
     // The player pass recentres an unheld steer before the autopilot runs, and

@@ -21,6 +21,10 @@
 #include "modes/immersive_relay/scintilla_tuning.hpp"
 #include "modes/immersive_relay/scintilla_telemetry.hpp"
 #include <climits>
+#ifndef SERVER_ONLY
+// scintilla_crew_text_native.hpp draws through the complete driver type.
+#include <IVideoDriver.h>
+#endif
 #include <cstdlib>
 #include <ctime>
 #include "io/file_manager.hpp"
