@@ -218,8 +218,10 @@ void RelayRaceMode::captureHandoffFreezeTransforms()
         {
             // Clear remembered keyboard/gamepad actions, not only KartControl.
             // A key held by the previous pilot must not revive after handoff.
-            if (kart->getController() && kart->getController()->isPlayerController())
-                static_cast<PlayerController*>(kart->getController())->resetInputState();
+            // After the finish an EndController drives the kart and still
+            // reports isPlayerController(): only a real PlayerController has input.
+            if (auto* player = dynamic_cast<PlayerController*>(kart->getController()))
+                player->resetInputState();
             m_handoff_hold_transforms.push_back(
                 kart->getBody()->getWorldTransform());
         }
@@ -239,8 +241,8 @@ void RelayRaceMode::releaseHandoffFreeze()
         AbstractKart* kart = getKart(i);
         if (kart && kart->getVehicle())
         {
-            if (kart->getController() && kart->getController()->isPlayerController())
-                static_cast<PlayerController*>(kart->getController())->resetInputState();
+            if (auto* player = dynamic_cast<PlayerController*>(kart->getController()))
+                player->resetInputState();
             kart->getVehicle()->setAllBrakes(0.0f);
         }
     }

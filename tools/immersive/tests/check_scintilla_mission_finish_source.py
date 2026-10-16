@@ -132,4 +132,11 @@ check("mission technical hold is separate from video hold",
       "m_mission_presentation_held" in hold and "m_mission_result.valid" in hold and
       "m_presentation_ready" not in body(controller, "void RelaySessionController::setMissionPresentationHeld("))
 
+# After the finish an EndController drives the human kart and still answers
+# isPlayerController(). A static cast to PlayerController in the results hold
+# crashed every naturally finished relay race.
+freeze = body(race, "void RelayRaceMode::captureHandoffFreezeTransforms(") + body(race, "void RelayRaceMode::releaseHandoffFreeze(")
+check("finished karts are never cast to PlayerController unchecked",
+      "static_cast<PlayerController" not in race and freeze.count("dynamic_cast<PlayerController*>") == 2)
+
 print(f"SC4 finish integration: {len(checks)} source checks passed; no build/runtime executed.")
