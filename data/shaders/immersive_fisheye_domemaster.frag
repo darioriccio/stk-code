@@ -125,5 +125,5 @@ void main()
         vec3 grid = debugGrid(p, r, phi, dome_tilt_rad);
         color.rgb = mix(color.rgb, grid, clamp(max(max(grid.r, grid.g), grid.b), 0.0, 0.85));
     }
-    FragColor = vec4(scintillaOverlay(color.rgb,dir,uv,resolution),scintillaAlpha(gl_FragCoord.xy,resolution));
+    FragColor = vec4(scintillaLatencyFlash(scintillaOverlay(color.rgb,dir,uv,resolution),uv,resolution),scintillaAlpha(gl_FragCoord.xy,resolution));
 }

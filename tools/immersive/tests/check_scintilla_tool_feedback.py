@@ -51,14 +51,16 @@ class ToolFeedbackSourceChecks(unittest.TestCase):
         combat = block.split('void setMissionFeedback(', 1)[0]
         self.assertLess(combat.index('if(s.proofInterrupted)'), combat.index('else if(value.participant'))
         self.assertIn('value.controlEpoch==s.toolEpoch', block)
-        guard = re.search(r'if\(([^\n]+)\)return;', combat)[1]
+        # SC5 continues the guard on a second line with the Party press.
+        guard = re.search(r'if\((.+?)\)return;', combat, re.S)[1].replace('\n', ' ')
+        guard = guard.replace('s.pressSurface.context==ScintillaDefense::Context::PartyBoost', 'party_press')
         guard = guard.replace('missionKind(s.proofKind)', 'mission_kind')
         guard = guard.replace('s.tracked', 'tracked').replace('s.held[1]', 'held')
         guard = guard.replace('||', ' or ')
         guard = re.sub(r'!(?!=)', ' not ', guard)
-        for combatEnabled, prepared, active, tracked, held, mission_kind in product((False, True), repeat=6):
+        for combatEnabled, prepared, active, tracked, held, mission_kind, party_press in product((False, True), repeat=7):
             hidden = eval(guard.strip(), {'__builtins__': {}}, locals())
-            self.assertEqual(hidden, not all((combatEnabled, prepared, active, tracked, held)) or mission_kind)
+            self.assertEqual(hidden, not all((combatEnabled, prepared, active, tracked, held)) or mission_kind or party_press)
         mission = block.split('void setMissionFeedback(', 1)[1]
         self.assertIn('if(s.proofInterrupted)', mission)
         self.assertIn('ScintillaMission::Status::ReleaseRequired', mission)
@@ -119,9 +121,14 @@ class ToolFeedbackSourceChecks(unittest.TestCase):
             shown = eval(held_gate, {'__builtins__': {}}, locals())
             self.assertEqual(shown, buttons > 1.5 and combat_status < .5 and mission_status < .5)
         overlay = SHADER.split('vec3 scintillaOverlay(', 1)[1].split('float scintillaAlpha(', 1)[0]
-        self.assertIn('if(scintilla_enabled==0)return scintillaMissionHUD(color,uvGL,dimensions)', overlay)
+        disabled = overlay.split('if(scintilla_enabled==0){', 1)[1].split('}', 1)[0]
+        self.assertIn('return scintillaMissionHUD(color,uvGL,dimensions);', disabled)
         self.assertLess(overlay.index('color=scintillaToolFeedback(color,uvGL,dimensions)'),
-                        overlay.rindex('return scintillaLatencyFlash(scintillaMissionHUD(color,uvGL,dimensions)'))
+                        overlay.rindex('return scintillaMissionHUD(color,uvGL,dimensions)'))
+        # The latency probe covers every overlay path, the SC5 crew HUD included.
+        for projection in ('immersive_equirectangular.frag', 'immersive_fisheye_domemaster.frag'):
+            source = (ROOT / 'data/shaders' / projection).read_text()
+            self.assertIn('scintillaLatencyFlash(scintillaOverlay(color.rgb,dir,uv,resolution),uv,resolution)', source)
         self.assertNotIn('untilUs', block)
         self.assertNotIn('f.w', block)
         # Icons use different shapes as well as color; the owner and recipient

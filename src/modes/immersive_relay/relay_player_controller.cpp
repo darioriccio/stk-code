@@ -50,7 +50,7 @@ bool RelayPlayerController::autopilotRequested()
 
 void RelayPlayerController::reset()
 {
-    LocalPlayerController::reset();
+    LocalPlayerController::reset();m_party_raw_brake=0;m_party_brake_ticks=0;
     if (m_autopilot)
     {
         m_autopilot->reset();

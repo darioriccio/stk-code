@@ -767,6 +767,8 @@ vec3 scintillaDiagnosticOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensi
 }
 // Latency probe: a saturated disc on top of everything, filmed to time the
 // optical path from a trigger press. Inactive outside that diagnostic profile.
+// The projection shaders apply it after scintillaOverlay, on every path
+// (legacy, SC4 cargo and SC5 crew HUD).
 vec3 scintillaLatencyFlash(vec3 color,vec2 uvGL,vec2 dimensions)
 {
     for(int i=0;i<5;i++){
@@ -1022,7 +1024,7 @@ vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
     if(scintilla_crew_enabled!=0)return color;
     if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
     color=scintillaToolFeedback(color,uvGL,dimensions);
-    return scintillaLatencyFlash(scintillaMissionHUD(color,uvGL,dimensions),uvGL,dimensions);
+    return scintillaMissionHUD(color,uvGL,dimensions);
 }
 float scintillaAlpha(vec2 pixel,vec2 dimensions)
 {
