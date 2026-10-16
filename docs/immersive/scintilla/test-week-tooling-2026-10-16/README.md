@@ -111,6 +111,77 @@ Alla fine stampa un JSON con esito, frame al secondo, tempi delle chiamate API
 per percorso, chiamate lente, rinnovi, input rifiutati per motivo e il file di
 telemetria. Una richiesta rifiutata viene salvata in `rejected-update.json`.
 
+## 4b. Qualifica SC4 delle capsule con l'autopilota
+
+Senza qualifica degli ancoraggi la missione SC4 non diventa mai pronta. La
+qualifica misura nel rendering nativo che ogni capsula, in fase guscio e
+aperta, e ogni lato del cavo restino visibili abbastanza a lungo (più di 2 s,
+3 s per il cavo) a velocità di gara. Non servono puntatori né persone, ma
+servono gare guidate fino al traguardo.
+
+`tools/immersive/scintilla/qualify_mission_autopilot.py` esegue da solo la
+procedura di [OPERATORE.md](../sc4-implementation-2026-10-16/OPERATORE.md):
+1. due gare complete guidate dall'autopilota, una per fase;
+2. esportazione e verifica delle tracce grezze, e validazione offline;
+3. installazione di report e tracce in `data/immersive_relay/scintilla/qualification_v1/`
+   (cartella ignorata da git; un'installazione precedente viene spostata da parte);
+4. preflight nativo in una gara nuova.
+
+```bash
+python3 tools/immersive/scintilla/qualify_mission_autopilot.py --build-dir <build/relay> \
+  --assets-dir <stk-assets> --runtime-dir <nuova cartella sul SSD> --players 3
+```
+
+**L'impronta della qualifica include binario STK, asset, shader, camera,
+proiezione, risoluzioni, P/C e giri.** Va rifatta dopo ogni ricompilazione
+(compreso il merge con SC5) e per ogni configurazione di sala diversa, per
+esempio un altro numero di giocatori. Con 3 giocatori sono 6 giri per gara,
+circa 15 minuti in tutto.
+
+Mettere in pratica la procedura ha fatto emergere quattro difetti, tutti
+corretti:
+
+- **Crash a ogni gara finita.** A fine gara STK guida il kart umano con un
+  `EndController`, che continua a dichiararsi controller del giocatore. Quando
+  il relay ferma il mondo per i risultati lo convertiva con `static_cast` in
+  `PlayerController`, e STK crashava. Nessuna gara era mai arrivata al
+  traguardo prima di questa prova.
+- **Angolo delle facce del cubo.** Misura e validatore esigevano facce da 90°,
+  la produzione ne usa da 120° sovrapposte: la misura non poteva partire.
+- **Collegamento simbolico dei dati.** Ogni build macOS collega `data/` dentro
+  il bundle, e il lettore della qualifica rifiutava qualsiasi collegamento
+  nel percorso: la qualifica non sarebbe mai stata letta.
+- **Percorso delle tracce.** Il lettore univa cartella e nome della traccia
+  senza separatore (`…/qualification_v1shell.ndjson`).
+
+### Esito della prima qualifica: SC4 non si qualifica
+
+Due gare complete (408 e 412 s, arrivo naturale, tracce da 25 MB ciascuna) e
+validazione offline: **non qualificato** (`activation_not_proven`,
+`capsule_window_below_base_speed`, `tether_window_below_base_speed`). Nessuna
+finestra valida per nessuna capsula e per nessun lato del cavo. Le cause sono
+geometriche e di regola, non di misura:
+
+- **Capsule dietro l'HUD.** Gli ancoraggi stanno 4 m sopra la carreggiata. Con
+  la camera inclinata di 35° la pista davanti cade nella metà bassa della
+  cupola (v≈0,6–0,75), occupata dalla griglia delle icone dell'equipaggio,
+  dalle barre e dai nodi di difesa. Nei tratti utili, su circa 7.800 casi la
+  sagoma è libera e intera solo 30 volte. È libera quando la capsula passa ai
+  lati (u≈0,2 o 0,8).
+- **Cavo sempre dietro l'HUD.** Il modulo agganciato (offset fisso nel codice
+  ±3 m, 5,5 m in alto, 6 m avanti) cade a u≈0,40/0,60, v≈0,50 e tocca il
+  bordo superiore della griglia di icone nel 99,6% dei fotogrammi. Anche in
+  gioco sarebbe quasi impossibile da recuperare. Con offset (±8, 8,5, 4) m
+  sarebbe libero dall'HUD per 10–30 s per giro.
+- **Velocità piena.** Ogni finestra deve restare tutta alla velocità massima
+  nativa (15 m/s su neve) per 2 s (capsule) o 3 s (cavo). Anche col cavo
+  spostato, in alcuni giri l'autopilota tiene la velocità piena al massimo
+  2,4 s di fila.
+
+Così com'è, **la missione SC4 non può essere abilitata in sala**: serve una
+correzione di geometria (ancoraggi e cavo, o layout HUD) ed eventualmente della
+regola di velocità.
+
 ## 5. Modifiche al gioco (punti 5–9)
 
 Tutte attivabili da profilo, con i valori qualificati come default:
