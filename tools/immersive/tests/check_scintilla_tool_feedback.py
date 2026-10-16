@@ -121,10 +121,11 @@ class ToolFeedbackSourceChecks(unittest.TestCase):
             shown = eval(held_gate, {'__builtins__': {}}, locals())
             self.assertEqual(shown, buttons > 1.5 and combat_status < .5 and mission_status < .5)
         overlay = SHADER.split('vec3 scintillaOverlay(', 1)[1].split('float scintillaAlpha(', 1)[0]
-        disabled = overlay.split('if(scintilla_enabled==0){', 1)[1].split('}', 1)[0]
-        self.assertIn('return scintillaMissionHUD(color,uvGL,dimensions);', disabled)
+        # Without spatial input only the mission (and crew) HUD is painted.
+        spatial = overlay.split('if(spatial){', 1)[1].split('}', 1)[0]
+        self.assertIn('color=scintillaToolFeedback(color,uvGL,dimensions)', spatial)
         self.assertLess(overlay.index('color=scintillaToolFeedback(color,uvGL,dimensions)'),
-                        overlay.rindex('return scintillaMissionHUD(color,uvGL,dimensions)'))
+                        overlay.index('color=scintillaMissionHUD(color,uvGL,dimensions)'))
         # The latency probe covers every overlay path, the SC5 crew HUD included.
         for projection in ('immersive_equirectangular.frag', 'immersive_fisheye_domemaster.frag'):
             source = (ROOT / 'data/shaders' / projection).read_text()

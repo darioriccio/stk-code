@@ -9,56 +9,65 @@ IR=ROOT/'src/modes/immersive_relay'
 
 
 class CrewRenderSource(unittest.TestCase):
+    @staticmethod
+    def overlay_parts():
+        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
+        spatial=shader[shader.index('vec3 scintillaSpatialOverlay('):shader.index('vec3 scintillaOverlay(')]
+        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
+        return shader,spatial,overlay
+
     def test_opaque_crew_surfaces_cannot_erase_a_centered_pointer(self):
         # Evaluate composition at a fully covered cross pixel using the pass
         # order from the real shader. This is arithmetic/source proof, not GLSL
         # execution. The former late opaque HUD pass fails this counterexample.
-        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
-        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
-        active=overlay[overlay.index('vec2 topUV='):]
-        hud=active.index('scintillaCrewHUD(')
-        pointer=active.index('color=mix(color,palette[i],max(max(crossMark,dots),tool))')
-        palette_start=active.index('vec3 palette[5]')
-        palette_text=active[palette_start:active.index('for(int i=0;i<5;i++)',palette_start)]
+        _,spatial,overlay=self.overlay_parts()
+        layer='pointers=vec4(mix(pointers.rgb,palette[i],cover),pointers.a*(1.0-cover));'
+        self.assertIn(layer,spatial)
+        self.assertIn('float cover=max(max(crossMark,dots),tool);',spatial)
+        palette_start=spatial.index('vec3 palette[5]')
+        palette_text=spatial[palette_start:spatial.index('for(int i=0;i<5;i++)',palette_start)]
         palette=[tuple(map(float,value.split(','))) for value in re.findall(r'vec3\(([^)]+)\)',palette_text)]
         self.assertEqual(len(palette),5)
-        for width,height in ((256,256),(768,768),(1536,1536),(2048,1024),(8192,8192)):
-            radius=.06*min(width,height)/2
-            self.assertGreater(radius,0) # Party's centre is inside its opaque mask at every admitted size.
-            for tint in palette:
-                color=(0.,0.,0.)
-                for _,layer in sorted(((hud,'hud'),(pointer,'pointer'))):
-                    color=(.42,.14,.65) if layer=='hud' else tint
-                self.assertEqual(color,tint,(width,height,tint))
+        crew=overlay[overlay.index('if(!crew)return color;'):]
+        hud=crew.index('color=scintillaCrewHUD(')
+        pointer=crew.rindex('return color*pointers.a+pointers.rgb;')
+        for tint in palette:
+            # The premultiplied layer after one pointer covering the pixel.
+            cover=1.0;rgb=tuple((1-cover)*0.+cover*t for t in tint);transmittance=1.0*(1-cover)
+            color=(0.,0.,0.)
+            for _,step in sorted(((hud,'hud'),(pointer,'pointer'))):
+                color=(.42,.14,.65) if step=='hud' else tuple(c*transmittance+p for c,p in zip(color,rgb))
+            self.assertEqual(color,tint,tint)
         self.assertLess(hud,pointer)
-        self.assertNotIn('scintillaCrewHUD(',active[pointer:])
+        self.assertNotIn('scintillaCrewHUD(',crew[pointer:])
         # SC5 consumes the translated badge state after legacy panels, then
         # draws pointers last. World-space feedback outside the HUD survives.
-        self.assertLess(active.index('color=scintillaFeedback('),hud)
-        self.assertLess(active.index('color=scintillaToolFeedback('),hud)
+        self.assertLess(overlay.index('color=scintillaFeedback('),overlay.index('color=scintillaCrewHUD('))
+        self.assertLess(overlay.index('color=scintillaToolFeedback('),overlay.index('color=scintillaCrewHUD('))
 
     def test_terminal_crew_plate_and_legacy_path_keep_their_own_boundaries(self):
-        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
-        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
-        active=overlay[overlay.index('vec2 topUV='):]
-        hud=active.index('color=scintillaCrewHUD(')
-        pointer=active.index('vec4 r=scintilla_reticles[i]')
-        self.assertIn('if(scintilla_mission_result.x>.5)return color;',active[hud:pointer])
-        end=active[active.index('if(scintilla_crew_enabled!=0)return color;'):]
-        self.assertIn('color=scintillaFeedback(',end)
-        self.assertIn('color=scintillaToolFeedback(',end)
-        self.assertIn('return scintillaMissionHUD(color,uvGL,dimensions);',end)
+        shader,spatial,overlay=self.overlay_parts()
+        # A result plate stops the pointer loop: the layer stays transparent,
+        # so the crew plate is returned as painted.
+        loop=spatial[spatial.index('pointers=vec4(0,0,0,1);'):]
+        self.assertTrue(loop[loop.index('for(int i=0;i<5;i++) {'):].split('\n')[1].strip()=='if(scintilla_mission_result.x>.5)break;')
+        # The legacy path puts its pointers under feedback, panels and HUD.
+        order=[overlay.index(text) for text in ('if(!crew)color=color*pointers.a+pointers.rgb;','color=scintillaFeedback(',
+               'color=scintillaToolFeedback(','color=scintillaMissionHUD(color,uvGL,dimensions);','if(!crew)return color;')]
+        self.assertEqual(order,sorted(order))
+        # Every HUD pass is inlined once (a second copy cost 35 ms per frame).
+        for name in ('scintillaFeedback(','scintillaToolFeedback(','scintillaMissionHUD(','scintillaCrewHUD('):
+            self.assertEqual(overlay.count(name),1,name)
+            self.assertNotIn(name,spatial)
         # Neither feedback helper may paint another opaque crew surface later.
         feedback=shader[shader.index('vec3 scintillaFeedback('):shader.index('vec3 scintillaCrewHUD(')]
         self.assertNotIn('scintillaCrewHUD(',feedback)
 
     def test_legacy_panels_cannot_cover_crew_text_while_spatial_feedback_survives(self):
-        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
-        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
-        active=overlay[overlay.index('vec2 topUV='):]
-        passes=sorted(((active.index('color=scintillaFeedback('),'shot'),
-                       (active.index('color=scintillaToolFeedback('),'panel'),
-                       (active.index('color=scintillaCrewHUD('),'crew')))
+        _,_,overlay=self.overlay_parts()
+        passes=sorted(((overlay.index('color=scintillaFeedback('),'shot'),
+                       (overlay.index('color=scintillaToolFeedback('),'panel'),
+                       (overlay.index('color=scintillaCrewHUD('),'crew')))
         text=(.98,.98,.98);hit=(.25,1.,.35)
         for covered_by_hud in (True,False):
             color=(.1,.1,.1)

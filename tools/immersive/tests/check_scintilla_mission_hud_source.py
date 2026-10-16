@@ -18,7 +18,7 @@ for name in ['scintilla_mission_hud_enabled','scintilla_mission_result','scintil
 check('SC3 keeps revision1 and SC4 advertises revision2','Revision=1' in l and 'MissionRevision=2' in l and 'l.profile()' in e and 'l.revision()' in e)
 check('HUD is required before preparation and persists with frozen results','current.missionHUDEnabled=mission.required()' in e and 'current.missionResult.valid?current.missionResult.slots:mission.slots()' in e)
 check('first presentation has no fictional zero-second recovery window','double missionTetherSeconds=-1' in (IR/'spatial/scintilla_input.hpp').read_text() and 'TetherRecoverable&&mission.profile().fps>0' in e)
-check('result plate suppresses interactive feedback','scintilla_mission_result.x<.5' in s and 'return scintillaMissionHUD(color,uvGL,dimensions)' in s)
+check('result plate suppresses interactive feedback','if(scintilla_mission_result.x<.5)color=scintillaFeedback(' in s and 'color=scintillaMissionHUD(color,uvGL,dimensions)' in s)
 asset=(ROOT/'data/immersive_relay/scintilla/mission_results_it_v1.png').read_bytes()
 check('final local atlas has exact dimensions',asset[:8]==b'\x89PNG\r\n\x1a\n' and struct.unpack('>II',asset[16:24])==(2048,800))
 check('atlas unit15 is restored after both projection branches',e.index('missionSavedAtlasTexture')<e.index('void finishProjectionUniforms()') and p.rindex('ScintillaEngine::finishProjectionUniforms()')>p.rindex('->drawFullScreenEffect('))

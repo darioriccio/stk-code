@@ -777,13 +777,11 @@ vec3 scintillaLatencyFlash(vec3 color,vec2 uvGL,vec2 dimensions)
     }
     return color;
 }
-vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
+// World markers, defense surfaces and the pointer layer. Pointers come back as
+// one premultiplied layer (colour, transmittance) for scintillaOverlay to
+// place under or over the HUD.
+vec3 scintillaSpatialOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions,out vec4 pointers)
 {
-    color=scintillaDiagnosticOverlay(color,direction,uvGL,dimensions);
-    if(scintilla_enabled==0){
-        if(scintilla_crew_enabled!=0)return scintillaCrewHUD(scintillaMissionHUD(color,uvGL,dimensions),vec2(uvGL.x,1.0-uvGL.y),dimensions);
-        return scintillaMissionHUD(color,uvGL,dimensions);
-    }
     vec2 topUV=vec2(uvGL.x,1.0-uvGL.y);
     int surface=scintillaSurface(topUV,dimensions);
     if(surface==4){
@@ -991,16 +989,8 @@ vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
             if(threatened&&scintilla_defense_state.x==5.0&&abs(abs(q.x)-abs(q.y))<.08)color=vec3(1,.1,.1);
         }
     }
-    // Crew nodes/badges are surfaces under the pointers. Opaque Party pixels
-    // must not erase aiming, source identity or hold feedback drawn afterward.
-    if(scintilla_crew_enabled!=0){
-        // Legacy status panels share the crew badge anchors. SC5 translates
-        // those statuses into its own text; keep their old panels underneath.
-        if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
-        color=scintillaToolFeedback(color,uvGL,dimensions);
-        color=scintillaCrewHUD(scintillaMissionHUD(color,uvGL,dimensions),vec2(uvGL.x,1.0-uvGL.y),dimensions);
-        if(scintilla_mission_result.x>.5)return color;
-    }
+    // A result plate shows no pointers: the layer stays transparent.
+    pointers=vec4(0,0,0,1);
     vec3 palette[5]=vec3[5](vec3(0.0,1.0,1.0),vec3(1.0,0.65,0.0),vec3(1.0,0.3,0.9),vec3(0.4,1.0,0.2),vec3(0.7,0.65,1.0));
     for(int i=0;i<5;i++) {
         if(scintilla_mission_result.x>.5)break;
@@ -1019,12 +1009,35 @@ vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
             else icon=1000.0;
             crossMark=max(crossMark,1.0-smoothstep(.8,1.8,icon));
         }
-        color=mix(color,palette[i],max(max(crossMark,dots),tool));
+        // Premultiplied "over": equal to mixing each pointer into the colour in turn.
+        float cover=max(max(crossMark,dots),tool);
+        pointers=vec4(mix(pointers.rgb,palette[i],cover),pointers.a*(1.0-cover));
     }
-    if(scintilla_crew_enabled!=0)return color;
-    if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
-    color=scintillaToolFeedback(color,uvGL,dimensions);
-    return scintillaMissionHUD(color,uvGL,dimensions);
+    return color;
+}
+vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
+{
+    color=scintillaDiagnosticOverlay(color,direction,uvGL,dimensions);
+    // Every HUD pass below is inlined once. A second copy of them on the crew
+    // path cost about 35 ms of GPU per 1536 px dome frame on Apple GL (M1 Pro,
+    // 19 instead of 62 fps), even where its branch was never taken.
+    vec4 pointers=vec4(0,0,0,1);
+    bool spatial=scintilla_enabled!=0,crew=scintilla_crew_enabled!=0;
+    if(spatial)color=scintillaSpatialOverlay(color,direction,uvGL,dimensions,pointers);
+    // Legacy pointers lie under the feedback panels and the mission HUD.
+    if(!crew)color=color*pointers.a+pointers.rgb;
+    if(spatial){
+        // Legacy status panels share the crew badge anchors. SC5 translates
+        // those statuses into its own text; keep their old panels underneath.
+        if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
+        color=scintillaToolFeedback(color,uvGL,dimensions);
+    }
+    color=scintillaMissionHUD(color,uvGL,dimensions);
+    if(!crew)return color;
+    // Crew nodes/badges are surfaces under the pointers. Opaque Party pixels
+    // must not erase aiming, source identity or hold feedback drawn afterward.
+    color=scintillaCrewHUD(color,vec2(uvGL.x,1.0-uvGL.y),dimensions);
+    return color*pointers.a+pointers.rgb;
 }
 float scintillaAlpha(vec2 pixel,vec2 dimensions)
 {
