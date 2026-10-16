@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Immersive Relay contributors. SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HEADER_SCINTILLA_COMBAT_HPP
 #define HEADER_SCINTILLA_COMBAT_HPP
+#include "modes/immersive_relay/scintilla_tuning.hpp"
 #include <cstdint>
 #include <map>
 #include <string>
@@ -12,8 +13,12 @@ using Tick = int64_t;
 enum class Phase { Shielded=0, Acquiring=1, Breached=2, StaggerPending=3, Stagger=4, Recovery=5 };
 struct Profile {
     Tick acquire=0, breach=0, cooperation=0, soloGap=0, soloTotal=0, stagger=0, recovery=0;
+    double maxRange=30, minAngularSine=0;
     static bool create(int fps, Profile* out);
+    static bool create(int fps, const ScintillaTuning::Combat& tuning, Profile* out);
     static bool inRange(double distanceSquared, double radius);
+    static bool inRange(double distanceSquared, double radius, double maxRange, double minAngularSine);
+    bool admits(double distanceSquared, double radius) const { return inRange(distanceSquared,radius,maxRange,minAngularSine); }
     static double staggerCurve(double u);
 };
 // Local-body bounds include compound child transforms, scaling and margins.
@@ -65,7 +70,8 @@ struct Outcome {
 };
 class Runtime {
 public:
-    bool prepare(uint64_t race, uint64_t input, const std::vector<std::string>& crew, int fps);
+    bool prepare(uint64_t race, uint64_t input, const std::vector<std::string>& crew, int fps,
+                 const ScintillaTuning::Combat& tuning=ScintillaTuning::Combat());
     void reset(bool preserveIntent=false);
     bool setRequired(bool required);
     uint64_t intentRevision() const { return m_intentRevision; }

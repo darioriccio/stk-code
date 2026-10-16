@@ -82,7 +82,7 @@ struct Runtime::Impl
         bool rearmed[3]={false,false,false},held[3]={false,false,false};
         // Physical observation is independent of gameplay admission/disarming.
         bool observedKnown[3]={false,false,false},observedHeld[3]={false,false,false};
-        int64_t lastPrimary=-250000;
+        int64_t lastPrimary=std::numeric_limits<int64_t>::min()/2;
         // Acquisition time orders the shared cursor, independently of each
         // message kind's sequence and of later host/server clock refinements.
         int64_t cursorHostUs=-1;
@@ -174,6 +174,7 @@ struct Runtime::Impl
     std::set<uint64_t> retiredFrameIds;
     uint64_t retiredThrough=0;
     int64_t leaseUntil=0,clockLow=0,clockHigh=0,clockChecked=0,proofHostFrom=0,proofHostUntil=0,lastNow=0;
+    ScintillaTuning::Input tuning;
     VisibilityOracle visibility;
     FramePinOracle pin;
     QueryLeaseOracle queryLease;
@@ -507,7 +508,7 @@ struct Runtime::Impl
                     }else{
                     auto snapshot=selected->combat;
                     const Vec3 delta=add(selected->center,mul(f->cameraPosition,-1));
-                    const bool eligible=snapshot.eligible&&ScintillaCombat::Profile::inRange(dot(delta,delta),selected->radius);
+                    const bool eligible=snapshot.eligible&&ScintillaCombat::Profile::inRange(dot(delta,delta),selected->radius,f->combatMaxRange,f->combatMinAngularSine);
                     if(combatFirst){p.event.kind=selected->kind;p.event.historical=snapshot;p.event.historicalEligible=eligible;
                         p.event.historicalOpen=eligible&&snapshot.phase==ScintillaCombat::Phase::Breached;combatFirst=false;}
                     else {
@@ -569,6 +570,8 @@ const std::deque<HitEvent>& Runtime::events()const{return m->events;}
 const std::string& Runtime::activeRouteRevision()const{return m->routeRevision;}
 const std::string& Runtime::activeProjectionContextId()const{return m->context;}
 void Runtime::setVisibilityOracle(const VisibilityOracle& o){m->visibility=o;}
+void Runtime::setTuning(const ScintillaTuning::Input& t){m->tuning=t;}
+const ScintillaTuning::Input& Runtime::tuning()const{return m->tuning;}
 void Runtime::setFramePinOracle(const FramePinOracle& o){m->pin=o;}
 void Runtime::setQueryLeaseOracle(const QueryLeaseOracle& o){m->queryLease=o;}
 void Runtime::setLiveTargetOracle(const LiveTargetOracle& o){m->live=o;}
@@ -1483,7 +1486,8 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
         if(!m->historyReady)return reject(409,"history_unavailable");
         if(!wasRearmed||!source.tracked||!m->active||!point)return reject(409,!wasRearmed?"release_required":!point?"point_unavailable":"source_or_gameplay_unavailable");
         const bool reservedParty=m->crewEnabled&&ScintillaDefense::Layout::create(m->projection.width,m->projection.height,m->missionLayoutRequired,false,true).classify(u,v).context==ScintillaDefense::Context::PartyBoost;
-        if(controlIndex==0&&!reservedParty&&time.lo-source.lastPrimary<250000)return reject(409,"fire_rate_limited");
+        if(controlIndex==0&&!reservedParty&&time.lo-source.lastPrimary<std::llround(m->tuning.fireIntervalS*1e6))
+            return m->tuning.fireRateFeedback?reject(409,"fire_rate_limited"):error(409,"fire_rate_limited");
         if(m->pending.size()>=64||((m->combatEnabled||m->missionEnabled)&&controlIndex==0&&!reservedParty&&m->combatShots.size()>=64)){m->disarm(i,"input_backpressure");return reject(429,"input_backpressure");}
         if(controlIndex==1&&m->nextProof==std::numeric_limits<uint64_t>::max()){
             m->disarm(i,"proof_serial_exhausted");return reject(409,"proof_serial_exhausted");

@@ -18,6 +18,8 @@
 #include <sys/stat.h>
 #include "modes/immersive_relay/scintilla_mission_protocol.hpp"
 #include "modes/immersive_relay/scintilla_mission_result_json.hpp"
+#include "modes/immersive_relay/scintilla_tuning.hpp"
+#include <cstdlib>
 #include "io/file_manager.hpp"
 #include "network/crypto.hpp"
 #include "modes/linear_world.hpp"
@@ -160,6 +162,12 @@ int64_t simulationTick=0,crewDefenseThreatTick=-1;
 std::vector<std::string> lastRoster;
 struct CombatOwner {const void* pointer=nullptr;uint64_t instance=0;bool effectRunning=false;const void* effectAnimation=nullptr;};
 std::map<uint64_t,CombatOwner> combatOwners;
+// Race tuning: reloaded with every race generation, fixed until that race ends.
+ScintillaTuning::Tuning tuning;
+std::string tuningSource="builtin",tuningHash,tuningError;
+const char* const TuningEnvironment="STK_RELAY_SCINTILLA_TUNING";
+bool relaxedHuman(){return tuning.defense.boostPolicy!=ScintillaTuning::BoostPolicy::Cancel;}
+double combatMinAngularSine(){return std::sin(tuning.combat.minAngularRadiusDeg*3.14159265358979323846/180.0);}
 bool localCombatSupported()
 {return !NetworkConfig::get()->isNetworking()&&!RewindManager::isEnabled()&&!RaceManager::get()->isWatchingReplay()&&!RaceManager::get()->isRecordingRace();}
 void refreshRoster()
@@ -522,7 +530,9 @@ void updateMissionCrossings()
             const auto snapshot=mission.snapshot(id);
             mission.expireCapsule(id,snapshot.instance);missionPlacements.erase(id);continue;
         }
-        if(crossing.skipped||animated||!world->isOnRoad(kart)){
+        const auto& disabled=tuning.mission.disabledGroups;
+        if(crossing.skipped||animated||!world->isOnRoad(kart)||
+           std::find(disabled.begin(),disabled.end(),missionAnchors.groups[crossing.group].id)!=disabled.end()){
             mission.skipOccurrence(crossing.ordinal);continue;
         }
         const auto& shape=missionAnchors.groups[crossing.group].capsules[crossing.capsule];
@@ -546,7 +556,7 @@ void updateMissionCrossings()
         if(snapshot.phase!=ScintillaMission::Phase::Shell&&snapshot.phase!=ScintillaMission::Phase::Open)
             it=missionPlacements.erase(it);
         else {const unsigned ordinal=unsigned(it->first-ScintillaMission::Runtime::CapsuleEntityBase),lap=ordinal/24,group=(ordinal%24)/2,capsule=ordinal%2;
-            auto* kart=defenseHuman();if(!kart||std::abs(double(kart->getSpeed()))>qualifiedBounds.capsules[ordinal]){
+            auto* kart=defenseHuman();if(!kart||(tuning.mission.withdrawAboveQualifiedSpeed&&std::abs(double(kart->getSpeed()))>qualifiedBounds.capsules[ordinal])){
                 mission.expireCapsule(it->first,snapshot.instance);it=missionPlacements.erase(it);
             }else ++it;}
     }
@@ -563,8 +573,10 @@ bool defenseGeometry(Defense::Candidate* c,Defense::Ballistic* b)
     if(!human||!attacker||humanInstance!=defense.view().humanInstance)return false;
     const auto state=combat.snapshot(defense.view().attacker);
     if(!state.eligible||state.phase==ScintillaCombat::Phase::Stagger||state.phase==ScintillaCombat::Phase::StaggerPending||state.phase==ScintillaCombat::Phase::Recovery)return false;
-    const bool launching=defense.view().phase!=Defense::Phase::Flying&&defense.view().phase!=Defense::Phase::AwaitImpact;
-    return ScintillaDefensePhysics::opportunity(human,attacker,defense.view().sector,c,b,defense.profile().fps,launching);
+    const auto phase=defense.view().phase;
+    const bool launching=phase!=Defense::Phase::Flying&&phase!=Defense::Phase::AwaitImpact&&
+        (defense.profile().solveDuringTelegraph||phase==Defense::Phase::LaunchPending);
+    return ScintillaDefensePhysics::opportunity(human,attacker,defense.view().sector,c,b,defense.profile(),launching,relaxedHuman());
 }
 #ifndef SERVER_ONLY
 bool commissionedRegion(double left,double top,double right,double bottom)
@@ -676,7 +688,9 @@ Visibility candidateVisibility(const Defense::Candidate&c,int64_t now)
 }
 Defense::Observation defenseObservation(int64_t now)
 {
-    Defense::Observation o;o.humanEligible=ScintillaDefensePhysics::eligibleHuman(defenseHuman());
+    Defense::Observation o;auto* human=defenseHuman();
+    o.humanEligible=relaxedHuman()?ScintillaDefensePhysics::eligibleHumanCore(human):ScintillaDefensePhysics::eligibleHuman(human);
+    o.humanTransient=ScintillaDefensePhysics::humanTransient(human);
     Defense::Candidate c;Defense::Ballistic b;o.geometryValid=defenseGeometry(&c,&b);
     const auto v=defense.view();
     o.videoContinuous=consumer.defenseVideoReady(now)&&lastDefenseVisibleThreat==v.threat&&lastDefenseVisibleLow<=now&&now-lastDefenseVisibleLow<=150000;
@@ -755,8 +769,11 @@ void updateDefense(bool admitted)
     if(before.phase==Defense::Phase::AwaitWarning&&defense.view().phase==Defense::Phase::Telegraph)SFXManager::get()->quickSound("pre_start_race");
     if(defense.view().phase==Defense::Phase::LaunchPending&&o.presentedThreat==defense.view().threat&&o.presentedPhase==Defense::Phase::LaunchPending&&o.presentedHigh<=now){
         Defense::Candidate c;Defense::Ballistic b;
-        if(!defenseGeometry(&c,&b)||!Defense::Ballistic::solve(Defense::Vec(human->getBody()->getWorldTransform().getOrigin().x(),human->getBody()->getWorldTransform().getOrigin().y(),human->getBody()->getWorldTransform().getOrigin().z())-c.origin,c.velocity,defense.profile().fps,&b))defense.cancel("launch_geometry_changed");
-        else defense.launch(c.origin,b.direction*40);
+        const auto& profile=defense.profile();const auto& h=human->getBody()->getWorldTransform().getOrigin();
+        const bool geometry=defenseGeometry(&c,&b);
+        const Defense::Vec carrier=profile.inheritVelocity?c.sourceVelocity:Defense::Vec();
+        if(!geometry||!Defense::Ballistic::solve(Defense::Vec(h.x(),h.y(),h.z())-c.origin,c.velocity-carrier,profile,&b))defense.cancel("launch_geometry_changed");
+        else defense.launch(c.origin,carrier+b.direction*profile.speed);
     }
     if(defense.view().phase==Defense::Phase::Flying){
         auto trace=ScintillaDefensePhysics::take();
@@ -770,7 +787,7 @@ void updateDefense(bool admitted)
     if(defense.wantsImpact()){
         // Validate the live owners after all SC2 and native-world effects, again at commit.
         Defense::Candidate c;Defense::Ballistic b;const bool current=defenseGeometry(&c,&b);
-        const bool applied=current&&ScintillaDefensePhysics::applyImpact(human);
+        const bool applied=current&&ScintillaDefensePhysics::applyImpact(human,defense.profile().impactRetained,relaxedHuman());
         if(defense.confirmImpact(applied)&&applied&&mission.required()&&mission.active()&&!missionTerminal()){
             const auto& impact=defense.impactEvent();ScintillaMission::Impact event;
             event.race=impact.race;event.threat=impact.threat;event.humanInstance=impact.humanInstance;
@@ -785,7 +802,9 @@ void updateDefense(bool admitted)
             const auto state=combat.snapshot(e.first);
             if(!state.eligible||state.phase==ScintillaCombat::Phase::Stagger||state.phase==ScintillaCombat::Phase::StaggerPending||state.phase==ScintillaCombat::Phase::Recovery||!defense.candidateReady(e.first,e.second.instance))continue;
             auto*k=w->getKart(unsigned(e.first-1));Defense::Candidate c;Defense::Ballistic b;
-            if(!ScintillaDefensePhysics::opportunity(human,k,Defense::Sector::None,&c,&b,defense.profile().fps))continue;
+            // Pause starts no warning during a boost; Ignore disregards it.
+            const bool ignore=tuning.defense.boostPolicy==ScintillaTuning::BoostPolicy::Ignore;
+            if(!ScintillaDefensePhysics::opportunity(human,k,Defense::Sector::None,&c,&b,defense.profile(),defense.profile().solveDuringTelegraph,ignore))continue;
             c.id=e.first;c.instance=e.second.instance;c.humanInstance=humanInstance;
 #ifndef SERVER_ONLY
             if(!ScintillaDefensePhysics::cameraLineClear(Defense::Vec(current.cameraPosition.x,current.cameraPosition.y,current.cameraPosition.z),human,k))continue;
@@ -860,7 +879,7 @@ void updateMissionCues()
 }
 void beforeDefensePhysics()
 {
-    if(defenseBound()&&defense.view().phase==Defense::Phase::Flying&&!RelaySessionController::get()->isWorldHeld())ScintillaDefensePhysics::before(defenseHuman(),defenseAttacker(),defense.view().pulse,defense.velocity(),defense.profile().fps);
+    if(defenseBound()&&defense.view().phase==Defense::Phase::Flying&&!RelaySessionController::get()->isWorldHeld())ScintillaDefensePhysics::before(defenseHuman(),defenseAttacker(),defense.view().pulse,defense.velocity(),defense.profile().fps,relaxedHuman());
 }
 void afterDefensePhysics(){ScintillaDefensePhysics::after();}
 Reply rebindSpatialParticipants(const std::string&body)
@@ -904,7 +923,8 @@ Reply prepareDefense(const std::string&body)
     }
     if(!coverage)return Reply(409,"{\"ok\":false,\"error\":\"defense_layout_not_visible\"}");
     if(defenseBound()&&defenseEvidence==a.evidence){if(defenseVisibleRegions!=a.regions)return Reply(409,"{\"ok\":false,\"error\":\"defense_visibility_evidence_changed\"}");return Reply(200,defenseStateJSON());}
-    if(!defense.prepare(raceEpoch,consumer.inputEpoch(),lastRoster,stk_config->getPhysicsFPS()))return Reply(409,"{\"ok\":false,\"error\":\"defense_profile_conflict\"}");
+    if(!tuningError.empty())return Reply(409,"{\"ok\":false,\"error\":\"tuning_invalid\",\"detail\":"+ScintillaJSON::quote(tuningError)+"}");
+    if(!defense.prepare(raceEpoch,consumer.inputEpoch(),lastRoster,stk_config->getPhysicsFPS(),tuning.defense))return Reply(409,"{\"ok\":false,\"error\":\"defense_profile_conflict\"}");
     defenseProjection=current.projection;defenseRoute=consumer.activeRouteRevision();defenseContext=consumer.activeProjectionContextId();defenseRoster=rosterEpoch;defenseEvidence=a.evidence;defenseVisibleRegions=a.regions;defensePrepared=true;defenseLayoutRevision=l.revision();
     clearDefenseEvidence();
 #ifndef SERVER_ONLY
@@ -945,7 +965,7 @@ std::string defenseStateJSON()
      <<",\"blockedReason\":"<<escaped(defenseBound()?"":defense.required()?"defense_not_prepared":"")
      <<",\"energy\":"<<defense.energy()<<",\"reserve\":"<<(defense.profile().q?double(defense.profile().reserve)/defense.profile().q:0)
      <<",\"heat\":"<<defense.heat()<<",\"phase\":"<<int(v.phase)
-     <<",\"boostCost\":"<<Defense::Profile::BoostCost
+     <<",\"boostCost\":"<<(defense.profile().q?double(defense.profile().boostCost)/defense.profile().q:double(tuning.defense.boostCost))
      <<",\"threatId\":\""<<v.threat<<"\",\"sector\":"<<int(v.sector)<<",\"attackerId\":\""<<v.attacker<<'"'
      <<",\"deadlineTick\":"<<defense.deadline()<<",\"simulationTick\":"<<simulationTick
      <<",\"cooldownUntilTick\":"<<defense.nextAttack()<<",\"channelOwner\":"<<defense.owner()<<",\"boostOwner\":"<<defense.boostOwner()
@@ -1493,7 +1513,8 @@ Reply prepareMission(const std::string& body)
         if(anchorStatus!="qualified")return missionError(409,"mission_anchors_unqualified");
         auto* human=defenseHuman();if(!human||!humanInstance)return missionError(409,"mission_human_unavailable");
         if(!mission.configured()&&World::getWorld()->getTimeTicks()>0)return missionError(409,"mission_prepare_requires_race_reset");
-        if(!mission.prepare(raceEpoch,1,consumer.inputEpoch(),humanInstance,lastRoster,stk_config->getPhysicsFPS()))return missionError(409,"mission_profile_conflict");
+        if(!tuningError.empty())return missionError(409,"tuning_invalid");
+        if(!mission.prepare(raceEpoch,1,consumer.inputEpoch(),humanInstance,lastRoster,stk_config->getPhysicsFPS(),tuning.mission))return missionError(409,"mission_profile_conflict");
         missionPreparedIdentity=missionIdentity();missionAPIPrepared=true;++missionAPIRevision;
         missionRequests.commit(request);refreshCombatInput();return Reply(200,missionStateJSON());
     }catch(const std::exception&){return missionError(400,"invalid_mission_prepare");}
@@ -1635,8 +1656,40 @@ void terminateMission(const std::string& reason)
         mission.abort(result.terminationReason,result.finishSequence);
     closeMissionAdmission();publishMissionSnapshot();
 }
+void loadTuning()
+{
+    ScintillaTuning::Tuning loaded;std::string error,hash,bytes;
+    const char* path=std::getenv(TuningEnvironment);
+    if(path&&*path){
+        if(!readMissionFile(path,65536,&bytes))error="tuning:file:unreadable";
+        else {hash=missionSHA256(bytes);ScintillaTuning::parse(bytes,&loaded,&error);}
+    }
+    // An invalid profile keeps the defaults but blocks preparation visibly.
+    tuning=error.empty()?loaded:ScintillaTuning::Tuning();
+    tuningSource=path&&*path?path:"builtin";tuningHash=hash;tuningError=error;
+    consumer.setTuning(tuning.input);
+}
+std::string tuningStateJSON()
+{
+    std::ostringstream o;
+    o<<"{\"ok\":true,\"contract\":\"tholus.stk-scintilla-tuning-state/1\",\"environment\":\""<<TuningEnvironment<<'"'
+     <<",\"source\":"<<ScintillaJSON::quote(tuningSource)<<",\"sha256\":"<<ScintillaJSON::quote(tuningHash)
+     <<",\"error\":"<<ScintillaJSON::quote(tuningError)<<",\"raceEpoch\":\""<<raceEpoch<<'"'
+     <<",\"locked\":"<<(combat.configured()||defense.configured()||mission.configured()?"true":"false")
+     <<",\"active\":"<<ScintillaTuning::effectiveJSON(tuning)<<",\"parameters\":"<<ScintillaTuning::parametersJSON(tuning)<<"}";
+    return o.str();
+}
+Reply reloadTuning(const std::string& body)
+{
+    std::string empty;for(char c:body)if(c!=' '&&c!='\t'&&c!='\n'&&c!='\r')empty+=c;
+    if(empty!="{}")return Reply(400,"{\"ok\":false,\"error\":\"invalid_tuning_reload\"}");
+    // A prepared race keeps its parameters; reload applies to the next one.
+    if(combat.configured()||defense.configured()||mission.configured())return Reply(409,"{\"ok\":false,\"error\":\"tuning_locked_by_prepared_race\"}");
+    loadTuning();return Reply(tuningError.empty()?200:409,tuningStateJSON());
+}
 void newWorld(bool preserveSpatialGrant)
 {
+    loadTuning();
     interruptMissionMeasurement("race_generation_changed");resetMissionMeasurementProofs();
     if(!preserveSpatialGrant)invalidateMissionQualificationCache();
     invalidateState("race_generation_changed",preserveSpatialGrant&&active&&defense.required());
@@ -1762,7 +1815,8 @@ Reply prepareCombat(const std::string& body)
     // Initial policy changes cannot leave vanilla projectiles already in flight.
     // Rebinding an existing SC2 race remains supported without clearing recovery.
     if(first&&World::getWorld()->getTimeTicks()>0)return Reply(409,"{\"ok\":false,\"error\":\"combat_requires_race_reset\"}");
-    if(!combat.prepare(raceEpoch,consumer.inputEpoch(),lastRoster,stk_config->getPhysicsFPS()))return Reply(409,"{\"ok\":false,\"error\":\"combat_profile_conflict\"}");
+    if(!tuningError.empty())return Reply(409,"{\"ok\":false,\"error\":\"tuning_invalid\",\"detail\":"+ScintillaJSON::quote(tuningError)+"}");
+    if(!combat.prepare(raceEpoch,consumer.inputEpoch(),lastRoster,stk_config->getPhysicsFPS(),tuning.combat))return Reply(409,"{\"ok\":false,\"error\":\"combat_profile_conflict\"}");
     if(first){
         // This boundary occurs while held, before any combat can be committed.
         World* world=World::getWorld();
@@ -1929,6 +1983,7 @@ void beforeCapture(const ImmersiveCameraRig& rig,const ImmersiveRenderConfig& co
     current.cameraRight=SpatialVec3(pose.m_right.x(),pose.m_right.y(),pose.m_right.z());
     current.cameraUp=SpatialVec3(pose.m_up.x(),pose.m_up.y(),pose.m_up.z());
     current.cameraForward=SpatialVec3(pose.m_forward.x(),pose.m_forward.y(),pose.m_forward.z());
+    current.combatMaxRange=tuning.combat.maxRangeM;current.combatMinAngularSine=combatMinAngularSine();
     current.nearPlane=0.2;current.farPlane=Track::getCurrentTrack()?Track::getCurrentTrack()->getCameraFar():1000;current.faceFovDeg=config.m_face_fov_deg;
     current.missionEnabled=mission.configured()&&!missionTerminal();
     current.missionRaceEpoch=raceEpoch;current.missionRevision=mission.revision();
@@ -2011,11 +2066,11 @@ void beforeCapture(const ImmersiveCameraRig& rig,const ImmersiveRenderConfig& co
         if(!kart||!TargetLifetime::eligibleKart(kart,world->getPlayerKart(0)))continue;
         const uint64_t id=1u+i;registered[id].present=wasPresent[id];
         const ::Vec3 p(kart->getSmoothedTrans()(::Vec3(0,kart->getKartHeight()+0.5f,0)));
-        target(id,kart,SpatialVec3(p.x(),p.y(),p.z()),0.35);
+        target(id,kart,SpatialVec3(p.x(),p.y(),p.z()),tuning.combat.markerRadiusM);
         current.targets.back().kind=TargetKind::Rival;
         current.targets.back().combat=combat.snapshot(id);
         const SpatialVec3 delta(p.x()-current.cameraPosition.x,p.y()-current.cameraPosition.y,p.z()-current.cameraPosition.z);
-        if(!ScintillaCombat::Profile::inRange(dot(delta,delta),0.35))current.targets.back().combat.eligible=false;
+        if(!ScintillaCombat::Profile::inRange(dot(delta,delta),tuning.combat.markerRadiusM,current.combatMaxRange,current.combatMinAngularSine))current.targets.back().combat.eligible=false;
     }
     ItemManager* items=Track::getCurrentTrack()?Track::getCurrentTrack()->getItemManager():NULL;
     if(items)for(unsigned i=0;i<items->getNumberOfItems() && current.targets.size()<32;i++) {
@@ -2352,7 +2407,7 @@ void bindProjectionUniforms(unsigned int program)
         glUniform4f(glGetUniformLocation(program,"scintilla_defense_state"),int(v.phase),int(v.sector),v.progress,v.outcome);
         const auto boost=defense.boostStatus(ScintillaDefensePhysics::eligibleHuman(defenseHuman()));
         glUniform1f(glGetUniformLocation(program,"scintilla_boost_progress"),defense.boostProgress());
-        glUniform1f(glGetUniformLocation(program,"scintilla_boost_cost"),Defense::Profile::BoostCost);
+        glUniform1f(glGetUniformLocation(program,"scintilla_boost_cost"),defense.profile().q?double(defense.profile().boostCost)/defense.profile().q:tuning.defense.boostCost);
         glUniform4f(glGetUniformLocation(program,"scintilla_defense_resources"),defense.energy(),double(defense.profile().reserve)/defense.profile().q,defense.heat(),int(boost));
         auto bindPoint=[&](const char*name,const SpatialVec3&p,double radius){SpatialVec3 d(p.x-current.cameraPosition.x,p.y-current.cameraPosition.y,p.z-current.cameraPosition.z);glUniform4f(glGetUniformLocation(program,name),dot(d,current.cameraRight),dot(d,current.cameraUp),dot(d,current.cameraForward),radius);};
         const bool threat=v.phase!=Defense::Phase::Idle&&v.phase!=Defense::Phase::Cooldown;

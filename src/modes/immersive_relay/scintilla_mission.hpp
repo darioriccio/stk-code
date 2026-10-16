@@ -2,6 +2,8 @@
 #ifndef HEADER_SCINTILLA_MISSION_HPP
 #define HEADER_SCINTILLA_MISSION_HPP
 
+#include "modes/immersive_relay/scintilla_tuning.hpp"
+
 #include <array>
 #include <bitset>
 #include <cstdint>
@@ -30,6 +32,7 @@ struct Profile
     int fps=0;
     Tick collect=0, recover=0, recoveryWindow=0;
     static bool create(int fps, Profile* out);
+    static bool create(int fps, const ScintillaTuning::Mission& tuning, Profile* out);
     static bool inRange(Kind kind, double distanceSquared, double radius);
 };
 
@@ -125,7 +128,7 @@ public:
     { return !required() || (configured() && !m_result.valid && prerequisitesReady); }
     bool prepare(uint64_t race, uint64_t revision, uint64_t inputEpoch,
                  uint64_t humanInstance, const std::vector<std::string>& crew,
-                 int fps);
+                 int fps, const ScintillaTuning::Mission& tuning=ScintillaTuning::Mission());
     void reset(bool preserveIntent=true);
     void suspendInput();
     // Called before native physics. Active time advances by at most one tick;

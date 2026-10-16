@@ -21,7 +21,7 @@ def check(name,ok):
 def ordered(text,*needles):
  positions=[text.index(n) for n in needles];return positions==sorted(positions)
 defense=body("void updateDefense(bool admitted)")
-check("applied impact precedes immutable event consumption",ordered(defense,"ScintillaDefensePhysics::applyImpact(human)","defense.confirmImpact(applied)","defense.impactEvent()","mission.consumeImpact(event)","observeNewTether(now)"))
+check("applied impact precedes immutable event consumption",ordered(defense,"ScintillaDefensePhysics::applyImpact(human,","defense.confirmImpact(applied)","defense.impactEvent()","mission.consumeImpact(event)","observeNewTether(now)"))
 check("rejected/requested impacts never detach", "&&applied&&mission.required()&&mission.active()&&!missionTerminal()" in defense)
 update=body("void updateCombat(int ticks,bool gameplayActive)")
 check("presentation service remains reachable before held gameplay admission",ordered(update,"serviceMissionPresentation(nowUs())","if(!combat.configured())return","const bool admitted="))

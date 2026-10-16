@@ -5,6 +5,8 @@
 #include "modes/immersive_relay/scintilla_defense.hpp"
 #include "modes/immersive_relay/scintilla_mission.hpp"
 #include "modes/immersive_relay/scintilla_crew.hpp"
+#include "modes/immersive_relay/scintilla_tuning.hpp"
+#include <cmath>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -49,6 +51,8 @@ struct Frame
     Projection projection;
     Vec3 cameraPosition, cameraRight, cameraUp, cameraForward;
     double nearPlane=0.1, farPlane=1000, faceFovDeg=90;
+    // Combat range rules of this frame, applied to its historical targets.
+    double combatMaxRange=30, combatMinAngularSine=std::sin(0.75*3.14159265358979323846/180.0);
     std::vector<Target> targets;
     ScintillaDefense::View defense;
     ScintillaDefense::Layout layout;
@@ -164,6 +168,9 @@ public:
     void setQueryLeaseOracle(const QueryLeaseOracle& oracle);
     void setLiveTargetOracle(const LiveTargetOracle& oracle);
     void setProducerProjection(const Projection& projection);
+    // Race tuning; applied to edges admitted from now on.
+    void setTuning(const ScintillaTuning::Input& tuning);
+    const ScintillaTuning::Input& tuning() const;
     // Authoritative Relay crew IDs, excluding the current driver. A change
     // invalidates admission; SC3 can retain its physical grant for an explicit
     // held-world logical rebind of the SAME sources. Tracking loss changes no crew.

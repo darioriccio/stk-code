@@ -7,21 +7,25 @@
 
 namespace ScintillaCombat {
 bool Profile::create(int fps, Profile* out)
+{return create(fps,ScintillaTuning::Combat(),out);}
+bool Profile::create(int fps,const ScintillaTuning::Combat& t,Profile* out)
 {
     if(!out||fps<1||fps>10000)return false;
-    const auto ticks=[fps](int64_t us,bool minimum){return (us*fps+(minimum?999999:0))/1000000;};
+    const auto ticks=[fps](double seconds,bool minimum){return (std::llround(seconds*1e6)*fps+(minimum?999999:0))/1000000;};
     Profile p;
-    p.acquire=ticks(600000,true);p.breach=ticks(3500000,false);
-    p.cooperation=ticks(1250000,false);p.soloGap=ticks(2500000,false);p.soloTotal=ticks(8000000,false);
-    p.stagger=ticks(1000000,true);p.recovery=ticks(4000000,true);
-    if(!p.breach||!p.cooperation||!p.soloGap)return false;
+    p.acquire=ticks(t.acquireS,true);p.breach=ticks(t.breachS,false);
+    p.cooperation=ticks(t.cooperationS,false);p.soloGap=ticks(t.soloGapS,false);p.soloTotal=ticks(t.soloTotalS,false);
+    p.stagger=ticks(t.staggerS,true);p.recovery=ticks(t.recoveryS,true);
+    p.maxRange=t.maxRangeM;p.minAngularSine=std::sin(t.minAngularRadiusDeg*3.14159265358979323846/180.0);
+    if(!p.breach||!p.cooperation||!p.soloGap||!(p.maxRange>0)||!(p.minAngularSine>0))return false;
     *out=p;return true;
 }
 bool Profile::inRange(double d2,double radius)
+{return inRange(d2,radius,30,std::sin(0.75*3.14159265358979323846/180.0));}
+bool Profile::inRange(double d2,double radius,double maxRange,double sine)
 {
-    const double sine=std::sin(0.75*3.14159265358979323846/180.0);
     return std::isfinite(d2)&&std::isfinite(radius)&&radius>0&&d2>radius*radius&&
-        d2<=std::min(900.0,radius*radius/(sine*sine));
+        d2<=std::min(maxRange*maxRange,radius*radius/(sine*sine));
 }
 double Profile::staggerCurve(double u)
 {u=std::max(0.0,std::min(1.0,u));return 16*u*u*(1-u)*(1-u);}
@@ -62,10 +66,10 @@ bool StaggerEnvelope::supportingFace(double normalUp,double contactHeight,double
 }
 int Runtime::slot(const std::string& person) const
 {auto it=std::find(m_crew.begin(),m_crew.end(),person);return it==m_crew.end()?-1:int(it-m_crew.begin());}
-bool Runtime::prepare(uint64_t race,uint64_t input,const std::vector<std::string>& crew,int fps)
+bool Runtime::prepare(uint64_t race,uint64_t input,const std::vector<std::string>& crew,int fps,const ScintillaTuning::Combat& tuning)
 {
     Profile p;const std::set<std::string> unique(crew.begin(),crew.end());
-    if(!race||!input||crew.empty()||crew.size()>5||unique.size()!=crew.size()||unique.count("")||!Profile::create(fps,&p))return false;
+    if(!race||!input||crew.empty()||crew.size()>5||unique.size()!=crew.size()||unique.count("")||!Profile::create(fps,tuning,&p))return false;
     if(configured()&&(race!=m_race||fps!=m_fps))return false;
     if(!configured()){m_race=race;m_profile=p;m_fps=fps;}
     if(m_crew!=crew){suspendInput();m_crew=crew;for(auto& e:m_targets)e.second.view.required=crew.size()==1?5:crew.size()==2?1:2;}

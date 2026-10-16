@@ -17,6 +17,7 @@ ENGINE = (IR/'spatial/scintilla_engine.cpp').read_text()
 INPUT = (IR/'spatial/scintilla_input.cpp').read_text()
 CONTROLLER = (IR/'relay_session_controller.cpp').read_text()
 SHADER = (ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
+TUNING = (IR/'scintilla_tuning.hpp').read_text()
 
 
 class DefenseSourceAndMathChecks(unittest.TestCase):
@@ -54,7 +55,11 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
 
     def test_fixed_point_rates_and_ceiling_windows(self):
         self.assertIn('p.q=int64_t(1000)*fps',CORE)
-        self.assertIn('p.reserve=5*p.q+20000*(p.warning+p.margin)',CORE)
+        # Built-in tuning: 5 activation + 20/s counter drain, i.e. 5*q+20000/tick.
+        self.assertIn('p.reserve=p.activation+p.counterCost*(p.warning+p.margin)',CORE)
+        self.assertIn('boostCost=25, activationCost=5',TUNING)
+        self.assertIn('counterCostPerS=20, maintainCostPerS=2, counterHeatPerS=25',TUNING)
+        self.assertIn('rate=[](double perSecond){return int64_t(std::llround(perSecond*1000));}',CORE)
         for f,c in product((60,120,144),(1,2,5)):
             q=1000*f; warning=(int(3e6 if c==1 else 2.5e6)*f+999999)//1000000
             margin=(250000*f+999999)//1000000
@@ -163,7 +168,7 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
         self.assertLess(native.index('beforeDefensePhysics()'),native.index('stepSimulation('))
         self.assertLess(native.index('stepSimulation('),native.index('afterDefensePhysics()'))
         self.assertIn('collision_step_missing',ENGINE)
-        self.assertIn('result.available=true;if(!eligibleHuman',PHYSICS)
+        self.assertIn('result.available=true;if(!(relaxedHuman?eligibleHumanCore(human):eligibleHuman(human))',PHYSICS)
         self.assertIn('ScintillaDefenseCollision::castShape',PHYSICS)
         self.assertIn('convexSweepTest',PHYSICS)
 
@@ -206,13 +211,14 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
         self.assertIn('world.contactTest(&socket,contact)',COLLISION)
 
     def test_impact_is_tangential_idempotent_and_boost_commits_cost_last(self):
-        self.assertIn('normal+tangent*.85',PHYSICS)
+        self.assertIn('normal+tangent*btScalar(retained)',PHYSICS)
+        self.assertIn('impactSpeedRetained=0.85',TUNING)
         impact=PHYSICS.split('bool applyImpact(',1)[1].split('bool applyBoost(',1)[0]
         self.assertNotIn('adjustSpeed(',impact)
         self.assertIn('m_kart', (ROOT/'src/physics/btKart.hpp').read_text())
         self.assertIn('m_impactEvent.race=m_race',CORE)
         self.assertIn('m_protectedUntil=m_now+m_profile.protection',CORE)
-        self.assertIn('if(applied){m_energy-=Profile::BoostCost*m_profile.q',CORE)
+        self.assertIn('if(applied){m_energy-=m_profile.boostCost',CORE)
         self.assertIn('defense.confirmBoost(defense.canApplyBoost()&&ScintillaDefensePhysics::applyBoost',ENGINE)
         self.assertIn('MS_INCREASE_ZIPPER,2,2,0',PHYSICS)
         self.assertIn('if(k->isSpeedIncreaseActive(i))return false',PHYSICS)
@@ -264,9 +270,11 @@ class DefenseSourceAndMathChecks(unittest.TestCase):
     def test_boost_cost_is_shared_by_accounting_api_and_visible_hud(self):
         self.assertIn('enum {BoostCost=25}',HEADER)
         self.assertNotIn('25*m_profile.q',CORE+HEADER)
-        self.assertIn('Profile::BoostCost*m_profile.q',CORE)
-        self.assertIn('"scintilla_boost_cost"),Defense::Profile::BoostCost',ENGINE)
-        self.assertIn('boostCost\\\":\"<<Defense::Profile::BoostCost',ENGINE)
+        # One profile amount for admission, debit, API and HUD.
+        self.assertIn('p.boostCost=std::llround(t.boostCost*p.q)',CORE)
+        self.assertEqual((CORE+HEADER).count('m_profile.boostCost'),4)
+        self.assertIn('"scintilla_boost_cost"),defense.profile().q?double(defense.profile().boostCost)/defense.profile().q',ENGINE)
+        self.assertIn('boostCost\\\":\"<<(defense.profile().q?double(defense.profile().boostCost)/defense.profile().q',ENGINE)
         self.assertIn('uniform float scintilla_boost_cost',SHADER)
         self.assertIn('scintillaBoostCostGlyph(q)',SHADER)
         self.assertIn('scintilla_defense_resources.x-scintilla_boost_cost',SHADER)

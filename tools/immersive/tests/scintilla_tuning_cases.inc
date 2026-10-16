@@ -1,0 +1,7 @@
+TUNING_CASE(defaultsReproduceQualifiedCombat)
+TUNING_CASE(defaultsReproduceQualifiedDefense)
+TUNING_CASE(defaultsReproduceQualifiedMission)
+TUNING_CASE(builtinDefaultsAreValidAndDocumented)
+TUNING_CASE(partialProfileOverridesOnlyItsKeys)
+TUNING_CASE(strictDocumentsAreRejectedWithTheirPath)
+TUNING_CASE(shippedProfilesAreValid)

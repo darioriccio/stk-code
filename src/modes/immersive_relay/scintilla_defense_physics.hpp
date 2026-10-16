@@ -7,14 +7,17 @@ class AbstractKart;
 namespace ScintillaDefensePhysics {
 struct Trace {bool available=false,valid=false,hit=false,human=false;ScintillaDefense::Vec point,humanPosition,humanForward,humanUp;};
 // Called around the ACTUAL Bullet step on its owning game thread. No gameplay commits.
-void before(AbstractKart* human,AbstractKart* source,const ScintillaDefense::Vec& pulse,const ScintillaDefense::Vec& velocity,int fps);
+void before(AbstractKart* human,AbstractKart* source,const ScintillaDefense::Vec& pulse,const ScintillaDefense::Vec& velocity,int fps,bool relaxedHuman=false);
 void after();
 Trace take();
 void clear();
 bool eligibleHuman(AbstractKart*);
+// eligibleHuman without the transient conditions (speed boost or airborne).
+bool eligibleHumanCore(AbstractKart*);
+bool humanTransient(AbstractKart*);
 bool cameraLineClear(const ScintillaDefense::Vec&,AbstractKart* human,AbstractKart* source);
-bool opportunity(AbstractKart* human,AbstractKart* source,ScintillaDefense::Sector retained,ScintillaDefense::Candidate*,ScintillaDefense::Ballistic*,int fps,bool requireLaunchSolution=true);
-bool applyImpact(AbstractKart*);
+bool opportunity(AbstractKart* human,AbstractKart* source,ScintillaDefense::Sector retained,ScintillaDefense::Candidate*,ScintillaDefense::Ballistic*,const ScintillaDefense::Profile& profile,bool requireLaunchSolution=true,bool relaxedHuman=false);
+bool applyImpact(AbstractKart*,double speedRetained=.85,bool relaxedHuman=false);
 bool applyBoost(AbstractKart*,int fps);
 }
 #endif

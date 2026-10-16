@@ -25,12 +25,17 @@ Outcome outcome(Status status,bool accepted=false,bool changed=false)
 }
 
 bool Profile::create(int frequency,Profile* out)
+{return create(frequency,ScintillaTuning::Mission(),out);}
+
+bool Profile::create(int frequency,const ScintillaTuning::Mission& t,Profile* out)
 {
     if(!out || frequency<1 || frequency>1000) return false;
+    const auto us=[](double seconds){return int64_t(std::llround(seconds*1e6));};
     Profile p;p.fps=frequency;
-    p.collect=p.recover=(INT64_C(600000)*frequency+999999)/1000000;
-    p.recoveryWindow=(INT64_C(3000000)*frequency)/1000000;
-    if(p.collect<=0 || p.collect>=p.recoveryWindow) return false;
+    p.collect=(us(t.collectS)*frequency+999999)/1000000;
+    p.recover=(us(t.recoverS)*frequency+999999)/1000000;
+    p.recoveryWindow=(us(t.recoveryWindowS)*frequency)/1000000;
+    if(p.collect<=0 || p.recover<=0 || p.collect>=p.recoveryWindow || p.recover>=p.recoveryWindow) return false;
     *out=p;return true;
 }
 
@@ -58,11 +63,12 @@ bool Runtime::setRequired(bool value)
 }
 
 bool Runtime::prepare(uint64_t race,uint64_t revision,uint64_t input,
-                      uint64_t human,const std::vector<std::string>& people,int fps)
+                      uint64_t human,const std::vector<std::string>& people,int fps,
+                      const ScintillaTuning::Mission& tuning)
 {
     Profile p;
     if(!race || !revision || !input || !human || people.empty() ||
-       people.size()>Profile::MaxCrew || !Profile::create(fps,&p)) return false;
+       people.size()>Profile::MaxCrew || !Profile::create(fps,tuning,&p)) return false;
     for(std::size_t i=0;i<people.size();++i)
     {
         if(!identifier(people[i])) return false;

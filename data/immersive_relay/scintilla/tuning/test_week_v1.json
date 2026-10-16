@@ -1,0 +1,27 @@
+{
+  "contract": "tholus.stk-scintilla-tuning/1",
+  "profileId": "test_week_v1",
+  "description": "Ipotesi iniziali per la settimana di test: mira più tollerante, difesa che si attiva davvero, carico che conta. Da correggere con la telemetria.",
+  "combat": {
+    "markerRadiusM": 0.8,
+    "maxRangeM": 35
+  },
+  "input": {
+    "hitTest": "drawn_reticle",
+    "beamGraceS": 0.12,
+    "autoFireIntervalS": 0.25,
+    "fireRateFeedback": false
+  },
+  "defense": {
+    "launchSolutionDuringTelegraph": false,
+    "inheritAttackerVelocity": true,
+    "minFlightS": 0.2,
+    "boostPolicy": "pause",
+    "maxPauseS": 1.5,
+    "technicalRetryS": 2
+  },
+  "mission": {
+    "withdrawAboveQualifiedSpeed": false,
+    "disabledGroups": ["snow_supply_2", "snow_supply_3", "snow_supply_5", "snow_supply_6"]
+  }
+}

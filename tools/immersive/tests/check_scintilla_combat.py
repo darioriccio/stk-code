@@ -10,6 +10,7 @@ CORE = (ROOT / 'src/modes/immersive_relay/scintilla_combat.cpp').read_text()
 ENGINE = (ROOT / 'src/modes/immersive_relay/spatial/scintilla_engine.cpp').read_text()
 INPUT = (ROOT / 'src/modes/immersive_relay/spatial/scintilla_input.cpp').read_text()
 ANIMATION = (ROOT / 'src/karts/explosion_animation.cpp').read_text()
+TUNING = (ROOT / 'src/modes/immersive_relay/scintilla_tuning.hpp').read_text()
 
 
 class CombatSourceAndMath(unittest.TestCase):
@@ -59,8 +60,12 @@ class CombatSourceAndMath(unittest.TestCase):
                     'cooperation': (1250000, False, 150), 'soloGap': (2500000, False, 300),
                     'soloTotal': (8000000, False, 960), 'stagger': (1000000, True, 120),
                     'recovery': (4000000, True, 480)}
-        actual = {k: (int(us), ceil == 'true') for k, us, ceil in
-                  re.findall(r'p\.(\w+)=ticks\((\d+),(true|false)\)', CORE)}
+        # Rounding stays in the core; the qualified durations are the built-in
+        # tuning defaults (seconds), converted exactly as the core does.
+        combat = TUNING.split('struct Combat', 1)[1].split('};', 1)[0]
+        seconds = {k: float(v) for k, v in re.findall(r'(\w+)S=([\d.]+)', combat)}
+        actual = {k: (round(seconds[name] * 1e6), ceil == 'true') for k, name, ceil in
+                  re.findall(r'p\.(\w+)=ticks\(t\.(\w+)S,(true|false)\)', CORE)}
         self.assertEqual(set(actual), set(expected))
         for key, (us, ceil, ticks) in expected.items():
             self.assertEqual(actual[key], (us, ceil))

@@ -10,18 +10,34 @@ Vec cross(const Vec&a,const Vec&b){return Vec(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.
 bool unit(Vec* v){double n=v->length();if(!v->finite()||n<1e-6)return false;*v=*v*(1/n);return true;}
 }
 bool Profile::create(int fps,unsigned crew,Profile* out)
+{return create(fps,crew,ScintillaTuning::Defense(),out);}
+bool Profile::create(int fps,unsigned crew,const ScintillaTuning::Defense& t,Profile* out)
 {
     if(!out||fps<60||fps>1000||crew<1||crew>5)return false;
+    const auto us=[](double seconds){return int(std::llround(seconds*1e6));};
+    // Per-second amounts become per-tick q units: rate*q/fps == rate*1000.
+    const auto rate=[](double perSecond){return int64_t(std::llround(perSecond*1000));};
     Profile p;p.fps=fps;p.q=int64_t(1000)*fps;
-    p.warning=ticks(crew==1?3000000:2500000,fps);p.hold=ticks(600000,fps);p.margin=ticks(250000,fps);
-    p.gap=ticks(8000000,fps);p.attackerGap=ticks(12000000,fps);p.protection=ticks(5000000,fps);
-    p.boostAcquire=ticks(500000,fps);p.boostCooldown=ticks(6000000,fps);p.maxFlight=int64_t(900000)*fps/1000000;
-    p.reserve=5*p.q+20000*(p.warning+p.margin);p.admitHeat=100*p.q-25000*(p.warning+p.margin);
-    if(p.admitHeat<0||p.reserve>100*p.q)return false;*out=p;return true;
+    p.warning=ticks(us(crew==1?t.telegraphSoloS:t.telegraphCrewS),fps);p.hold=ticks(us(t.holdS),fps);p.margin=ticks(us(t.marginS),fps);
+    p.gap=ticks(us(t.gapS),fps);p.attackerGap=ticks(us(t.attackerGapS),fps);p.protection=ticks(us(t.protectionS),fps);
+    p.boostAcquire=ticks(us(t.boostAcquireS),fps);p.boostCooldown=ticks(us(t.boostCooldownS),fps);p.maxFlight=int64_t(us(t.maxFlightS))*fps/1000000;
+    p.technicalRetry=ticks(us(t.technicalRetryS),fps);p.maxPause=ticks(us(t.maxPauseS),fps);
+    p.activation=std::llround(t.activationCost*p.q);p.boostCost=std::llround(t.boostCost*p.q);
+    p.counterCost=rate(t.counterCostPerS);p.maintainCost=rate(t.maintainCostPerS);
+    p.counterHeat=rate(t.counterHeatPerS);p.maintainHeat=rate(t.maintainHeatPerS);
+    p.regen=rate(t.regenPerS);p.cooling=rate(t.coolingPerS);
+    p.minDistance=t.minDistanceM;p.maxDistance=t.maxDistanceM;p.speed=t.projectileSpeed;
+    p.minFlightS=double(ticks(us(t.minFlightS),fps))/fps;p.maxFlightS=double(p.maxFlight)/fps;
+    p.impactRetained=t.impactSpeedRetained;p.inheritVelocity=t.inheritAttackerVelocity;
+    p.solveDuringTelegraph=t.launchSolutionDuringTelegraph;p.boostPolicy=t.boostPolicy;
+    p.reserve=p.activation+p.counterCost*(p.warning+p.margin);p.admitHeat=100*p.q-p.counterHeat*(p.warning+p.margin);
+    if(p.admitHeat<0||p.reserve>100*p.q||!(p.minDistance<p.maxDistance)||!(p.minFlightS<p.maxFlightS)||!(p.speed>0))return false;
+    *out=p;return true;
 }
 int64_t Profile::serviceCost(ServiceKind kind)const {
     if(fps<60||fps>1000||q!=int64_t(1000)*fps)return -1;
-    return kind==ServiceKind::NormalBoost?int64_t(BoostCost)*q:kind==ServiceKind::PartyBoost?int64_t(PartyCost)*q:-1;
+    // The normal boost cost is tunable (default BoostCost); Party keeps SC5's constant.
+    return kind==ServiceKind::NormalBoost?boostCost:kind==ServiceKind::PartyBoost?int64_t(PartyCost)*q:-1;
 }
 bool Profile::admitsService(ServiceKind kind,int64_t available)const {
     const int64_t cost=serviceCost(kind);
@@ -29,11 +45,17 @@ bool Profile::admitsService(ServiceKind kind,int64_t available)const {
 }
 bool Ballistic::solve(const Vec&r,const Vec&v,int fps,Ballistic*out)
 {
-    if(!out||fps<60||fps>1000||!r.finite()||!v.finite())return false;
-    const double vv=v.dot(v),a=vv-1600,b=2*r.dot(v),c=r.dot(r);
+    Profile p;if(fps<60||fps>1000||!Profile::create(fps,1,&p))return false;
+    return solve(r,v,p,out);
+}
+bool Ballistic::solve(const Vec&r,const Vec&v,const Profile& p,Ballistic*out)
+{
+    if(!out||p.fps<60||p.fps>1000||!r.finite()||!v.finite())return false;
+    const double s2=p.speed*p.speed;
+    const double vv=v.dot(v),a=vv-s2,b=2*r.dot(v),c=r.dot(r);
     if(!std::isfinite(vv)||!std::isfinite(b)||!std::isfinite(c)||c<1e-12)return false;
     double roots[2]={-1,-1};
-    if(std::abs(a)<=1e-12*std::max({vv,1600.0,1.0})){
+    if(std::abs(a)<=1e-12*std::max({vv,s2,1.0})){
         if(std::abs(b)<=1e-12*std::max(std::abs(b),1.0))return false;roots[0]=-c/b;
     }else{
         double d=b*b-4*a*c,guard=1e-12*std::max({b*b,std::abs(4*a*c),1.0});
@@ -42,8 +64,8 @@ bool Ballistic::solve(const Vec&r,const Vec&v,int fps,Ballistic*out)
         if(q==0)roots[0]=-b/(2*a);else{roots[0]=q/a;roots[1]=c/q;}
     }
     double t=std::numeric_limits<double>::infinity();for(double r:roots)if(r>0&&std::isfinite(r))t=std::min(t,r);
-    if(t<double(ticks(350000,fps))/fps||t>double(int64_t(900000)*fps/1000000)/fps)return false;
-    Vec d=(r+v*t)*(1/(40*t));if(!d.finite()||std::abs(d.length()-1)>1e-9||!unit(&d))return false;
+    if(t<p.minFlightS||t>p.maxFlightS)return false;
+    Vec d=(r+v*t)*(1/(p.speed*t));if(!d.finite()||std::abs(d.length()-1)>1e-9||!unit(&d))return false;
     out->seconds=t;out->direction=d;return true;
 }
 Sector Runtime::sector(const Vec&delta,const Vec&forward,const Vec&up,Sector retained)
@@ -72,9 +94,9 @@ void Runtime::reset(bool preserveIntent)
     const bool required=preserveIntent&&this->required();const uint64_t revision=m_intentRevision;
     *this=Runtime();m_required=required;m_intentRevision=revision+(!preserveIntent&&required?1:0);
 }
-bool Runtime::prepare(uint64_t race,uint64_t input,const std::vector<std::string>&crew,int fps)
+bool Runtime::prepare(uint64_t race,uint64_t input,const std::vector<std::string>&crew,int fps,const ScintillaTuning::Defense& tuning)
 {
-    Profile p;if(!race||!input||!Profile::create(fps,crew.size(),&p)||std::set<std::string>(crew.begin(),crew.end()).size()!=crew.size())return false;
+    Profile p;if(!race||!input||!Profile::create(fps,crew.size(),tuning,&p)||std::set<std::string>(crew.begin(),crew.end()).size()!=crew.size())return false;
     for(const auto& person:crew)if(person.empty())return false;
     if(m_configured&&m_race!=race)return false;
     if(m_configured&&m_profile.fps!=fps)return false;
@@ -91,11 +113,15 @@ void Runtime::terminal(const std::string&reason)
 {
     uint64_t& count=reason=="blocked"?m_statistics.blocked:reason=="impact_applied"?m_statistics.impacts:reason=="miss"||reason=="world_blocked"?m_statistics.missed:m_statistics.cancelled;
     if(count!=UINT64_MAX)++count;
+    // A technical cancellation is no game outcome: with technicalRetry set it
+    // pauses the director (and that attacker) only briefly.
+    const bool technical=m_profile.technicalRetry>0&&reason!="blocked"&&reason!="impact_applied"&&reason!="miss"&&reason!="world_blocked";
     if(m_view.attacker){
         if(m_cooldowns.size()>=32&&!m_cooldowns.count(m_view.attacker))m_cooldowns.erase(m_cooldowns.begin());
-        auto& c=m_cooldowns[m_view.attacker];c.instance=m_view.instance;c.last=m_now;
+        auto& c=m_cooldowns[m_view.attacker];c.instance=m_view.instance;
+        c.last=technical?m_now-m_profile.attackerGap+std::min(m_profile.attackerGap,m_profile.technicalRetry):m_now;
     }
-    m_nextAttack=m_now+m_profile.gap;m_view.phase=Phase::Cooldown;m_view.hasPulse=false;
+    m_nextAttack=m_now+(technical?m_profile.technicalRetry:m_profile.gap);m_view.phase=Phase::Cooldown;m_view.hasPulse=false;
     m_reason=reason;m_view.outcome=reason=="blocked"?1:reason=="impact_applied"?2:reason=="world_blocked"||reason=="miss"?3:4;m_outcomeUntil=m_now+(m_profile.fps*4+4)/5;m_impactWanted=false;closeTools();
 }
 void Runtime::cancel(const std::string&reason){if(m_view.phase!=Phase::Idle&&m_view.phase!=Phase::Cooldown)terminal(reason);else m_reason=reason;}
@@ -133,7 +159,7 @@ void Runtime::resources(Tick dt)
         bool charged=false;
         if(m_owner>=0){
             const bool counter=m_view.phase==Phase::Telegraph&&m_tools[m_owner].sector==m_view.sector;
-            const int64_t cost=counter?20000:2000,heat=counter?25000:2000;
+            const int64_t cost=counter?m_profile.counterCost:m_profile.maintainCost,heat=counter?m_profile.counterHeat:m_profile.maintainHeat;
             const bool reserve=!counter&&(m_energy-cost<m_profile.reserve||m_heat+heat>m_profile.admitHeat);
             if(reserve||m_energy<cost||m_heat>=100*m_profile.q){
                 auto& f=m_feedback[m_owner];f.status=reserve?Status::ReserveProtected:m_energy<cost?Status::EnergyDepleted:Status::Overheated;
@@ -142,7 +168,7 @@ void Runtime::resources(Tick dt)
                 if(m_energy==0||m_heat==100*m_profile.q){m_feedback[m_owner].status=m_energy==0?Status::EnergyDepleted:Status::Overheated;m_tools[m_owner].blocked=true;m_owner=-1;}
             }
         }
-        if(!charged){m_energy=std::min(100*m_profile.q,m_energy+5000);m_heat=std::max(int64_t(0),m_heat-20000);}
+        if(!charged){m_energy=std::min(100*m_profile.q,m_energy+m_profile.regen);m_heat=std::max(int64_t(0),m_heat-m_profile.cooling);}
     }
 }
 Status Runtime::boostStatus(bool humanEligible)const
@@ -152,7 +178,7 @@ Status Runtime::boostStatus(bool humanEligible)const
     if(m_view.phase!=Phase::Idle&&m_view.phase!=Phase::Cooldown)return Status::ThreatActive;
     if(!humanEligible)return Status::VehicleNotEligible;
     if(m_now<m_boostUntil)return Status::BoostCooldown;
-    return m_energy-Profile::BoostCost*m_profile.q<m_profile.reserve?Status::ReserveProtected:Status::BoostReady;
+    return m_energy-m_profile.boostCost<m_profile.reserve?Status::ReserveProtected:Status::BoostReady;
 }
 void Runtime::update(Tick tick,int64_t nowUs,bool active,const Observation&o,const std::vector<Beam>&beams)
 {
@@ -196,12 +222,12 @@ void Runtime::update(Tick tick,int64_t nowUs,bool active,const Observation&o,con
             if(m_owner>=0&&m_owner!=int(i)){t.blocked=true;f.status=Status::Busy;f.owner=m_owner;continue;}
             if(m_owner<0){
                 const bool counter=m_view.phase==Phase::Telegraph&&b->sector==m_view.sector;
-                if(m_energy<5*m_profile.q||(!counter&&m_energy-5*m_profile.q<m_profile.reserve)){t.blocked=true;f.status=Status::ReserveProtected;continue;}
-                m_energy-=5*m_profile.q;m_owner=int(i);m_ownerSince=m_now;
+                if(m_energy<m_profile.activation||(!counter&&m_energy-m_profile.activation<m_profile.reserve)){t.blocked=true;f.status=Status::ReserveProtected;continue;}
+                m_energy-=m_profile.activation;m_owner=int(i);m_ownerSince=m_now;
             }
             f.status=m_view.phase==Phase::Telegraph&&b->sector!=m_view.sector?Status::WrongSector:Status::Reinforcing;f.owner=m_owner;
         }else if(b->context==Context::ServiceBoost){
-            const Status status=m_owner>=0?Status::Busy:threat?Status::ThreatActive:!o.humanEligible?Status::VehicleNotEligible:m_now<m_boostUntil?Status::BoostCooldown:m_energy-Profile::BoostCost*m_profile.q<m_profile.reserve?Status::ReserveProtected:Status::BoostReady;
+            const Status status=m_owner>=0?Status::Busy:threat?Status::ThreatActive:!o.humanEligible?Status::VehicleNotEligible:m_now<m_boostUntil?Status::BoostCooldown:m_energy-m_profile.boostCost<m_profile.reserve?Status::ReserveProtected:Status::BoostReady;
             f.status=status;
             if(status!=Status::BoostReady){t.blocked=true;continue;}
             if(m_boostOwner>=0&&m_boostOwner!=int(i)){t.blocked=true;f.status=Status::Busy;continue;}
@@ -212,9 +238,14 @@ void Runtime::update(Tick tick,int64_t nowUs,bool active,const Observation&o,con
     if(m_view.phase==Phase::AwaitWarning||m_view.phase==Phase::LaunchPending||m_view.phase==Phase::AwaitImpact){
         if(nowUs<m_waitStarted||nowUs-m_waitStarted>500000){cancel("presentation_timeout");return;}
         const bool proof=o.presentedThreat==m_view.threat&&o.presentedPhase==m_view.phase&&o.presentedLow>=0&&o.presentedHigh<=nowUs&&o.presentedHigh>=m_waitStarted;
-        if(proof&&m_view.phase==Phase::AwaitWarning){m_view.phase=Phase::Telegraph;m_deadline=m_now+m_profile.warning;closeTools();m_reason="telegraph";}
+        if(proof&&m_view.phase==Phase::AwaitWarning){m_view.phase=Phase::Telegraph;m_deadline=m_now+m_profile.warning;m_paused=0;closeTools();m_reason="telegraph";}
         else if(proof&&m_view.phase==Phase::AwaitImpact&&o.presentedContact==m_view.contact)m_impactWanted=true;
         // LaunchPending is consumed by the physics adapter after the same proof.
+    }
+    if(m_view.phase==Phase::Telegraph&&m_profile.boostPolicy==ScintillaTuning::BoostPolicy::Pause&&o.humanTransient){
+        // Time stands still for the warning, never for its energy cost.
+        m_deadline+=delta;m_paused+=delta;
+        if(m_paused>m_profile.maxPause){cancel("pause_exceeded");return;}
     }
     if(m_view.phase==Phase::Telegraph){
         m_view.progress=std::min(1.0,double(m_now-(m_deadline-m_profile.warning))/m_profile.warning);
@@ -226,7 +257,10 @@ void Runtime::update(Tick tick,int64_t nowUs,bool active,const Observation&o,con
 }
 bool Runtime::launch(const Vec&origin,const Vec&velocity)
 {
-    if(m_view.phase!=Phase::LaunchPending||!origin.finite()||!velocity.finite()||std::abs(velocity.length()-40)>1e-6)return false;
+    // A relative launch adds the attacker's own velocity to the muzzle speed.
+    const double length=velocity.length();
+    if(m_view.phase!=Phase::LaunchPending||!origin.finite()||!velocity.finite()||!(length>0)||
+       (m_profile.inheritVelocity?length>m_profile.speed+200:std::abs(length-m_profile.speed)>1e-6))return false;
     m_view.phase=Phase::Flying;m_view.pulse=origin;m_view.hasPulse=true;m_velocity=velocity;m_deadline=m_now+m_profile.maxFlight;m_reason="flying";return true;
 }
 void Runtime::advancePulse(const Vec&p){if(m_view.phase==Phase::Flying&&p.finite()){m_view.pulse=p;if(m_now>=m_deadline)terminal("miss");}}

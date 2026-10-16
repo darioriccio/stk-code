@@ -46,7 +46,9 @@ struct StaticCast:btCollisionWorld::ClosestConvexResultCallback {
 
 }
 void clear(){bodies.clear();armed=false;result=Trace();humanBody=sourceBody=nullptr;}
-bool eligibleHuman(AbstractKart*k){return k&&k->getBody()&&!k->isEliminated()&&!k->hasFinishedRace()&&!k->getKartAnimation()&&k->isOnGround()&&k->getSpeed()>=0&&!k->isInvulnerable()&&noBoost(k);}
+bool eligibleHuman(AbstractKart*k){return eligibleHumanCore(k)&&!humanTransient(k);}
+bool eligibleHumanCore(AbstractKart*k){return k&&k->getBody()&&!k->isEliminated()&&!k->hasFinishedRace()&&!k->getKartAnimation()&&k->getSpeed()>=0&&!k->isInvulnerable();}
+bool humanTransient(AbstractKart*k){return k&&(!k->isOnGround()||!noBoost(k));}
 bool cameraLineClear(const Vec&camera,AbstractKart*human,AbstractKart*source)
 {
     if(!camera.finite()||!source||!source->getBody())return false;
@@ -57,14 +59,18 @@ bool cameraLineClear(const Vec&camera,AbstractKart*human,AbstractKart*source)
     } ray(bv(camera),source->getBody()->getWorldTransform().getOrigin(),human?human->getBody():nullptr,source->getBody());
     Physics::get()->getPhysicsWorld()->rayTest(ray.m_rayFromWorld,ray.m_rayToWorld,ray);return !ray.hasHit();
 }
-bool opportunity(AbstractKart*human,AbstractKart*source,Sector retained,Candidate*out,Ballistic*solution,int fps,bool requireLaunchSolution)
+bool opportunity(AbstractKart*human,AbstractKart*source,Sector retained,Candidate*out,Ballistic*solution,const Profile& profile,bool requireLaunchSolution,bool relaxedHuman)
 {
-    if(!out||!solution||!eligibleHuman(human)||!source||source==human||!source->getBody()||!source->getController()||source->getController()->isPlayerController()||source->isEliminated()||source->hasFinishedRace()||source->getKartAnimation()||source->isInvulnerable()||source->isShielded())return false;
+    if(!out||!solution||!(relaxedHuman?eligibleHumanCore(human):eligibleHuman(human))||!source||source==human||!source->getBody()||!source->getController()||source->getController()->isPlayerController()||source->isEliminated()||source->hasFinishedRace()||source->getKartAnimation()||source->isInvulnerable()||source->isShielded())return false;
     auto*world=Physics::get()->getPhysicsWorld();const btVector3 h=human->getBody()->getWorldTransform().getOrigin(),a=source->getBody()->getWorldTransform().getOrigin();
     Vec delta=cv(a-h),up=cv(-human->getBody()->getGravity()),forward=cv(human->getBody()->getWorldTransform().getBasis().getColumn(2));
-    const double distance=delta.length();if(distance<8||distance>24)return false;
+    const double distance=delta.length();if(distance<profile.minDistance||distance>profile.maxDistance)return false;
     Sector sector=Runtime::sector(delta,forward,up,retained);if(sector==Sector::None)return false;
     Vec origin=cv(a);Ballistic b;
+    const Vec sourceVelocity=cv(source->getBody()->getLinearVelocity());
+    // Intercept in the attacker's frame when the pulse inherits its velocity.
+    const Vec relative=cv(human->getBody()->getLinearVelocity())-(profile.inheritVelocity?sourceVelocity:Vec());
+    out->sourceVelocity=sourceVelocity;
     // Once launched, eligibility concerns this live threat. Requiring a NEW
     // intercept in the launch window would cancel a valid pulse near contact.
     if(!requireLaunchSolution){
@@ -74,7 +80,7 @@ bool opportunity(AbstractKart*human,AbstractKart*source,Sector retained,Candidat
     // Bounding support is derived from the actual compound AABB in source local space.
     btVector3 lower,upper;source->getBody()->getCollisionShape()->getAabb(btTransform::getIdentity(),lower,upper);
     btVector3 extent=lower.absolute();extent.setMax(upper.absolute());const double radius=extent.length()+.15;
-    if(!Ballistic::solve(cv(h)-origin,cv(human->getBody()->getLinearVelocity()),fps,&b))return false;
+    if(!Ballistic::solve(cv(h)-origin,relative,profile,&b))return false;
     origin=origin+b.direction*radius;
     if(!ScintillaDefenseCollision::socketPathClear(*world,a,bv(origin),source->getBody(),human->getBody()))return false;
     // Line of launch may leave the source hull; world ray ignores only the source/human.
@@ -84,12 +90,12 @@ bool opportunity(AbstractKart*human,AbstractKart*source,Sector retained,Candidat
         bool needsCollision(btBroadphaseProxy*p)const override{const auto*o=static_cast<btCollisionObject*>(p->m_clientObject);return o!=s&&o!=h&&o->hasContactResponse()&&ClosestRayResultCallback::needsCollision(p);}
     } ray(a,h,source->getBody(),human->getBody());
     world->rayTest(a,h,ray);if(ray.hasHit())return false;
-    if(!Ballistic::solve(cv(h)-origin,cv(human->getBody()->getLinearVelocity()),fps,&b))return false;
+    if(!Ballistic::solve(cv(h)-origin,relative,profile,&b))return false;
     out->sector=sector;out->origin=origin;out->velocity=cv(human->getBody()->getLinearVelocity());out->distance=distance;*solution=b;return true;
 }
-void before(AbstractKart*human,AbstractKart*source,const Vec&pulse,const Vec&velocity,int fps)
+void before(AbstractKart*human,AbstractKart*source,const Vec&pulse,const Vec&velocity,int fps,bool relaxedHuman)
 {
-    clear();result.available=true;if(!eligibleHuman(human)||!source||!source->getBody()||!pulse.finite()||!velocity.finite()||fps<60||fps>1000)return;
+    clear();result.available=true;if(!(relaxedHuman?eligibleHumanCore(human):eligibleHuman(human))||!source||!source->getBody()||!pulse.finite()||!velocity.finite()||fps<60||fps>1000)return;
     humanBody=human->getBody();sourceBody=source->getBody();humanUp=-human->getBody()->getGravity();pulse0=bv(pulse);pulse1=bv(pulse+velocity*(1.0/fps));
     auto*world=Physics::get()->getPhysicsWorld();
     for(int i=0;i<world->getNumCollisionObjects();++i){const auto*o=world->getCollisionObjectArray()[i];if(o->isStaticObject()||!o->hasContactResponse())continue;if(bodies.size()>=512)return;Body b;b.transform=o->getWorldTransform();b.shape=o->getCollisionShape();if(!shapeState(b.shape,btTransform::getIdentity(),&b.shapes))return;b.shape->getAabb(b.transform,b.lower,b.upper);b.disc=b.shape->getAngularMotionDisc();bodies[o]=b;}
@@ -134,12 +140,12 @@ void after()
     bodies.clear();
 }
 Trace take(){Trace r=result;result=Trace();return r;}
-bool applyImpact(AbstractKart*k)
+bool applyImpact(AbstractKart*k,double retained,bool relaxedHuman)
 {
-    if(!eligibleHuman(k))return false;btVector3 up=-k->getBody()->getGravity();if(!finite(up)||up.length2()<1e-12)return false;up.normalize();
+    if(!(relaxedHuman?eligibleHumanCore(k):eligibleHuman(k))||!std::isfinite(retained)||retained<0||retained>1)return false;btVector3 up=-k->getBody()->getGravity();if(!finite(up)||up.length2()<1e-12)return false;up.normalize();
     const btVector3 v=k->getBody()->getLinearVelocity(),normal=up*v.dot(up),tangent=v-normal;
     if(!finite(v)||!finite(tangent)||tangent.length2()<1e-8)return false;
-    k->getBody()->setLinearVelocity(normal+tangent*.85);const float minimum=k->getVehicle()->getMinSpeed();k->getVehicle()->resetMinSpeed();k->getVehicle()->setMinSpeed(minimum*.85f);return true;
+    k->getBody()->setLinearVelocity(normal+tangent*btScalar(retained));const float minimum=k->getVehicle()->getMinSpeed();k->getVehicle()->resetMinSpeed();k->getVehicle()->setMinSpeed(minimum*float(retained));return true;
 }
 bool applyBoost(AbstractKart*k,int fps)
 {

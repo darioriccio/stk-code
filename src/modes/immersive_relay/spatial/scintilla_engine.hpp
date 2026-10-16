@@ -76,6 +76,9 @@ std::string combatStateJSON();
 ScintillaSpatial::Reply setDefenseIntent(const std::string&);
 ScintillaSpatial::Reply prepareDefense(const std::string&);
 std::string defenseStateJSON();
+// Race tuning from $STK_RELAY_SCINTILLA_TUNING, reloaded with every new race.
+std::string tuningStateJSON();
+ScintillaSpatial::Reply reloadTuning(const std::string& body);
 ScintillaSpatial::Reply rebindSpatialParticipants(const std::string&);
 void beforeDefensePhysics();
 void afterDefensePhysics();

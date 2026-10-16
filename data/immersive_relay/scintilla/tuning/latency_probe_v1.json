@@ -1,0 +1,9 @@
+{
+  "contract": "tholus.stk-scintilla-tuning/1",
+  "profileId": "latency_probe_v1",
+  "description": "Sessione di misura: ogni pressione del grilletto fa lampeggiare il punto del reticolo, da filmare a 240 fps.",
+  "diagnostics": {
+    "latencyProbe": true,
+    "latencyFlashS": 0.1
+  }
+}

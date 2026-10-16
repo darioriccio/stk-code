@@ -105,6 +105,25 @@ foreach(DEFENSE_CASE_LINE IN LISTS DEFENSE_CASE_LINES)
     set_tests_properties("scintilla.defense.${DEFENSE_CASE_NAME}" PROPERTIES LABELS "relay;scintilla;defense" TIMEOUT 120)
 endforeach()
 
+add_executable(scintilla_tuning_regression scintilla_tuning_regression.cpp
+    "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_tuning.cpp"
+    "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_combat.cpp"
+    "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_defense.cpp"
+    "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_mission.cpp")
+target_include_directories(scintilla_tuning_regression PRIVATE "${STK_REGRESSION_ROOT}/src")
+set_target_properties(scintilla_tuning_regression PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/scintilla_tuning_cases.inc")
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/scintilla_tuning_cases.inc" TUNING_CASE_LINES REGEX "^TUNING_CASE\\([A-Za-z0-9_]+\\)$")
+if(NOT TUNING_CASE_LINES)
+    message(FATAL_ERROR "Scintilla tuning regression case registry is empty.")
+endif()
+foreach(TUNING_CASE_LINE IN LISTS TUNING_CASE_LINES)
+    string(REGEX REPLACE "^TUNING_CASE\\(([A-Za-z0-9_]+)\\)$" "\\1" TUNING_CASE_NAME "${TUNING_CASE_LINE}")
+    add_test(NAME "scintilla.tuning.${TUNING_CASE_NAME}" COMMAND scintilla_tuning_regression --case "${TUNING_CASE_NAME}")
+    set_tests_properties("scintilla.tuning.${TUNING_CASE_NAME}" PROPERTIES LABELS "relay;scintilla;tuning" TIMEOUT 120
+        ENVIRONMENT "SCINTILLA_TUNING_DIR=${STK_REGRESSION_ROOT}/data/immersive_relay/scintilla/tuning")
+endforeach()
+
 add_executable(scintilla_mission_regression scintilla_mission_regression.cpp
     "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_mission.cpp")
 target_include_directories(scintilla_mission_regression PRIVATE "${STK_REGRESSION_ROOT}/src")

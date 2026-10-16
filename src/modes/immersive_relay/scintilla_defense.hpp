@@ -2,6 +2,7 @@
 #ifndef HEADER_SCINTILLA_DEFENSE_HPP
 #define HEADER_SCINTILLA_DEFENSE_HPP
 #include "modes/immersive_relay/scintilla_layout.hpp"
+#include "modes/immersive_relay/scintilla_tuning.hpp"
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -17,9 +18,16 @@ struct Profile {
     enum {BoostCost=25,PartyCost=15};
     int fps=0;Tick warning=0,hold=0,margin=0,gap=0,attackerGap=0,protection=0,boostAcquire=0,boostCooldown=0,maxFlight=0;
     int64_t q=0,reserve=0,admitHeat=0;
+    // Energy/heat amounts in q units; *Cost/*Heat/regen/cooling are per tick.
+    int64_t activation=0,boostCost=0,counterCost=0,maintainCost=0,counterHeat=0,maintainHeat=0,regen=0,cooling=0;
+    Tick technicalRetry=0,maxPause=0;
+    double minDistance=8,maxDistance=24,speed=40,minFlightS=0,maxFlightS=0,impactRetained=.85;
+    bool inheritVelocity=false,solveDuringTelegraph=true;
+    ScintillaTuning::BoostPolicy boostPolicy=ScintillaTuning::BoostPolicy::Cancel;
     static bool create(int fps,unsigned crew,Profile* out);
     int64_t serviceCost(ServiceKind)const;
     bool admitsService(ServiceKind,int64_t availableEnergy)const;
+    static bool create(int fps,unsigned crew,const ScintillaTuning::Defense& tuning,Profile* out);
 };
 struct Beam {
     std::string participant;uint64_t epoch=0,serial=0,threat=0;
@@ -27,7 +35,7 @@ struct Beam {
     bool held=false,visible=false;Tick admitted=0;
 };
 struct ToolFeedback {std::string participant;uint64_t epoch=0,threat=0;Sector sector=Sector::None;Status status=Status::None;int owner=-1;};
-struct Candidate {uint64_t id=0,instance=0,humanInstance=0;Sector sector=Sector::None;Vec origin,velocity;double distance=0;};
+struct Candidate {uint64_t id=0,instance=0,humanInstance=0;Sector sector=Sector::None;Vec origin,velocity,sourceVelocity;double distance=0;};
 enum class CandidateVisibility {Pending,Visible,Rejected};
 struct View {
     bool enabled=false;Phase phase=Phase::Idle;uint64_t threat=0,contact=0,attacker=0,instance=0,humanInstance=0;
@@ -37,16 +45,23 @@ struct ImpactEvent {uint64_t race=0,threat=0,humanInstance=0;Tick tick=0;};
 struct Statistics {uint64_t cancelled=0,blocked=0,impacts=0,missed=0;};
 struct Observation {
     bool geometryValid=false,humanEligible=false,videoContinuous=false,visibilityLost=false;
+    // Speed boost or airborne. Only BoostPolicy::Pause reads it: Cancel folds it
+    // into humanEligible and Ignore disregards it.
+    bool humanTransient=false;
     uint64_t presentedThreat=0,presentedContact=0;Phase presentedPhase=Phase::Idle;
     int64_t presentedLow=0,presentedHigh=0;
 };
-struct Ballistic {Vec direction;double seconds=0;static bool solve(const Vec& r,const Vec& velocity,int fps,Ballistic* out);};
+struct Ballistic {Vec direction;double seconds=0;
+    static bool solve(const Vec& r,const Vec& velocity,int fps,Ballistic* out);
+    // velocity is the target's velocity relative to the launch frame.
+    static bool solve(const Vec& r,const Vec& velocity,const Profile& profile,Ballistic* out);};
 class Runtime {
 public:
     bool setRequired(bool value);
     bool required()const{return m_required||m_configured;}
     uint64_t intentRevision()const{return m_intentRevision;}
-    bool prepare(uint64_t race,uint64_t input,const std::vector<std::string>& crew,int fps);
+    bool prepare(uint64_t race,uint64_t input,const std::vector<std::string>& crew,int fps,
+                 const ScintillaTuning::Defense& tuning=ScintillaTuning::Defense());
     void reset(bool preserveIntent=true);
     void suspend(const std::string& reason);
     void update(Tick tick,int64_t nowUs,bool active,const Observation&,const std::vector<Beam>&);
@@ -99,7 +114,7 @@ private:
     struct Cooldown {uint64_t instance=0;Tick last=0;};
     bool m_required=false,m_configured=false,m_active=false,m_impactWanted=false,m_boostWanted=false;
     uint64_t m_intentRevision=0,m_race=0,m_input=0,m_nextThreat=0;
-    Tick m_now=0,m_deadline=0,m_nextAttack=0,m_protectedUntil=0,m_boostUntil=0,m_ownerSince=0,m_outcomeUntil=0;
+    Tick m_now=0,m_deadline=0,m_nextAttack=0,m_protectedUntil=0,m_boostUntil=0,m_ownerSince=0,m_outcomeUntil=0,m_paused=0;
     int64_t m_waitStarted=0,m_energy=0,m_heat=0;
     int m_owner=-1,m_boostOwner=-1;
     Profile m_profile;View m_view;ImpactEvent m_impactEvent;Statistics m_statistics;Vec m_velocity;
