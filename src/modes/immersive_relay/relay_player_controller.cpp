@@ -12,10 +12,14 @@
 
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/kart_control.hpp"
+#include "karts/controller/skidding_ai.hpp"
+#include "utils/log.hpp"
 #include "modes/immersive_relay/relay_session_controller.hpp"
 
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
+#include <string>
 
 RelayPlayerController::RelayPlayerController(AbstractKart* kart,
                                              const int local_player_id,
@@ -23,6 +27,57 @@ RelayPlayerController::RelayPlayerController(AbstractKart* kart,
     : LocalPlayerController(kart, local_player_id, h)
 {
     setControllerName("RelayPlayerController");
+    if (autopilotRequested())
+    {
+        Log::warn("RelayPlayerController",
+                  "Diagnostic autopilot drives the relay kart (STK_RELAY_AUTOPILOT).");
+        m_autopilot.reset(new SkiddingAI(kart));
+        // Network-AI mode: no rubber-band speed cap relative to the "player",
+        // which here would be this very kart, and no AI start delay.
+        m_autopilot->setNetworkAI(true);
+    }
+}
+
+RelayPlayerController::~RelayPlayerController()
+{
+}
+
+bool RelayPlayerController::autopilotRequested()
+{
+    const char* value = std::getenv("STK_RELAY_AUTOPILOT");
+    return value && std::string(value) == "1";
+}
+
+void RelayPlayerController::reset()
+{
+    LocalPlayerController::reset();
+    if (m_autopilot)
+    {
+        m_autopilot->reset();
+        m_autopilot->setNetworkAI(true);
+    }
+}
+
+void RelayPlayerController::crashed(const AbstractKart* k)
+{
+    LocalPlayerController::crashed(k);
+    if (m_autopilot)
+        m_autopilot->crashed(k);
+}
+
+void RelayPlayerController::crashed(const Material* m)
+{
+    LocalPlayerController::crashed(m);
+    if (m_autopilot)
+        m_autopilot->crashed(m);
+}
+
+void RelayPlayerController::newLap(int lap)
+{
+    LocalPlayerController::newLap(lap);
+    // Public through the Controller interface (protected in the AI class).
+    if (m_autopilot)
+        static_cast<Controller*>(m_autopilot.get())->newLap(lap);
 }
 
 bool RelayPlayerController::isDrivingAction(PlayerAction action) const
@@ -56,7 +111,7 @@ bool RelayPlayerController::action(PlayerAction action, int value,
         return PlayerController::action(action,value,true);
     }
     if(action==PA_BRAKE)m_party_raw_brake=value;
-    if (RelaySessionController::get()->isHumanInputLocked() &&
+    if ((m_autopilot || RelaySessionController::get()->isHumanInputLocked()) &&
         isDrivingAction(action))
     {
         if (!dry_run)
@@ -88,6 +143,9 @@ void RelayPlayerController::reset()
 void RelayPlayerController::update(int ticks)
 {
     LocalPlayerController::update(ticks);
+    // The autopilot writes the same kart controls after the player pass.
+    if (m_autopilot)
+        m_autopilot->update(ticks);
 
     if (!RelaySessionController::get()->isHumanInputLocked())
     {

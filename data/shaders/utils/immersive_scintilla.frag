@@ -765,6 +765,16 @@ vec3 scintillaDiagnosticOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensi
     }
     return color;
 }
+// Latency probe: a saturated disc on top of everything, filmed to time the
+// optical path from a trigger press. Inactive outside that diagnostic profile.
+vec3 scintillaLatencyFlash(vec3 color,vec2 uvGL,vec2 dimensions)
+{
+    for(int i=0;i<5;i++){
+        vec4 flash=scintilla_latency_flash[i];if(flash.z<0.5)continue;
+        if(length((uvGL-vec2(flash.x,1.0-flash.y))*dimensions)<=flash.w)return vec3(1.0);
+    }
+    return color;
+}
 vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
 {
     color=scintillaDiagnosticOverlay(color,direction,uvGL,dimensions);
@@ -1013,16 +1023,6 @@ vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
     if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
     color=scintillaToolFeedback(color,uvGL,dimensions);
     return scintillaLatencyFlash(scintillaMissionHUD(color,uvGL,dimensions),uvGL,dimensions);
-}
-// Latency probe: a saturated disc on top of everything, filmed to time the
-// optical path from a trigger press. Inactive outside that diagnostic profile.
-vec3 scintillaLatencyFlash(vec3 color,vec2 uvGL,vec2 dimensions)
-{
-    for(int i=0;i<5;i++){
-        vec4 f=scintilla_latency_flash[i];if(f.z<0.5)continue;
-        if(length((uvGL-vec2(f.x,1.0-f.y))*dimensions)<=f.w)return vec3(1.0);
-    }
-    return color;
 }
 float scintillaAlpha(vec2 pixel,vec2 dimensions)
 {

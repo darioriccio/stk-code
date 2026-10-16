@@ -1924,6 +1924,54 @@ void telemetryTick()
     if(now>=telemetryNextSample){telemetryNextSample=now+500000;telemetrySample(now);}
 }
 }
+std::string simulationViewJSON()
+{
+    // Diagnostic only ($STK_RELAY_SIMULATION=1): what the last published frame
+    // showed, in output UV, for the software crew simulator. Never a proof.
+    const char* enabled=std::getenv("STK_RELAY_SIMULATION");
+    if(!enabled||std::string(enabled)!="1")return "";
+    using ScintillaTelemetry::Line;
+    std::ostringstream o;o<<"{\"ok\":true,\"contract\":\"tholus.stk-scintilla-simulation/1\",\"diagnostic\":true"
+        <<",\"nowUs\":"<<nowUs()<<",\"stream\":"<<ScintillaTelemetry::escape(stream)<<",\"frames\":[";
+    size_t first=publishedFrames.size()>16?publishedFrames.size()-16:0;
+    for(size_t i=first;i<publishedFrames.size();++i)
+        o<<(i>first?",":"")<<"{\"id\":"<<publishedFrames[i].id<<",\"captureUs\":"<<publishedFrames[i].captureUs<<"}";
+    o<<"]";
+    if(publishedFrames.empty()){o<<",\"targets\":[],\"nodes\":[]}";return o.str();}
+    const Frame& f=publishedFrames.back();
+    o<<",\"frame\":{\"id\":"<<f.id<<",\"captureUs\":"<<f.captureUs<<"},\"projection\":"
+     <<Line("projection").text("kind",f.projection.kind).integer("width",f.projection.width)
+        .integer("height",f.projection.height).number("domeTiltDeg",f.projection.domeTiltDeg).str()<<",\"targets\":[";
+    bool firstTarget=true;const auto& crew=combat.crew();
+    for(const auto& t:f.targets){
+        if(t.kind==TargetKind::DiagnosticPickup)continue;
+        const SpatialVec3 delta(t.center.x-f.cameraPosition.x,t.center.y-f.cameraPosition.y,t.center.z-f.cameraPosition.z);
+        const SpatialVec3 local(dot(delta,f.cameraRight),dot(delta,f.cameraUp),dot(delta,f.cameraForward));
+        double u=0,v=0;if(!Runtime::projectionUV(f.projection,local,&u,&v))continue;
+        const double distance=std::sqrt(dot(delta,delta));if(distance<=t.radius)continue;
+        Line l("target");l.text("kind",targetKindName(t.kind)).unsignedInteger("id",t.id).unsignedInteger("instance",t.instance)
+            .number("u",u).number("v",v).number("distanceM",distance).number("angularRadiusDeg",std::asin(t.radius/distance)*180/3.14159265358979323846);
+        if(t.kind==TargetKind::Rival)
+            l.flag("eligible",t.combat.eligible).text("phase",combatPhaseName(t.combat.phase)).unsignedInteger("window",t.combat.window)
+             .integer("count",t.combat.count).integer("required",t.combat.required)
+             .text("opener",t.combat.opener>=0&&size_t(t.combat.opener)<crew.size()?crew[t.combat.opener]:"");
+        else l.flag("eligible",t.mission.eligible).text("phase",missionPhaseName(t.mission.phase));
+        o<<(firstTarget?"":",")<<l.str();firstTarget=false;
+    }
+    o<<"],\"nodes\":[";
+    if(f.layout.valid()){
+        static const char* const names[]={"left","front","rear","right","boost"};
+        for(unsigned i=0;i<5;++i){double x,y,r;f.layout.node(i,&x,&y,&r);
+            o<<(i?",":"")<<Line("node").text("name",names[i]).number("u",x).number("v",y)
+                .number("radiusU",r/f.layout.width).number("radiusV",r/f.layout.height).str();}
+    }
+    const auto& d=defense.view();
+    o<<"],\"defense\":"<<Line("defense").flag("enabled",defenseBound()).text("phase",defensePhaseName(d.phase)).unsignedInteger("threat",d.threat)
+        .integer("sector",int(d.sector)).number("progress",d.progress).number("energy",defense.energy())
+        .flag("boostReady",defense.boostStatus(ScintillaDefensePhysics::eligibleHuman(defenseHuman()))==Defense::Status::BoostReady).str()
+     <<",\"crew\":"<<jsonStrings(crew)<<"}";
+    return o.str();
+}
 std::string telemetryStateJSON()
 {
     return ScintillaTelemetry::Line("telemetry").flag("enabled",telemetryEnabled()).flag("open",telemetryWriter.isOpen())

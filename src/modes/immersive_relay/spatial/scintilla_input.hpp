@@ -256,6 +256,8 @@ public:
     // Defensive expiry for rendering even when no active-world tick occurred.
     static Feedback feedbackForRendering(const Reticle& reticle, int64_t nowUs);
     static bool projectionDirection(const Projection& projection, double u, double v, Vec3* direction);
+    // Inverse of projectionDirection for a camera-local direction (any length).
+    static bool projectionUV(const Projection& projection, const Vec3& direction, double* u, double* v);
 private:
     struct Impl;
     std::unique_ptr<Impl> m;

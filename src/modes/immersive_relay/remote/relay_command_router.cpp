@@ -947,6 +947,10 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
         if(!api_active||!controller->isRuntimeEnabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
         if(route_path==combat_prefix+"state"&&method=="GET")return RelayHttpResponse(200,ImmersiveRelay::ScintillaEngine::combatStateJSON());
         if(route_path==combat_prefix+"tuning"&&method=="GET")return RelayHttpResponse(200,ImmersiveRelay::ScintillaEngine::tuningStateJSON());
+        if(route_path==combat_prefix+"simulation/view"&&method=="GET"){
+            const std::string view=ImmersiveRelay::ScintillaEngine::simulationViewJSON();
+            return view.empty()?RelayHttpResponse(404,"{\"ok\":false,\"error\":\"simulation_disabled\"}"):RelayHttpResponse(200,view);
+        }
         if(route_path==combat_prefix+"tuning/reload"&&method=="POST"){
             const auto reply=ImmersiveRelay::ScintillaEngine::reloadTuning(body);return RelayHttpResponse(reply.status,reply.json);
         }

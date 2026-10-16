@@ -1151,6 +1151,28 @@ bool Runtime::projectionDirection(const Projection& p,double u,double v,Vec3* ou
     else return false;
     *out=d;return unit(d);
 }
+bool Runtime::projectionUV(const Projection& p,const Vec3& direction,double* u,double* v)
+{
+    if(!u||!v||!finite(direction))return false;
+    const double length=std::sqrt(dot(direction,direction));if(!(length>1e-12))return false;
+    const Vec3 d=mul(direction,1/length);
+    if(p.kind=="equirectangular")
+    {
+        *u=std::atan2(d.x,d.z)/(2*PI)+0.5;*v=0.5-std::asin(std::max(-1.0,std::min(1.0,d.y)))/PI;
+        return true;
+    }
+    if(p.kind=="fisheye_domemaster")
+    {
+        // Undo the dome tilt applied by projectionDirection, then invert the equidistant fisheye.
+        const double a=p.domeTiltDeg*PI/180,c=std::cos(a),s=std::sin(a);
+        const Vec3 l(d.x,c*d.y+s*d.z,-s*d.y+c*d.z);
+        const double r=std::acos(std::max(-1.0,std::min(1.0,l.z)))/(PI*0.5);if(r>1)return false;
+        const double planar=std::sqrt(l.x*l.x+l.y*l.y);
+        const double x=planar<1e-12?0:l.x/planar*r,y=planar<1e-12?0:l.y/planar*r;
+        *u=(x+1)/2;*v=(1-y)/2;return true;
+    }
+    return false;
+}
 void Runtime::addFrame(const Frame& supplied)
 {
     Frame f=supplied;f.visibilityLease.reset();
@@ -1504,6 +1526,9 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
             // A pending SI5 aim may follow a newer press, even in another batch.
             // Consume its aim sequence, but neither move nor disarm that cursor.
             if(acquired<=source.cursorHostUs)return ok("aim_superseded");
+            // With a beam grace one late aim (e.g. a producer frame hitch) is
+            // dropped, not a disarm: aim_stale still disarms if no fresh pose follows.
+            if(timeFailure=="stale_or_uncertain_pose"&&m->graceUs()>0){m->note("aim_dropped",i,"",timeFailure);return error(409,timeFailure);}
             if(!timeFailure.empty()){m->disarm(i,timeFailure);return error(409,timeFailure);}
             if(!source.tracked||!m->active||!m->historyReady||!point){m->disarm(i,!m->historyReady?"history_unavailable":!point?"point_unavailable":"source_or_gameplay_unavailable");return error(409,reticle.result);}
             source.cursorHostUs=acquired;source.cursorHost=originalHostTime;

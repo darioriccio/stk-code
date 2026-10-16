@@ -78,6 +78,8 @@ ScintillaSpatial::Reply prepareDefense(const std::string&);
 std::string defenseStateJSON();
 // Race tuning from $STK_RELAY_SCINTILLA_TUNING, reloaded with every new race.
 std::string tuningStateJSON();
+// Diagnostic view for the software crew simulator; empty unless $STK_RELAY_SIMULATION=1.
+std::string simulationViewJSON();
 ScintillaSpatial::Reply reloadTuning(const std::string& body);
 ScintillaSpatial::Reply rebindSpatialParticipants(const std::string&);
 void beforeDefensePhysics();

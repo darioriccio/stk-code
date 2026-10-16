@@ -13,6 +13,10 @@
 
 #include "karts/controller/local_player_controller.hpp"
 
+#include <memory>
+
+class SkiddingAI;
+
 class RelayPlayerController : public LocalPlayerController
 {
 private:
@@ -20,10 +24,19 @@ private:
     int m_party_raw_brake=0;
     int m_party_brake_ticks=0;
     void enforcePartyBrake();
+    // Diagnostic autopilot ($STK_RELAY_AUTOPILOT=1): the native AI drives
+    // while the kart stays the human relay kart for every Relay rule.
+    std::unique_ptr<SkiddingAI> m_autopilot;
 
 public:
     RelayPlayerController(AbstractKart* kart, const int local_player_id,
                           HandicapLevel h);
+    virtual ~RelayPlayerController();
+    static bool autopilotRequested();
+    virtual void reset() OVERRIDE;
+    virtual void crashed(const AbstractKart* k) OVERRIDE;
+    virtual void crashed(const Material* m) OVERRIDE;
+    virtual void newLap(int lap) OVERRIDE;
 
     virtual void update(int ticks) OVERRIDE;
     virtual bool action(PlayerAction action, int value,

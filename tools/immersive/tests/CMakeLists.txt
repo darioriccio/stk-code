@@ -209,8 +209,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME scintilla.mission.qualification.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_mission_qualification.py")
     add_test(NAME scintilla.mission.collector.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_collect_mission_measurement.py")
     add_test(NAME scintilla.telemetry.report.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_telemetry_report.py")
+    add_test(NAME scintilla.crew.simulator.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_crew_simulator.py")
     set_tests_properties(scintilla.mission.qualification.offline scintilla.mission.collector.offline PROPERTIES LABELS "relay;scintilla;mission;offline" TIMEOUT 120)
     set_tests_properties(scintilla.telemetry.report.offline PROPERTIES LABELS "relay;scintilla;telemetry;offline" TIMEOUT 120)
+    set_tests_properties(scintilla.crew.simulator.offline PROPERTIES LABELS "relay;scintilla;simulation;offline" TIMEOUT 120)
 endif()
 
 # SC5 closed identities and bounded exact retry replies, without engine or GL.

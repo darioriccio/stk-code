@@ -2810,6 +2810,33 @@ void fireRateRejectionCanBeSilentAndIsAlwaysRecorded()
  }
 }
 
+void projectionUVInvertsBothProjections()
+{
+ for(const char* kind:{"equirectangular","fisheye_domemaster"})for(double tilt:{0.0,-30.0,25.0}){
+  Projection p;p.kind=kind;p.width=std::string(kind)=="equirectangular"?2048:1536;p.height=1024+(p.width==1536?512:0);p.domeTiltDeg=tilt;
+  for(int i=1;i<40;++i)for(int j=1;j<40;++j){
+   const double u=i/40.0,v=j/40.0;Vec3 d;if(!Runtime::projectionDirection(p,u,v,&d))continue;
+   double ru=0,rv=0;CHECK(Runtime::projectionUV(p,Vec3(d.x*3,d.y*3,d.z*3),&ru,&rv));
+   CHECK(std::abs(ru-u)<1e-9&&std::abs(rv-v)<1e-9);
+  }
+ }
+ Projection fisheye;fisheye.kind="fisheye_domemaster";double u,v;CHECK(!Runtime::projectionUV(fisheye,Vec3(0,0,-1),&u,&v));
+ CHECK(!Runtime::projectionUV(fisheye,Vec3(),&u,&v));
+}
+
+void graceDropsALateAimWithoutDisarming()
+{
+ for(bool grace:{false,true}){
+  Runtime r;Visibility visibility=Visibility::Visible;ScintillaTuning::Input t;if(grace)t.beamGraceS=.12;combatReady(r,&visibility,t);
+  r.setTelemetry(true);toolPress(r);CHECK(r.beamProofs(1000000)[0].visible);
+  // A pose 70 ms old reaches the producer after a frame hitch.
+  CHECK(r.route("/spatial/input",feedbackAim(999985,.5,.5,10),1070000).status==409);
+  const auto notes=r.drainNotes();CHECK(!notes.empty());
+  CHECK(notes.back().kind==(grace?"aim_dropped":"disarm")&&notes.back().reason=="stale_or_uncertain_pose");
+  CHECK(r.reticles()[0].toolHeld==grace);
+ }
+}
+
 struct TestCase {const char* name;void (*run)();};
 const TestCase cases[]={
 #define SCINTILLA_CASE(name) {#name,name},
