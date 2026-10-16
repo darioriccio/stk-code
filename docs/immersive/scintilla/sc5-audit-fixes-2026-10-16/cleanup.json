@@ -1,0 +1,12 @@
+{
+  "removedWorktrees": [
+    "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-audit-fixes-2026-10-16/stk",
+    "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-audit-fixes-2026-10-16/host"
+  ],
+  "recoveryEvidence": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-audit-fixes-2026-10-16/evidence",
+  "concurrentWIPUntouched": true,
+  "otherWorktreesUntouched": true,
+  "preexistingVersionsArchived": 3,
+  "buildCachesCreated": false,
+  "nativeProcessesStarted": false
+}

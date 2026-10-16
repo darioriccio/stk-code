@@ -183,13 +183,15 @@ bool CubemapRenderTarget::ensure(unsigned int size)
 #endif
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
+    // Depth blits require matching formats. Face RTTs use packed D24S8;
+    // keep the cube packed too, while shaders continue sampling its depth.
     glGenTextures(1, (GLuint*)&m_depth_cube_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)m_depth_cube_texture);
     for (unsigned int i = 0; i < CUBEMAP_FACE_COUNT; i++)
     {
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                     GL_DEPTH_COMPONENT24, (GLsizei)size, (GLsizei)size,
-                     0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+                     GL_DEPTH24_STENCIL8, (GLsizei)size, (GLsizei)size,
+                     0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -318,7 +320,7 @@ bool CubemapRenderTarget::copyDepthFaceToCubeMap(
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
                       (GLuint)m_depth_copy_frame_buffer);
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
                            GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
                            (GLuint)m_depth_cube_texture, 0);
     glDrawBuffer(GL_NONE);
@@ -342,11 +344,16 @@ bool CubemapRenderTarget::copyDepthFaceToCubeMap(
     glBlitFramebuffer(0, 0, (GLint)m_size, (GLint)m_size,
                       0, 0, (GLint)m_size, (GLint)m_size,
                       GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    const GLenum copy_error = glGetError();
+    if (copy_error != GL_NO_ERROR)
+        Log::warn("CubemapRenderTarget",
+                  "Cannot copy depth face %u into cube map: GL error 0x%x.",
+                  face, (unsigned int)copy_error);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)previous_read_fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)previous_draw_fbo);
     glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)previous_cube_texture);
-    return true;
+    return copy_error == GL_NO_ERROR;
 #endif
 }
 

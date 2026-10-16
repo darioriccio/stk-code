@@ -1,0 +1,945 @@
+--- stk/data/shaders/utils/immersive_scintilla.frag
++++ stk/data/shaders/utils/immersive_scintilla.frag
+@@ -978,6 +978,16 @@
+             if(threatened&&scintilla_defense_state.x==5.0&&abs(abs(q.x)-abs(q.y))<.08)color=vec3(1,.1,.1);
+         }
+     }
++    // Crew nodes/badges are surfaces under the pointers. Opaque Party pixels
++    // must not erase aiming, source identity or hold feedback drawn afterward.
++    if(scintilla_crew_enabled!=0){
++        // Legacy status panels share the crew badge anchors. SC5 translates
++        // those statuses into its own text; keep their old panels underneath.
++        if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
++        color=scintillaToolFeedback(color,uvGL,dimensions);
++        color=scintillaCrewHUD(scintillaMissionHUD(color,uvGL,dimensions),vec2(uvGL.x,1.0-uvGL.y),dimensions);
++        if(scintilla_mission_result.x>.5)return color;
++    }
+     vec3 palette[5]=vec3[5](vec3(0.0,1.0,1.0),vec3(1.0,0.65,0.0),vec3(1.0,0.3,0.9),vec3(0.4,1.0,0.2),vec3(0.7,0.65,1.0));
+     for(int i=0;i<5;i++) {
+         if(scintilla_mission_result.x>.5)break;
+@@ -998,9 +1008,9 @@
+         }
+         color=mix(color,palette[i],max(max(crossMark,dots),tool));
+     }
++    if(scintilla_crew_enabled!=0)return color;
+     if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
+     color=scintillaToolFeedback(color,uvGL,dimensions);
+-    if(scintilla_crew_enabled!=0)return scintillaCrewHUD(scintillaMissionHUD(color,uvGL,dimensions),vec2(uvGL.x,1.0-uvGL.y),dimensions);
+     return scintillaMissionHUD(color,uvGL,dimensions);
+ }
+ float scintillaAlpha(vec2 pixel,vec2 dimensions)
+--- stk/src/modes/immersive_relay/remote/relay_command_router.cpp
++++ stk/src/modes/immersive_relay/remote/relay_command_router.cpp
+@@ -1059,7 +1059,7 @@
+             capabilities+=ImmersiveRelay::ScintillaEngine::enabled()?"true":"false";
+             capabilities+="},\"scintilla_combat_sc2\":{\"contract\":\"tholus.stk-scintilla-combat/1\",\"profile\":\"crew_standard_sc2_v1\",\"implemented\":true,\"physical_qualification\":\"pending\"}";
+             capabilities+=",\"scintilla_mission_sc4\":{\"contract\":\"tholus.stk-scintilla-mission/1\",\"schemaVersion\":1,\"profileId\":\"sc4_cargo_three_slots_v1\",\"profileRevision\":\"1\",\"implemented\":true,\"anchor_qualification\":\"required\",\"layoutProfile\":\"front_rear_cargo_v2\",\"layoutRevision\":\"2\",\"producerUUID\":\""+ImmersiveRelay::ScintillaEngine::producerUUID()+"\"}";
+-            capabilities+=",\"scintilla_crew_sc5\":{\"contract\":\"tholus.stk-scintilla-crew/1\",\"schemaVersion\":1,\"implemented\":true,\"crewRoles\":true,\"crewHandoffVerification\":true,\"partyBoost\":true,\"layoutProfile\":\"front_rear_crew_v3\",\"layoutRevision\":\"3\",\"producerUUID\":\""+ImmersiveRelay::ScintillaEngine::producerUUID()+"\",\"profiles\":[\"sc5_crew_standard_v1\",\"sc5_crew_party_v1\"]}}";
++            capabilities+=",\"scintilla_crew_sc5\":{\"contract\":\"tholus.stk-scintilla-crew/1\",\"schemaVersion\":1,\"implemented\":true,\"crewRoles\":true,\"crewHandoffVerification\":true,\"partyBoost\":true,\"guidanceRevision\":\"2\",\"layoutProfile\":\"front_rear_crew_v3\",\"layoutRevision\":\"3\",\"producerUUID\":\""+ImmersiveRelay::ScintillaEngine::producerUUID()+"\",\"profiles\":[\"sc5_crew_standard_v1\",\"sc5_crew_party_v1\"]}}";
+         }
+         return RelayHttpResponse(200,capabilities);
+     }
+--- stk/src/modes/immersive_relay/scintilla_crew.cpp
++++ stk/src/modes/immersive_relay/scintilla_crew.cpp
+@@ -153,6 +153,14 @@
+         case TaskKind::CapsuleCollect:return Competence::Recon;case TaskKind::TetherRecover:
+         case TaskKind::NormalBoost:return Competence::Engineer;default:return Competence::Universal;}
+ }
++OffenseAction offenseAction(const Bundle& fact,const std::string& person,unsigned slot,unsigned crew) {
++    if(fact.kind!=TaskKind::Offense)return OffenseAction::None;
++    if(crew==1)return OffenseAction::Fire;
++    if(fact.offenseOwner.empty())return slot==0?OffenseAction::OpenShield:OffenseAction::WaitForBreach;
++    if(person==fact.offenseOwner)return OffenseAction::MaintainShield;
++    if(std::find(fact.offenseContributors.begin(),fact.offenseContributors.end(),person)!=fact.offenseContributors.end())return OffenseAction::ContributionComplete;
++    return fact.offenseBreached?OffenseAction::Fire:OffenseAction::WaitForBreach;
++}
+ struct Score {
+     int defense=0,tether=0,continuity=0,people=0,role=0;
+     int64_t waiting=0;std::string stable;
+@@ -162,6 +170,17 @@
+         return aTuple!=bTuple?aTuple>bTuple:stable<b.stable;
+     }
+ };
++}
++bool offenseActionCurrent(const Suggestion& hint,const Bundle& fact,unsigned crew) {
++    if(fact.kind!=TaskKind::Offense)return hint.offenseAction==OffenseAction::None;
++    if(crew>1&&fact.offenseOwner.empty())
++        return hint.offenseAction==OffenseAction::OpenShield||hint.offenseAction==OffenseAction::WaitForBreach;
++    return hint.offenseAction==offenseAction(fact,hint.participantId,0,crew);
++}
++const char* Runtime::offenseActionName(OffenseAction action) {
++    switch(action){case OffenseAction::OpenShield:return "open_shield";case OffenseAction::MaintainShield:return "maintain_shield";
++        case OffenseAction::WaitForBreach:return "wait_for_breach";case OffenseAction::Fire:return "fire";
++        case OffenseAction::ContributionComplete:return "contribution_complete";default:return "none";}
+ }
+ bool saturatingAdd(uint64_t* value,uint64_t amount) {
+     if(!value)return true;
+@@ -235,6 +254,15 @@
+     unsigned counts[7]={};std::set<std::pair<uint64_t,uint64_t>> capsules;
+     for(auto fact:supplied) {
+         if(!validTask(fact)||fact.deadline<0||fact.eligibleParticipantIds.size()>Profile::MaxCrew)return reject();
++        if(fact.kind==TaskKind::Offense) {
++            const int owner=participantIndex(fact.offenseOwner);
++            if((!fact.offenseOwner.empty()&&(owner<0||unsigned(owner)==m_driver||m_profile.crew==1))||
++               (fact.offenseBreached&&fact.offenseOwner.empty())||fact.offenseContributors.size()>m_profile.crew||
++               (!fact.offenseContributors.empty()&&!fact.offenseBreached))return reject();
++            std::set<std::string> contributors;
++            for(const auto& id:fact.offenseContributors){const int person=participantIndex(id);
++                if(person<0||unsigned(person)==m_driver||id==fact.offenseOwner||!contributors.insert(id).second)return reject();}
++        } else if(!fact.offenseOwner.empty()||fact.offenseBreached||!fact.offenseContributors.empty())return reject();
+         std::sort(fact.eligibleParticipantIds.begin(),fact.eligibleParticipantIds.end());
+         for(unsigned n=0;n<fact.eligibleParticipantIds.size();++n) {
+             const int index=participantIndex(fact.eligibleParticipantIds[n]);
+@@ -258,6 +286,8 @@
+         const auto& fact=bundles[b];
+         for(unsigned person:people)if(std::binary_search(fact.eligibleParticipantIds.begin(),fact.eligibleParticipantIds.end(),m_records[person].participant.id)&&
+            (!occupation[person]||matches(*occupation[person],fact)))eligible[b].push_back(person);
++        if(fact.kind==TaskKind::Offense&&!fact.offenseOwner.empty()&&
++           std::none_of(eligible[b].begin(),eligible[b].end(),[&](unsigned person){return m_records[person].participant.id==fact.offenseOwner;}))eligible[b].clear();
+         if(eligible[b].size()>=bundleSlots(fact.kind,m_profile.crew))for(unsigned person:eligible[b])hasOpportunity[person]=true;
+         if((fact.kind==TaskKind::Defense&&fact.imminent)||
+            (fact.kind==TaskKind::TetherRecover&&fact.deadline-tick<=m_profile.urgentTether))emergency+=stableTaskKey(fact)+"|";
+@@ -266,11 +296,20 @@
+         const int index=participantIndex(hint.participantId);if(index<0||!ready[unsigned(index)]||
+             (occupation[unsigned(index)]&&!matches(*occupation[unsigned(index)],hint))||hint.expiresAtTick<=tick)return false;
+         for(unsigned b=0;b<bundles.size();++b)if(sameTask(bundles[b],hint)&&
++            offenseActionCurrent(hint,bundles[b],m_profile.crew)&&
+             eligible[b].size()>=bundleSlots(bundles[b].kind,m_profile.crew)&&
+             std::find(eligible[b].begin(),eligible[b].end(),unsigned(index))!=eligible[b].end())return true;
+         return false;
+     };
+     bool previousValid=true;for(const auto& hint:m_suggestions)if(!hintValid(hint))previousValid=false;
++    for(const auto& advice:m_releaseAdvice) {
++        const int person=participantIndex(advice.participantId);
++        const bool valid=person>=0&&ready[unsigned(person)]&&occupation[unsigned(person)]&&
++            std::any_of(bundles.begin(),bundles.end(),[&](const Bundle& b){return b.kind==TaskKind::Defense&&b.imminent&&
++                b.threatId==advice.threatId&&b.deadline==advice.expiresAtTick&&b.deadline>tick&&
++                !matches(*occupation[unsigned(person)],b)&&std::binary_search(b.eligibleParticipantIds.begin(),b.eligibleParticipantIds.end(),advice.participantId);});
++        if(!valid)previousValid=false;
++    }
+     // Account the elapsed simulated interval once, before assigning its next
+     // hint. Voluntary held input is engagement even without a selected bundle.
+     for(unsigned person=0;person<m_records.size();++person)if(person!=m_driver) {
+@@ -309,8 +348,11 @@
+             }
+             const auto job=jobs[at];const auto& fact=bundles[job.bundle];
+             for(unsigned person:eligible[job.bundle])if(!used[person]) {
++                if(fact.kind==TaskKind::Offense&&!fact.offenseOwner.empty()&&
++                   ((job.slot==0)!=(m_records[person].participant.id==fact.offenseOwner)))continue;
+                 used[person]=true;Suggestion hint;static_cast<Task&>(hint)=static_cast<const Task&>(fact);
+-                hint.participantId=m_records[person].participant.id;hint.expiresAtTick=fact.deadline;assigned.push_back(hint);
++                hint.participantId=m_records[person].participant.id;hint.expiresAtTick=fact.deadline;
++                hint.offenseAction=offenseAction(fact,hint.participantId,job.slot,m_profile.crew);assigned.push_back(hint);
+                 Score next=score;++next.people;
+                 if(occupation[person]&&matches(*occupation[person],fact))++next.continuity;
+                 const int64_t wait=m_records[person].waiting+1;next.waiting+=wait*wait;
+@@ -330,7 +372,8 @@
+     if(!bestScore.defense)for(const auto& fact:bundles)if(fact.kind==TaskKind::Defense&&fact.imminent) {
+         for(unsigned person:people)if(occupation[person]&&!matches(*occupation[person],fact)&&
+             std::binary_search(fact.eligibleParticipantIds.begin(),fact.eligibleParticipantIds.end(),m_records[person].participant.id)) {
+-            m_releaseAdvice.push_back(m_records[person].participant.id);break;
++            ReleaseAdvice advice;advice.participantId=m_records[person].participant.id;
++            advice.threatId=fact.threatId;advice.expiresAtTick=fact.deadline;m_releaseAdvice.push_back(advice);break;
+         }
+     }
+     m_nextSchedule=safeAdd(tick,m_profile.suggestionInterval);m_stableUntil=best.empty()?tick:safeAdd(tick,m_profile.suggestionHold);
+--- stk/src/modes/immersive_relay/scintilla_crew.hpp
++++ stk/src/modes/immersive_relay/scintilla_crew.hpp
+@@ -30,6 +30,7 @@
+     ModuleCollected=5,ModuleRecovered=6,NormalBoost=7,PartyConsent=8};
+ enum class OpportunityMetric {NoOpportunity=0,Waiting=1,Engaged=2,NotReady=3,Paused=4};
+ enum class TaskKind {Offense=0,Defense=1,CapsuleShell=2,CapsuleCollect=3,TetherRecover=4,NormalBoost=5,PartyBoost=6};
++enum class OffenseAction {None=0,OpenShield=1,MaintainShield=2,WaitForBreach=3,Fire=4,ContributionComplete=5};
+ struct ParticipantRecord {
+     Participant participant;
+     std::array<uint64_t,9> contributions={{}},lastCommitSerial={{}};
+@@ -42,6 +43,9 @@
+ };
+ struct Bundle:Task {
+     std::vector<std::string> eligibleParticipantIds;
++    std::string offenseOwner;
++    std::vector<std::string> offenseContributors;
++    bool offenseBreached=false;
+     Tick deadline=0;bool imminent=false;
+ };
+ struct Occupation:Task {
+@@ -50,7 +54,14 @@
+     // IDs must be zero; this never becomes a synthetic opportunity or task.
+     bool unassigned=false;
+ };
+-struct Suggestion:Task {std::string participantId;Tick expiresAtTick=0;};
++struct Suggestion:Task {
++    std::string participantId;Tick expiresAtTick=0;
++    OffenseAction offenseAction=OffenseAction::None;
++};
++struct ReleaseAdvice {std::string participantId;uint64_t threatId=0;Tick expiresAtTick=0;};
++// Shared by scheduling and presentation: an advisory action cannot contradict
++// the current SC2 opener, phase or already committed contribution.
++bool offenseActionCurrent(const Suggestion&,const Bundle&,unsigned crew);
+ // Returns true when saturation occurred. It never wraps and is also used by
+ // diagnostic accounting, whose largest increments need not fit signed32.
+ bool saturatingAdd(uint64_t* value,uint64_t amount);
+@@ -121,13 +132,14 @@
+     // monotonic wall time converted once to equivalent ticks, excluding overlap.
+     bool accountPaused(Tick elapsedEquivalentTicks);
+     const std::vector<Suggestion>& suggestions()const{return m_suggestions;}
+-    const std::vector<std::string>& releaseAdvice()const{return m_releaseAdvice;}
++    const std::vector<ReleaseAdvice>& releaseAdvice()const{return m_releaseAdvice;}
+     bool active()const{return m_active;}
+     Tick now()const{return m_now;}
+     bool countersSaturated()const{return m_countersSaturated;}
+     unsigned lastEvaluationCount()const{return m_lastEvaluationCount;}
+     static unsigned bundleSlots(TaskKind,unsigned crew);
+     static const char* taskName(TaskKind);
++    static const char* offenseActionName(OffenseAction);
+     static const char* contributionName(ContributionKind);
+     bool updateParty(Tick tick,const PartyAuthority&,const PartyGates&,const std::vector<PartyBeam>&);
+     bool partyWanted()const{return m_partyView.state==PartyState::CommitPending;}
+@@ -158,7 +170,7 @@
+     unsigned m_lastEvaluationCount=0;
+     std::string m_emergencyKey;
+     std::vector<Suggestion> m_suggestions;
+-    std::vector<std::string> m_releaseAdvice;
++    std::vector<ReleaseAdvice> m_releaseAdvice;
+     uint64_t m_intentRevision=0,m_race=0,m_input=0,m_rosterRevision=0,m_turn=0,m_rotationAnomalies=0;
+     unsigned m_driver=0;
+     std::string m_profileId="sc5_crew_standard_v1";
+--- stk/src/modes/immersive_relay/spatial/scintilla_crew_adapter.hpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_crew_adapter.hpp
+@@ -28,6 +28,16 @@
+     if(!crew.required()||!crew.prepared()||missionTerminal())return;
+     if(crewCreditSerial==UINT64_MAX)return;
+     crew.credit(participant,kind,++crewCreditSerial);
++}
++Crew::Bundle crewOffenseBundle(const ScintillaCombat::Snapshot& state)
++{
++    Crew::Bundle b;b.kind=Crew::TaskKind::Offense;b.targetId=state.target;b.instance=state.instance;b.phaseRevision=state.window;
++    const auto& people=combat.crew();
++    if((state.phase==ScintillaCombat::Phase::Acquiring||state.phase==ScintillaCombat::Phase::Breached)&&
++       state.opener>=0&&size_t(state.opener)<people.size())b.offenseOwner=people[size_t(state.opener)];
++    b.offenseBreached=state.phase==ScintillaCombat::Phase::Breached;
++    for(unsigned i=0;i<people.size()&&i<5;++i)if(state.contributors&(1u<<i))b.offenseContributors.push_back(people[i]);
++    return b;
+ }
+ #ifndef SERVER_ONLY
+ struct CrewVisibilityQuery {
+@@ -155,7 +165,7 @@
+                 crewVisibility[0]=CrewVisibilityQuery();crewRivalCursor=(index+1)%rivals.size();
+             }
+             for(const auto& target:rivals)if(std::any_of(crewRivalVisibility.begin(),crewRivalVisibility.end(),[&](const CrewVisibleFact& f){return crewSamePhase(f.target,target);})) {
+-                const auto state=combat.snapshot(target.id);Crew::Bundle b;b.kind=Crew::TaskKind::Offense;b.targetId=state.target;b.instance=state.instance;b.phaseRevision=state.window;offer(b);break;
++                offer(crewOffenseBundle(combat.snapshot(target.id)));break;
+             }
+         }
+         unsigned capsuleSlot=1;
+--- stk/src/modes/immersive_relay/spatial/scintilla_crew_text_native.hpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_crew_text_native.hpp
+@@ -67,6 +67,9 @@
+     labels[103]=crewWords("Front","Davanti");labels[104]=crewWords("Right","Destra");labels[105]=crewWords("Rear","Dietro");labels[106]=crewWords("Left","Sinistra");
+     labels[107]=crewWords("Open shield","Apri scudo");labels[108]=crewWords("Hit","Colpisci");
+     labels[109]=crewWords("Keep holding","Mantieni il fascio");
++    labels[117]=crewWords("Wait for breach","Attendi la breccia");
++    labels[118]=crewWords("Contribution counted","Contributo registrato");
++    labels[119]=crewWords("Release to defend","Rilascia per difendere");
+     const char* statusEN[]={"Target busy","Cargo full","Shell open","Use tool","Collected","Recovered","Cargo lost","Rejected","Reserve protected","Energy empty","Too hot","Wrong sector","Cooldown","Defend first","Kart unavailable","Blocked","Reinforcing","Hit","Miss","Tracking lost"};
+     const char* statusIT[]={"Bersaglio occupato","Carico pieno","Guscio aperto","Usa il fascio","Raccolto","Recuperato","Carico perso","Rifiutato","Riserva protetta","Energia esaurita","Troppo calore","Settore errato","Attendi cooldown","Prima difendi","Kart non pronto","Bloccato","Rinforzo attivo","Colpito","Mancato","Tracking perso"};
+     for(unsigned i=0;i<20;++i)labels[23+i]=crewWords(statusEN[i],statusIT[i]);
+--- stk/src/modes/immersive_relay/spatial/scintilla_crew_wire.hpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_crew_wire.hpp
+@@ -89,9 +89,15 @@
+     writeCrewParticipants(out,frozen);out<<",\"suggestions\":[";
+     if(running){bool first=true;for(const auto& s:crew.suggestions()){
+         if(!first)out<<',';first=false;out<<"{\"participantId\":"<<quote(s.participantId)<<",\"taskKind\":"<<quote(Crew::Runtime::taskName(s.kind))
++            <<",\"offenseAction\":"<<(s.kind==Crew::TaskKind::Offense?quote(Crew::Runtime::offenseActionName(s.offenseAction)):"null")
+             <<",\"targetId\":"<<(s.targetId?quote(std::to_string(s.targetId)):"null")<<",\"instance\":"<<(s.instance?quote(std::to_string(s.instance)):"null")
+             <<",\"threatId\":"<<(s.threatId?quote(std::to_string(s.threatId)):"null")<<",\"moduleId\":"<<(s.moduleId?quote(std::to_string(s.moduleId)):"null")
+             <<",\"expiresAtTick\":"<<quote(std::to_string(s.expiresAtTick))<<'}';
++    }}
++    out<<"],\"releaseAdvice\":[";
++    if(running){bool first=true;for(const auto& advice:crew.releaseAdvice()){
++        if(!first)out<<',';first=false;out<<"{\"participantId\":"<<quote(advice.participantId)
++            <<",\"threatId\":"<<quote(std::to_string(advice.threatId))<<",\"expiresAtTick\":"<<quote(std::to_string(advice.expiresAtTick))<<'}';
+     }}
+     out<<"],\"party\":";writeCrewParty(out);out<<",\"result\":";
+     Crew::writeResultJSON(out,frozen);out<<'}';
+--- stk/src/modes/immersive_relay/spatial/scintilla_engine.cpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_engine.cpp
+@@ -1940,6 +1940,7 @@
+     current.crewRaceEpoch=raceEpoch;current.crewDriverTurnId=crew.driverTurnId();current.crewIntentRevision=crew.intentRevision();
+     current.crewInputEpoch=consumer.inputEpoch();current.crewRosterRevision=rosterEpoch;current.crewProposalId=crew.partyView().proposalId;
+     current.crewParty=crew.partyView();current.crewAssignments=crew.assignments();current.crewSuggestions=crew.suggestions();
++    current.crewReleaseAdvice=crew.releaseAdvice();
+     if(defenseBound()||current.missionHUDEnabled||current.crewEnabled)
+         current.layout=Defense::Layout::create(current.projection.width,current.projection.height,
+             current.missionHUDEnabled||current.crewEnabled,current.missionResult.valid,current.crewEnabled);
+@@ -2183,7 +2184,15 @@
+         int verb=CrewTask+int(hint.kind),targetCell=-1;
+         if(hint.kind==Crew::TaskKind::Offense){
+             if(hint.targetId>0&&hint.targetId<=4)targetCell=CrewKart+hint.targetId-1;
+-            for(const auto& a:current.crewAssignments)if(a.participantId==hint.participantId)verb=a.competence==Crew::Competence::Hacker&&hinted&&hinted->combat.phase!=ScintillaCombat::Phase::Breached?107:108;
++            if(!hinted||!Crew::offenseActionCurrent(hint,crewOffenseBundle(hinted->combat),crew.profile().crew))continue;
++            switch(hint.offenseAction){
++                case Crew::OffenseAction::OpenShield:verb=107;break;
++                case Crew::OffenseAction::MaintainShield:verb=109;break;
++                case Crew::OffenseAction::WaitForBreach:verb=117;break;
++                case Crew::OffenseAction::Fire:verb=108;break;
++                case Crew::OffenseAction::ContributionComplete:verb=118;break;
++                default:continue;
++            }
+         }else if(hint.kind==Crew::TaskKind::CapsuleShell||hint.kind==Crew::TaskKind::CapsuleCollect){
+             if(hint.targetId>=ScintillaMission::Runtime::CapsuleEntityBase)targetCell=CrewCapsule+(hint.targetId-ScintillaMission::Runtime::CapsuleEntityBase)%24;
+         }else if(hint.kind==Crew::TaskKind::TetherRecover)targetCell=CrewTether;
+@@ -2234,6 +2243,17 @@
+             if(code>0&&code<8){tasks[slot*4]=cells[code];tasks[slot*4+1]=badges[slot*4+2]==CrewRelease?CrewRelease:-1;}
+         }
+     }
++    // Urgent advice overrides optional hints/outcomes, never the player's input.
++    // Stop colouring the old target as that person's simultaneous assignment.
++    if(crew.active()&&current.defense.enabled&&defense.view().phase==Defense::Phase::Telegraph)
++        for(const auto& advice:current.crewReleaseAdvice) {
++            const int slot=sourceSlot(advice.participantId);
++            if(slot<0||slot>=5||advice.expiresAtTick<=simulationTick||advice.threatId!=current.defense.threat||
++               advice.threatId!=defense.view().threat||defense.deadline()<=simulationTick)continue;
++            tasks[slot*4]=119;tasks[slot*4+1]=103+int(current.defense.sector);
++            badges[slot*4+2]=119;badges[slot*4+3]=-1;
++            for(unsigned i=0;i<32;++i)targetMasks[i]=float(unsigned(targetMasks[i])&~(1u<<slot));
++        }
+     if(current.partyEnabled&&current.crewParty.reason!=Crew::PartyReason::Ready){
+         for(unsigned slot=0;slot<5;++slot)if(badges[slot*4]>=0&&tasks[slot*4]<0){tasks[slot*4]=CrewParty;tasks[slot*4+1]=CrewReason+int(current.crewParty.reason);break;}
+     }
+--- stk/src/modes/immersive_relay/spatial/scintilla_input.cpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_input.cpp
+@@ -1075,7 +1075,7 @@
+        std::abs(dot(f.cameraRight,f.cameraUp))>0.002||std::abs(dot(f.cameraRight,f.cameraForward))>0.002||std::abs(dot(f.cameraUp,f.cameraForward))>0.002||
+        !std::isfinite(f.nearPlane)||!std::isfinite(f.farPlane)||!std::isfinite(f.faceFovDeg)||f.nearPlane<=0||f.farPlane<=f.nearPlane||f.faceFovDeg<90||f.faceFovDeg>120||
+        f.targets.size()>256||f.crewAssignments.size()>ScintillaCrew::Profile::MaxParticipants||
+-       f.crewSuggestions.size()>ScintillaCrew::Profile::MaxSuggestions||
++       f.crewSuggestions.size()>ScintillaCrew::Profile::MaxSuggestions||f.crewReleaseAdvice.size()>ScintillaCrew::Profile::MaxCrew||
+        !sameProjection(f.projection,m->projection)||f.routeRevision!=m->routeRevision||f.projectionContextId!=m->context)
+     {m->invalidate("invalid_producer_frame");return;}
+     if(f.id<=m->retiredThrough){m->invalidate("producer_frame_reused");return;}
+--- stk/src/modes/immersive_relay/spatial/scintilla_input.hpp
++++ stk/src/modes/immersive_relay/spatial/scintilla_input.hpp
+@@ -57,6 +57,7 @@
+     ScintillaCrew::PartyView crewParty;
+     std::vector<ScintillaCrew::Assignment> crewAssignments;
+     std::vector<ScintillaCrew::Suggestion> crewSuggestions;
++    std::vector<ScintillaCrew::ReleaseAdvice> crewReleaseAdvice;
+     bool missionEnabled=false;
+     uint64_t missionRaceEpoch=0,missionRevision=0;
+     int64_t missionTick=0;
+--- stk/tools/immersive/tests/CMakeLists.txt
++++ stk/tools/immersive/tests/CMakeLists.txt
+@@ -189,7 +189,7 @@
+ add_executable(scintilla_crew_regression scintilla_crew_regression.cpp "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_crew.cpp")
+ target_include_directories(scintilla_crew_regression PRIVATE "${STK_REGRESSION_ROOT}/src")
+ set_target_properties(scintilla_crew_regression PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+-foreach(CREW_CASE rolesMatchEveryNativeRaceAndFairnessCalculation partyDisabledAndPreprepareSnapshotsRemainCoherent partyHoldQuorumAndPhysicalAcknowledgementAtEveryFrequency partyPendingProofUsesOriginalAdmissionAndRejectsNegativeRepair partyExpiryIsExclusiveAndZeroCannotReopenAnOldHold partyQuorumUsesOriginalAdmissionAcrossAsyncCompletionAndIdTies partyAuthorityReleaseVetoAndQuotaSurviveReprepare partyGateReasonsDoNotSpendQuotaOrAllowLatentPending partyRejectsDuplicatePeopleOldAuthorityAndBootstrapAcrossRebind advisoryTechnicalHoldAlignsTickAndReadyAllowsPreviousTickPress allAvailabilitySubsetsAreBoundedInjectiveAndComplete defenseAndRecoveryRespectRealHandCapacity heldOccupationIsPreservedAndInterruptionAdviceIsSeparate invalidationBypassesStabilityAndExpiredTargetsDisappear waitingOutranksAffinityWithoutRoleMonopoly commitCreditsAreDistinctBoundedAndPersistForPeople opportunityAccountingSeparatesReadinessPauseAndNoTarget malformedFactsFailClosedAndNextValidTickRecovers maximumFrequencyWaitAndCountersNeverWrap heldPreviewHasRolesButCannotClaimPrepared previewProfileChoiceAndMissedFullRotationRemainHeld disablingNeverPreparedPreviewClearsRolesAndKeepsIntentRevision observedTurnLocksEvenNeverPreparedPreviewAgainstDowngrade nativeTurnCommitIsTheOnlyAdvancement sameRaceReprepareSuspendAndResetKeepCorrectAuthority frozenRosterAndProfileCannotBeRewrittenByRetry invalidInitialPreparationDoesNotSeedRace competenceModuloRemainsExactAtUInt64Maximum)
++foreach(CREW_CASE urgentReleaseAdviceDisappearsImmediatelyAfterReleaseThreatChangeOrHold offenseActionsFollowTheActualOwnerAcrossShieldPhasesAndUniversalCrews contradictoryOffenseOwnershipFactsCannotProduceInstructions rolesMatchEveryNativeRaceAndFairnessCalculation partyDisabledAndPreprepareSnapshotsRemainCoherent partyHoldQuorumAndPhysicalAcknowledgementAtEveryFrequency partyPendingProofUsesOriginalAdmissionAndRejectsNegativeRepair partyExpiryIsExclusiveAndZeroCannotReopenAnOldHold partyQuorumUsesOriginalAdmissionAcrossAsyncCompletionAndIdTies partyAuthorityReleaseVetoAndQuotaSurviveReprepare partyGateReasonsDoNotSpendQuotaOrAllowLatentPending partyRejectsDuplicatePeopleOldAuthorityAndBootstrapAcrossRebind advisoryTechnicalHoldAlignsTickAndReadyAllowsPreviousTickPress allAvailabilitySubsetsAreBoundedInjectiveAndComplete defenseAndRecoveryRespectRealHandCapacity heldOccupationIsPreservedAndInterruptionAdviceIsSeparate invalidationBypassesStabilityAndExpiredTargetsDisappear waitingOutranksAffinityWithoutRoleMonopoly commitCreditsAreDistinctBoundedAndPersistForPeople opportunityAccountingSeparatesReadinessPauseAndNoTarget malformedFactsFailClosedAndNextValidTickRecovers maximumFrequencyWaitAndCountersNeverWrap heldPreviewHasRolesButCannotClaimPrepared previewProfileChoiceAndMissedFullRotationRemainHeld disablingNeverPreparedPreviewClearsRolesAndKeepsIntentRevision observedTurnLocksEvenNeverPreparedPreviewAgainstDowngrade nativeTurnCommitIsTheOnlyAdvancement sameRaceReprepareSuspendAndResetKeepCorrectAuthority frozenRosterAndProfileCannotBeRewrittenByRetry invalidInitialPreparationDoesNotSeedRace competenceModuloRemainsExactAtUInt64Maximum)
+     add_test(NAME "scintilla.crew.${CREW_CASE}" COMMAND scintilla_crew_regression --case "${CREW_CASE}")
+     set_tests_properties("scintilla.crew.${CREW_CASE}" PROPERTIES LABELS "relay;scintilla;crew" TIMEOUT 120)
+ endforeach()
+@@ -273,4 +273,6 @@
+ if(Python3_Interpreter_FOUND)
+     add_test(NAME scintilla.crew.wire_source_contract COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_LIST_DIR}/check_scintilla_crew_wire_source.py")
+     set_tests_properties(scintilla.crew.wire_source_contract PROPERTIES LABELS "relay;scintilla;crew;source" TIMEOUT 120)
+-endif()
++    add_test(NAME scintilla.crew.render_source_contract COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_LIST_DIR}/check_scintilla_crew_render_source.py")
++    set_tests_properties(scintilla.crew.render_source_contract PROPERTIES LABELS "relay;scintilla;crew;source;numeric" TIMEOUT 120)
++endif()
+--- stk/tools/immersive/tests/check_scintilla_crew_render_source.py
++++ stk/tools/immersive/tests/check_scintilla_crew_render_source.py
+@@ -9,6 +9,65 @@
+ 
+ 
+ class CrewRenderSource(unittest.TestCase):
++    def test_opaque_crew_surfaces_cannot_erase_a_centered_pointer(self):
++        # Evaluate composition at a fully covered cross pixel using the pass
++        # order from the real shader. This is arithmetic/source proof, not GLSL
++        # execution. The former late opaque HUD pass fails this counterexample.
++        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
++        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
++        active=overlay[overlay.index('vec2 topUV='):]
++        hud=active.index('scintillaCrewHUD(')
++        pointer=active.index('color=mix(color,palette[i],max(max(crossMark,dots),tool))')
++        palette_start=active.index('vec3 palette[5]')
++        palette_text=active[palette_start:active.index('for(int i=0;i<5;i++)',palette_start)]
++        palette=[tuple(map(float,value.split(','))) for value in re.findall(r'vec3\(([^)]+)\)',palette_text)]
++        self.assertEqual(len(palette),5)
++        for width,height in ((256,256),(768,768),(1536,1536),(2048,1024),(8192,8192)):
++            radius=.06*min(width,height)/2
++            self.assertGreater(radius,0) # Party's centre is inside its opaque mask at every admitted size.
++            for tint in palette:
++                color=(0.,0.,0.)
++                for _,layer in sorted(((hud,'hud'),(pointer,'pointer'))):
++                    color=(.42,.14,.65) if layer=='hud' else tint
++                self.assertEqual(color,tint,(width,height,tint))
++        self.assertLess(hud,pointer)
++        self.assertNotIn('scintillaCrewHUD(',active[pointer:])
++        # SC5 consumes the translated badge state after legacy panels, then
++        # draws pointers last. World-space feedback outside the HUD survives.
++        self.assertLess(active.index('color=scintillaFeedback('),hud)
++        self.assertLess(active.index('color=scintillaToolFeedback('),hud)
++
++    def test_terminal_crew_plate_and_legacy_path_keep_their_own_boundaries(self):
++        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
++        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
++        active=overlay[overlay.index('vec2 topUV='):]
++        hud=active.index('color=scintillaCrewHUD(')
++        pointer=active.index('vec4 r=scintilla_reticles[i]')
++        self.assertIn('if(scintilla_mission_result.x>.5)return color;',active[hud:pointer])
++        end=active[active.index('if(scintilla_crew_enabled!=0)return color;'):]
++        self.assertIn('color=scintillaFeedback(',end)
++        self.assertIn('color=scintillaToolFeedback(',end)
++        self.assertIn('return scintillaMissionHUD(color,uvGL,dimensions);',end)
++        # Neither feedback helper may paint another opaque crew surface later.
++        feedback=shader[shader.index('vec3 scintillaFeedback('):shader.index('vec3 scintillaCrewHUD(')]
++        self.assertNotIn('scintillaCrewHUD(',feedback)
++
++    def test_legacy_panels_cannot_cover_crew_text_while_spatial_feedback_survives(self):
++        shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
++        overlay=shader[shader.index('vec3 scintillaOverlay('):shader.index('float scintillaAlpha(')]
++        active=overlay[overlay.index('vec2 topUV='):]
++        passes=sorted(((active.index('color=scintillaFeedback('),'shot'),
++                       (active.index('color=scintillaToolFeedback('),'panel'),
++                       (active.index('color=scintillaCrewHUD('),'crew')))
++        text=(.98,.98,.98);hit=(.25,1.,.35)
++        for covered_by_hud in (True,False):
++            color=(.1,.1,.1)
++            for _,layer in passes:
++                if layer=='shot' and not covered_by_hud:color=hit
++                if layer=='panel' and covered_by_hud:color=tuple(.1*c+.9*.015 for c in color)
++                if layer=='crew' and covered_by_hud:color=text
++            self.assertEqual(color,text if covered_by_hud else hit)
++
+     def test_party_geometry_and_explicit_measure_revision_share_the_same_circle(self):
+         shader=(ROOT/'data/shaders/utils/immersive_scintilla.frag').read_text()
+         layout=(IR/'scintilla_layout.hpp').read_text()
+--- stk/tools/immersive/tests/scintilla_crew_regression.cpp
++++ stk/tools/immersive/tests/scintilla_crew_regression.cpp
+@@ -202,10 +202,56 @@
+ }
+ std::string hintsKey(const Runtime& runtime) {
+     std::string key;for(const auto& hint:runtime.suggestions())key+=hint.participantId+":"+Runtime::taskName(hint.kind)+":"+
+-        std::to_string(hint.targetId)+":"+std::to_string(hint.threatId)+"|";return key;
++        std::to_string(hint.targetId)+":"+std::to_string(hint.threatId)+":"+Runtime::offenseActionName(hint.offenseAction)+"|";return key;
+ }
+ unsigned hintCount(const Runtime& runtime,TaskKind kind) {
+     unsigned n=0;for(const auto& hint:runtime.suggestions())if(hint.kind==kind)++n;return n;
++}
++void offenseActionsFollowTheActualOwnerAcrossShieldPhasesAndUniversalCrews() {
++    for(unsigned count=2;count<=6;++count) {
++        auto runtime=prepared(count);const auto ready=runtime.supporterIDs();auto offense=opportunity(TaskKind::Offense,ready);
++        CHECK(runtime.update(0,true,{offense},ready,{}));
++        unsigned opening=0,firing=0,waiting=0;
++        std::string proposedOpener;
++        for(const auto& hint:runtime.suggestions()) {
++            CHECK(offenseActionCurrent(hint,offense,count-1));
++            if(hint.offenseAction==OffenseAction::OpenShield){++opening;proposedOpener=hint.participantId;}
++            if(hint.offenseAction==OffenseAction::Fire)++firing;
++            if(hint.offenseAction==OffenseAction::WaitForBreach)++waiting;
++        }
++        if(count==2){CHECK(opening==0&&firing==1&&waiting==0);continue;}
++        CHECK(opening==1&&firing==0&&waiting==Runtime::bundleSlots(TaskKind::Offense,count-1)-1);
++        // A volunteer may open instead of the suggested person, regardless of
++        // their recommended competence. Reassign the actual SC2 owner at once.
++        offense.offenseOwner=*std::find_if(ready.begin(),ready.end(),[&](const std::string& id){return id!=proposedOpener;});
++        CHECK(runtime.update(0,true,{offense},ready,{}));
++        for(const auto& hint:runtime.suggestions())CHECK(hint.offenseAction==
++            (hint.participantId==offense.offenseOwner?OffenseAction::MaintainShield:OffenseAction::WaitForBreach));
++        offense.offenseBreached=true;
++        CHECK(runtime.update(0,true,{offense},ready,{})); // Phase invalidation bypasses 0.6 s stability.
++        unsigned owners=0;
++        for(const auto& hint:runtime.suggestions()) {
++            if(hint.participantId==offense.offenseOwner){++owners;CHECK(hint.offenseAction==OffenseAction::MaintainShield);}
++            else CHECK(hint.offenseAction==OffenseAction::Fire);
++            CHECK(offenseActionCurrent(hint,offense,count-1));
++        }
++        CHECK(owners==1);
++        if(count>=4) {
++            const auto contributor=std::find_if(runtime.suggestions().begin(),runtime.suggestions().end(),[&](const Suggestion& h){return h.participantId!=offense.offenseOwner;})->participantId;
++            offense.offenseContributors={contributor};CHECK(runtime.update(0,true,{offense},ready,{}));
++            for(const auto& hint:runtime.suggestions())if(hint.participantId==contributor)CHECK(hint.offenseAction==OffenseAction::ContributionComplete);
++        }
++        auto available=ready;available.erase(std::remove(available.begin(),available.end(),offense.offenseOwner),available.end());
++        CHECK(runtime.update(0,true,{offense},available,{}));CHECK(runtime.suggestions().empty());
++    }
++}
++void contradictoryOffenseOwnershipFactsCannotProduceInstructions() {
++    auto runtime=prepared(4);const auto ready=runtime.supporterIDs();auto offense=opportunity(TaskKind::Offense,ready);
++    offense.offenseBreached=true;CHECK(!runtime.update(0,true,{offense},ready,{}));
++    offense.offenseOwner="person-0";CHECK(!runtime.update(0,true,{offense},ready,{})); // Driver is not an opener.
++    offense.offenseOwner=ready[0];offense.offenseContributors={ready[0]};CHECK(!runtime.update(0,true,{offense},ready,{}));
++    offense.offenseContributors={ready[1],ready[1]};CHECK(!runtime.update(0,true,{offense},ready,{}));
++    offense.offenseContributors.clear();CHECK(runtime.update(0,true,{offense},ready,{}));
+ }
+ void allAvailabilitySubsetsAreBoundedInjectiveAndComplete() {
+     for(unsigned crew=1;crew<=5;++crew)for(unsigned mask=0;mask<128;++mask) {
+@@ -259,6 +305,8 @@
+     CHECK(runtime.update(0,true,{offense,defense},ready,occupied));
+     CHECK(hintCount(runtime,TaskKind::Defense)==0&&hintCount(runtime,TaskKind::Offense)==3);
+     CHECK(runtime.releaseAdvice().size()==1);
++    CHECK(runtime.releaseAdvice()[0].participantId==ready[0]&&runtime.releaseAdvice()[0].threatId==defense.threatId);
++    CHECK(runtime.releaseAdvice()[0].expiresAtTick==defense.deadline);
+     for(const auto& hint:runtime.suggestions())CHECK(hint.kind==TaskKind::Offense);
+     CHECK(runtime.update(1,true,{offense,defense},ready,occupied));
+     for(unsigned i=1;i<4;++i)CHECK(runtime.records()[i].opportunityTicks[unsigned(OpportunityMetric::Engaged)]==1);
+@@ -287,6 +335,25 @@
+     capsule.eligibleParticipantIds.erase(std::find(capsule.eligibleParticipantIds.begin(),capsule.eligibleParticipantIds.end(),oldOwner));
+     CHECK(runtime.update(32,true,{capsule},ready,{}));CHECK(runtime.suggestions().size()==1&&runtime.suggestions()[0].participantId!=oldOwner);
+     capsule.phaseRevision=2;CHECK(runtime.update(32,true,{capsule},ready,{}));CHECK(runtime.suggestions()[0].phaseRevision==2);
++}
++void urgentReleaseAdviceDisappearsImmediatelyAfterReleaseThreatChangeOrHold() {
++    auto runtime=prepared(4);const auto ready=runtime.supporterIDs();auto offense=opportunity(TaskKind::Offense,ready);
++    auto defense=opportunity(TaskKind::Defense,ready);defense.imminent=true;
++    std::vector<Occupation> occupied;
++    for(const auto& person:ready){Occupation o;static_cast<Task&>(o)=static_cast<const Task&>(offense);o.participantId=person;occupied.push_back(o);}
++    CHECK(runtime.update(0,true,{offense,defense},ready,occupied));CHECK(runtime.releaseAdvice().size()==1);
++    const auto advised=runtime.releaseAdvice()[0].participantId;
++    occupied.erase(std::remove_if(occupied.begin(),occupied.end(),[&](const Occupation& o){return o.participantId==advised;}),occupied.end());
++    CHECK(runtime.update(0,true,{offense,defense},ready,occupied));
++    CHECK(runtime.releaseAdvice().empty()&&hintCount(runtime,TaskKind::Defense)==1);
++    CHECK(runtime.suggestions()[0].participantId==advised); // No 0.6 s wait; input itself was never synthesized.
++    Occupation back;static_cast<Task&>(back)=static_cast<const Task&>(offense);back.participantId=advised;occupied.push_back(back);
++    CHECK(runtime.update(1,true,{offense,defense},ready,occupied));CHECK(runtime.releaseAdvice().size()==1);
++    defense.threatId=99;CHECK(runtime.update(1,true,{offense,defense},ready,occupied));
++    CHECK(runtime.releaseAdvice().size()==1&&runtime.releaseAdvice()[0].threatId==99);
++    CHECK(runtime.update(1,true,{offense},ready,occupied));CHECK(runtime.releaseAdvice().empty());
++    CHECK(runtime.update(1,true,{offense,defense},ready,occupied));CHECK(!runtime.releaseAdvice().empty());
++    CHECK(runtime.update(1,false,{},ready,occupied));CHECK(runtime.releaseAdvice().empty());
+ }
+ void waitingOutranksAffinityWithoutRoleMonopoly() {
+     auto runtime=prepared(6);const auto ready=runtime.supporterIDs();auto capsule=opportunity(TaskKind::CapsuleShell,ready);
+@@ -540,6 +607,9 @@
+     for(Tick t=2;t<=45;++t)CHECK(q.updateParty(t,qa,partyReady(),pressed));CHECK(q.partyWanted());
+ }
+ struct Case{const char* name;void(*run)();};const Case cases[]={
++    {"urgentReleaseAdviceDisappearsImmediatelyAfterReleaseThreatChangeOrHold",urgentReleaseAdviceDisappearsImmediatelyAfterReleaseThreatChangeOrHold},
++    {"offenseActionsFollowTheActualOwnerAcrossShieldPhasesAndUniversalCrews",offenseActionsFollowTheActualOwnerAcrossShieldPhasesAndUniversalCrews},
++    {"contradictoryOffenseOwnershipFactsCannotProduceInstructions",contradictoryOffenseOwnershipFactsCannotProduceInstructions},
+     {"rolesMatchEveryNativeRaceAndFairnessCalculation",rolesMatchEveryNativeRaceAndFairnessCalculation},
+     {"partyDisabledAndPreprepareSnapshotsRemainCoherent",partyDisabledAndPreprepareSnapshotsRemainCoherent},
+     {"partyHoldQuorumAndPhysicalAcknowledgementAtEveryFrequency",partyHoldQuorumAndPhysicalAcknowledgementAtEveryFrequency},
+--- host/Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift
++++ host/Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift
+@@ -1269,13 +1269,21 @@
+             let crew = try await scintillaCrewHTTP.state(configuration: configuration, validate: current)
+             guard current(), crew.preservesRacePolicy(previous: scintillaCrewState),
+                   capabilities?.scintillaCrew.map({ $0.producerUUID == crew.identity.producerUUID }) ?? true else { return }
+-            if let previous = scintillaCrewState, !crew.identity.sameTurn(as: previous.identity), !scintillaPreparationInFlight {
+-                suspendScintillaParticipantBindings(forRaceReset: crew.identity.raceEpoch != previous.identity.raceEpoch)
+-            }
++            let previous = scintillaCrewState
+             scintillaCrewState = crew
+             if crew.required && !scintillaIntentPending && !scintillaModeChangeInFlight {
+                 requestedScintillaMode = crew.partyEnabled ? .crewSC5Party : .crewSC5Standard
+                 scintillaPreparation?.synchronizeCombatMode()
++            }
++            if let previous, !crew.identity.sameTurn(as: previous.identity), !scintillaPreparationInFlight {
++                suspendScintillaParticipantBindings(forRaceReset: crew.identity.raceEpoch != previous.identity.raceEpoch)
++            } else if crew.required, !crew.bindingsVerified, crew.result == nil,
++                      scintillaSpatialInput?.isPrepared == true, !scintillaParticipantRebindRequired,
++                      !scintillaPreparationInFlight, !snapshot.handoffActive {
++                // A recovered pose does not restore native possession continuity.
++                // Retain the grant and offer the same held rebind/challenge path
++                // even when producer, race and driver turn have not changed.
++                suspendScintillaParticipantBindings()
+             }
+         } catch { /* A missing response never releases the crew policy. */ }
+     }
+@@ -2191,12 +2199,14 @@
+         snapshot.currentLap = resolvedCurrentLap
+         snapshot.activeDriver = activeDriver?.index ?? activeDriver?.playerID.flatMap { Int($0.dropFirst()) }
+         snapshot.nextDriver = arcade?.nextDriver?.index ?? arcade?.nextDriver?.playerID.flatMap { Int($0.dropFirst()) }
+-        if snapshot.handoffActive != (arcade?.handoffActive ?? false) ||
+-            previousDriver != (activeDriver?.index ?? activeDriver?.playerID.flatMap { Int($0.dropFirst()) }) ||
++        snapshot.handoffActive = arcade?.handoffActive ?? false
++        // Stage A still owns the old bindings. Native holds gameplay while its
++        // transfer/countdown advances; suspending here would close that gate.
++        // Only the committed driver (or the crew turn observed below) starts B.
++        if previousDriver != snapshot.activeDriver ||
+             previousSpatialDriverID != scintillaActiveDriverID {
+             suspendScintillaParticipantBindings()
+         }
+-        snapshot.handoffActive = arcade?.handoffActive ?? false
+         snapshot.inputLocked = arcade?.inputLocked ?? false
+         snapshot.handoffCountdown = arcade?.handoffCountdown
+         snapshot.countdownRemainingMS = state.countdownRemainingMS
+--- host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewCapability.swift
++++ host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewCapability.swift
+@@ -7,12 +7,13 @@
+     public let crewRoles: Bool
+     public let crewHandoffVerification: Bool
+     public let partyBoost: Bool
++    public let guidanceRevision: String
+     public let layoutProfile: String
+     public let layoutRevision: String
+     public let producerUUID: UUID
+     public let profiles: [ScintillaCrewProfile]
+     private enum CodingKeys: String, CodingKey, CaseIterable {
+-        case contract, schemaVersion, implemented, crewRoles, crewHandoffVerification, partyBoost, layoutProfile, layoutRevision, producerUUID, profiles
++        case contract, schemaVersion, implemented, crewRoles, crewHandoffVerification, partyBoost, guidanceRevision, layoutProfile, layoutRevision, producerUUID, profiles
+     }
+     public init(from decoder: Decoder) throws {
+         try CrewWire.closed(decoder, CodingKeys.allCases.map(\.rawValue))
+@@ -20,10 +21,11 @@
+         contract = try c.decode(String.self, forKey: .contract); schemaVersion = try c.decode(Int.self, forKey: .schemaVersion)
+         implemented = try c.decode(Bool.self, forKey: .implemented); crewRoles = try c.decode(Bool.self, forKey: .crewRoles)
+         crewHandoffVerification = try c.decode(Bool.self, forKey: .crewHandoffVerification); partyBoost = try c.decode(Bool.self, forKey: .partyBoost)
++        guidanceRevision = try c.decode(String.self, forKey: .guidanceRevision)
+         layoutProfile = try c.decode(String.self, forKey: .layoutProfile); layoutRevision = try c.decode(String.self, forKey: .layoutRevision)
+         producerUUID = try CrewWire.uuid(c.decode(String.self, forKey: .producerUUID))
+         profiles = try c.decode([ScintillaCrewProfile].self, forKey: .profiles)
+-        guard contract == ScintillaCrewContract.contract, schemaVersion == 1,
++        guard contract == ScintillaCrewContract.contract, schemaVersion == 1, guidanceRevision == "2",
+               layoutProfile == ScintillaCrewContract.layout, layoutRevision == ScintillaCrewContract.layoutRevision,
+               profiles.count <= 2, Set(profiles.map(\.rawValue)).count == profiles.count,
+               !implemented || profiles.contains(.standard), !profiles.contains(.party) || partyBoost else {
+@@ -38,6 +40,7 @@
+         try c.encode(contract, forKey: .contract); try c.encode(schemaVersion, forKey: .schemaVersion)
+         try c.encode(implemented, forKey: .implemented); try c.encode(crewRoles, forKey: .crewRoles)
+         try c.encode(crewHandoffVerification, forKey: .crewHandoffVerification); try c.encode(partyBoost, forKey: .partyBoost)
++        try c.encode(guidanceRevision, forKey: .guidanceRevision)
+         try c.encode(layoutProfile, forKey: .layoutProfile); try c.encode(layoutRevision, forKey: .layoutRevision)
+         try c.encode(producerUUID.uuidString.lowercased(), forKey: .producerUUID); try c.encode(profiles, forKey: .profiles)
+     }
+--- host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewParticipant.swift
++++ host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewParticipant.swift
+@@ -101,29 +101,52 @@
+     }
+ }
+ 
++public struct ScintillaCrewReleaseAdvice: Decodable, Equatable, Sendable {
++    public let participantId: String
++    public let threatId: ScintillaIdentity
++    public let expiresAtTick: ScintillaIdentity
++    private enum CodingKeys: String, CodingKey, CaseIterable { case participantId, threatId, expiresAtTick }
++    public init(from decoder: Decoder) throws {
++        try CrewWire.closed(decoder, CodingKeys.allCases.map(\.rawValue))
++        let c = try decoder.container(keyedBy: CodingKeys.self)
++        participantId = try c.decode(String.self, forKey: .participantId)
++        threatId = try c.decode(ScintillaIdentity.self, forKey: .threatId)
++        expiresAtTick = try c.decode(ScintillaIdentity.self, forKey: .expiresAtTick)
++        guard ScintillaMissionContract.token(participantId), threatId.value > 0,
++              CrewWire.tick(expiresAtTick), expiresAtTick.value > 0 else { throw ScintillaMissionError.invalid("crewReleaseAdvice") }
++    }
++}
++
+ public struct ScintillaCrewSuggestion: Decodable, Equatable, Sendable {
++    public enum OffenseAction: String, Decodable, Sendable {
++        case openShield = "open_shield", maintainShield = "maintain_shield", waitForBreach = "wait_for_breach"
++        case fire, contributionComplete = "contribution_complete"
++    }
+     public enum TaskKind: String, Decodable, Sendable {
+         case offense, defense, capsuleShell = "capsule_shell", capsuleCollect = "capsule_collect"
+         case tetherRecover = "tether_recover", normalBoost = "normal_boost", partyBoost = "party_boost"
+     }
+     public let participantId: String
+     public let taskKind: TaskKind
++    public let offenseAction: OffenseAction?
+     public let targetId: ScintillaIdentity?
+     public let instance: ScintillaIdentity?
+     public let threatId: ScintillaIdentity?
+     public let moduleId: ScintillaIdentity?
+     public let expiresAtTick: ScintillaIdentity
+-    private enum CodingKeys: String, CodingKey, CaseIterable { case participantId, taskKind, targetId, instance, threatId, moduleId, expiresAtTick }
++    private enum CodingKeys: String, CodingKey, CaseIterable { case participantId, taskKind, offenseAction, targetId, instance, threatId, moduleId, expiresAtTick }
+     public init(from decoder: Decoder) throws {
+         try CrewWire.closed(decoder, CodingKeys.allCases.map(\.rawValue))
+         let c = try decoder.container(keyedBy: CodingKeys.self)
+         participantId = try c.decode(String.self, forKey: .participantId); taskKind = try c.decode(TaskKind.self, forKey: .taskKind)
++        offenseAction = try c.decodeIfPresent(OffenseAction.self, forKey: .offenseAction)
+         targetId = try c.decodeIfPresent(ScintillaIdentity.self, forKey: .targetId)
+         instance = try c.decodeIfPresent(ScintillaIdentity.self, forKey: .instance)
+         threatId = try c.decodeIfPresent(ScintillaIdentity.self, forKey: .threatId)
+         moduleId = try c.decodeIfPresent(ScintillaIdentity.self, forKey: .moduleId)
+         expiresAtTick = try c.decode(ScintillaIdentity.self, forKey: .expiresAtTick)
+-        guard ScintillaMissionContract.token(participantId), CrewWire.tick(expiresAtTick), expiresAtTick.value > 0,
++        guard (taskKind == .offense) == (offenseAction != nil),
++              ScintillaMissionContract.token(participantId), CrewWire.tick(expiresAtTick), expiresAtTick.value > 0,
+               [targetId, instance, threatId, moduleId].allSatisfy({ $0 == nil || $0!.value > 0 }) else {
+             throw ScintillaMissionError.invalid("crewSuggestion")
+         }
+--- host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewState.swift
++++ host/Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewState.swift
+@@ -61,11 +61,12 @@
+     public let reason: ScintillaCrewReason
+     public let participants: [ScintillaCrewParticipant]
+     public let suggestions: [ScintillaCrewSuggestion]
++    public let releaseAdvice: [ScintillaCrewReleaseAdvice]
+     public let party: ScintillaCrewParty
+     public let result: ScintillaCrewResult?
+     private enum CodingKeys: String, CodingKey, CaseIterable {
+         case contract, schemaVersion, ok, identity, required, prepared, active, profileId, partyEnabled, bindingsVerified
+-        case reason, participants, suggestions, party, result
++        case reason, participants, suggestions, releaseAdvice, party, result
+     }
+     public init(from decoder: Decoder) throws {
+         try CrewWire.closed(decoder, CodingKeys.allCases.map(\.rawValue))
+@@ -78,6 +79,7 @@
+         reason = try c.decode(ScintillaCrewReason.self, forKey: .reason)
+         participants = try c.decode([ScintillaCrewParticipant].self, forKey: .participants)
+         suggestions = try c.decode([ScintillaCrewSuggestion].self, forKey: .suggestions)
++        releaseAdvice = try c.decode([ScintillaCrewReleaseAdvice].self, forKey: .releaseAdvice)
+         party = try c.decode(ScintillaCrewParty.self, forKey: .party)
+         result = try c.decodeIfPresent(ScintillaCrewResult.self, forKey: .result)
+         try validate()
+@@ -87,7 +89,10 @@
+               partyEnabled == profileId.partyEnabled, !prepared || (required && bindingsVerified && result == nil),
+               !active || prepared, !bindingsVerified || required,
+               suggestions.count <= ScintillaCrewContract.maximumSuggestions,
+-              Set(suggestions.map(\.participantId)).count == suggestions.count else {
++              Set(suggestions.map(\.participantId)).count == suggestions.count,
++              releaseAdvice.count <= ScintillaCrewContract.maximumSuggestions,
++              Set(releaseAdvice.map(\.participantId)).count == releaseAdvice.count,
++              active || releaseAdvice.isEmpty else {
+             throw ScintillaMissionError.invalid("crewState")
+         }
+         try identity.validate(requirePrepared: prepared)
+@@ -95,6 +100,7 @@
+         let supporters = participants.filter { !$0.isPilot }
+         let supporterIDs = Set(supporters.map(\.participantId))
+         guard suggestions.allSatisfy({ supporterIDs.contains($0.participantId) && ($0.taskKind != .partyBoost || partyEnabled) }),
++              releaseAdvice.allSatisfy({ supporterIDs.contains($0.participantId) }),
+               party.consentingParticipantIds.allSatisfy({ supporterIDs.contains($0) }),
+               party.requiredCount == (supporters.count <= 1 ? 1 : 2),
+               partyEnabled ? party.state != .disabled : (party.state == .disabled && !party.usedThisTurn),
+--- host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewCapabilityTests.swift
++++ host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewCapabilityTests.swift
+@@ -12,7 +12,7 @@
+         #expect(standardOnly.supports(.standard) && !standardOnly.supports(.party))
+         #expect(ScintillaCrewProfile.standard.bucket != ScintillaCrewProfile.party.bucket)
+     }
+-    @Test(arguments: ["missing", "unknown", "layout", "revision", "duplicate", "partyDisabled", "numberRevision", "uuid"])
++    @Test(arguments: ["missing", "unknown", "layout", "revision", "duplicate", "partyDisabled", "numberRevision", "uuid", "oldGuidance", "missingGuidance", "numberGuidance"])
+     func malformedCapabilitiesNeverAdmitSC5(_ mutation: String) throws {
+         var object = Self.object()
+         switch mutation {
+@@ -23,6 +23,9 @@
+         case "duplicate": object["profiles"] = ["sc5_crew_standard_v1", "sc5_crew_standard_v1"]
+         case "partyDisabled": object["partyBoost"] = false
+         case "numberRevision": object["layoutRevision"] = 3
++        case "oldGuidance": object["guidanceRevision"] = "1"
++        case "missingGuidance": object.removeValue(forKey: "guidanceRevision")
++        case "numberGuidance": object["guidanceRevision"] = 2
+         default: object["producerUUID"] = "INVALID"
+         }
+         #expect(throws: (any Error).self) { try decode(object) }
+@@ -54,7 +57,7 @@
+     }
+     private static func object() -> [String: Any] {
+         ["contract": ScintillaCrewContract.contract, "schemaVersion": 1, "implemented": true, "crewRoles": true,
+-         "crewHandoffVerification": true, "partyBoost": true, "layoutProfile": "front_rear_crew_v3", "layoutRevision": "3",
++         "crewHandoffVerification": true, "partyBoost": true, "guidanceRevision": "2", "layoutProfile": "front_rear_crew_v3", "layoutRevision": "3",
+          "producerUUID": ScintillaCrewFixture.producer, "profiles": ["sc5_crew_standard_v1", "sc5_crew_party_v1"]]
+     }
+ }
+--- host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewFixture.swift
++++ host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewFixture.swift
+@@ -27,10 +27,11 @@
+          "required": true, "prepared": prepared, "active": false,
+          "profileId": partyEnabled ? "sc5_crew_party_v1" : "sc5_crew_standard_v1", "partyEnabled": partyEnabled,
+          "bindingsVerified": prepared, "reason": prepared ? "prepared" : "crew_unprepared", "participants": [participant(0), participant(1)],
+-         "suggestions": [], "party": party(enabled: partyEnabled), "result": NSNull()]
++         "suggestions": [], "releaseAdvice": [], "party": party(enabled: partyEnabled), "result": NSNull()]
+     }
+     static func suggestion(_ task: String = "offense") -> [String: Any] {
+-        ["participantId": "person.1", "taskKind": task, "targetId": wide, "instance": "1", "threatId": NSNull(),
++        ["participantId": "person.1", "taskKind": task, "offenseAction": task == "offense" ? "fire" : NSNull() as Any,
++         "targetId": wide, "instance": "1", "threatId": NSNull(),
+          "moduleId": NSNull(), "expiresAtTick": "120"]
+     }
+     static func result(partyEnabled: Bool = false) -> [String: Any] {
+--- host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewTests.swift
++++ host/Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewTests.swift
+@@ -71,12 +71,45 @@
+         }
+     }
+ 
++    @Test(arguments: ["open_shield", "maintain_shield", "wait_for_breach", "fire", "contribution_complete"])
++    func offensiveActionsRemainExplicitAndCannotLeakIntoAnotherTask(action: String) throws {
++        var suggestion = ScintillaCrewFixture.suggestion(); suggestion["offenseAction"] = action
++        let value = try JSONDecoder().decode(ScintillaCrewSuggestion.self, from: ScintillaCrewFixture.data(suggestion))
++        #expect(value.offenseAction?.rawValue == action)
++        suggestion["taskKind"] = "capsule_collect"; suggestion["moduleId"] = "3"
++        #expect(throws: (any Error).self) { try JSONDecoder().decode(ScintillaCrewSuggestion.self, from: ScintillaCrewFixture.data(suggestion)) }
++        suggestion = ScintillaCrewFixture.suggestion(); suggestion["offenseAction"] = NSNull()
++        #expect(throws: (any Error).self) { try JSONDecoder().decode(ScintillaCrewSuggestion.self, from: ScintillaCrewFixture.data(suggestion)) }
++        suggestion.removeValue(forKey: "offenseAction")
++        #expect(throws: (any Error).self) { try JSONDecoder().decode(ScintillaCrewSuggestion.self, from: ScintillaCrewFixture.data(suggestion)) }
++    }
++
+     @Test func supportersHaveOneSuggestionAndPilotsHaveNone() throws {
+         var object = ScintillaCrewFixture.object(); let suggestion = ScintillaCrewFixture.suggestion()
+         object["suggestions"] = [suggestion, suggestion]
+         #expect(throws: (any Error).self) { try ScintillaCrewFixture.decode(object) }
+         var pilot = suggestion; pilot["participantId"] = "person.0"; object["suggestions"] = [pilot]
+         #expect(throws: (any Error).self) { try ScintillaCrewFixture.decode(object) }
++    }
++
++    @Test func releaseAdviceIsAnExplicitAlternativeForALiveSupporterAndThreat() throws {
++        var object = ScintillaCrewFixture.object(); object["active"] = true
++        let advice: [String: Any] = ["participantId": "person.1", "threatId": "9007199254740993", "expiresAtTick": "240"]
++        object["releaseAdvice"] = [advice]; object["suggestions"] = [ScintillaCrewFixture.suggestion()]
++        let state = try ScintillaCrewFixture.decode(object)
++        #expect(state.releaseAdvice.count == 1 && state.suggestions.count == 1)
++        #expect(state.releaseAdvice[0].threatId.rawValue == "9007199254740993")
++        // It asks to release the current task; it is not a second assignment.
++        object["releaseAdvice"] = [advice, advice]
++        #expect(throws: (any Error).self) { try ScintillaCrewFixture.decode(object) }
++        var pilot = advice; pilot["participantId"] = "person.0"; object["releaseAdvice"] = [pilot]
++        #expect(throws: (any Error).self) { try ScintillaCrewFixture.decode(object) }
++        object["releaseAdvice"] = [advice]; object["active"] = false
++        #expect(throws: (any Error).self) { try ScintillaCrewFixture.decode(object) }
++        var malformed = advice; malformed["threatId"] = "0"
++        #expect(throws: (any Error).self) { try JSONDecoder().decode(ScintillaCrewReleaseAdvice.self, from: ScintillaCrewFixture.data(malformed)) }
++        malformed = advice; malformed["applyRelease"] = true
++        #expect(throws: (any Error).self) { try JSONDecoder().decode(ScintillaCrewReleaseAdvice.self, from: ScintillaCrewFixture.data(malformed)) }
+     }
+ 
+     @Test func partyQuorumUsesDistinctPeopleAndKeepsCostVisible() throws {
+--- host/Tests/SocialTableControllerTests/ImmersiveSTKCrewHTTPTests.swift
++++ host/Tests/SocialTableControllerTests/ImmersiveSTKCrewHTTPTests.swift
+@@ -127,7 +127,7 @@
+                 "inputEpoch": "9007199254740993", "missionRevision": "1", "routeRevision": "route.synthetic",
+                 "projectionContextId": "projection.synthetic", "layoutProfile": "front_rear_crew_v3", "layoutRevision": "3"],
+             "required": true, "prepared": prepared, "active": false, "profileId": "sc5_crew_standard_v1", "partyEnabled": false,
+-            "bindingsVerified": true, "reason": prepared ? "world_held" : "crew_unprepared", "participants": participants, "suggestions": [],
++            "bindingsVerified": true, "reason": prepared ? "world_held" : "crew_unprepared", "participants": participants, "suggestions": [], "releaseAdvice": [],
+             "party": ["state": "disabled", "reason": "party_disabled", "proposalId": NSNull(), "deadlineTick": NSNull(),
+                 "consentingParticipantIds": [], "requiredCount": 1, "cost": 15, "usedThisTurn": false,
+                 "zoneQualified": false, "zoneAvailable": false, "cooldownUntilTick": "0"], "result": NSNull()]
+--- host/Tests/SocialTableControllerTests/ImmersiveSTKCrewPreparationFlowTests.swift
++++ host/Tests/SocialTableControllerTests/ImmersiveSTKCrewPreparationFlowTests.swift
+@@ -137,6 +137,7 @@
+         var witness = false
+         var confirmed = false
+         var rebinds = 0
++        var suspensions = 0
+         var onChallenge: (() throws -> Void)?
+         var onConfirm: (() throws -> Void)?
+         func verifyCrewPossession(authority: ScintillaCrewIdentity, bindings: [ImmersiveSTKSpatialParticipantBinding],
+@@ -163,7 +164,7 @@
+         func resumePresentation(owner: UUID, route: ImmersiveSTKSurfaceRouting) throws { isPresentationSuspended = false }
+         func preflightMission(_ state: ScintillaMissionState, http: ImmersiveSTKMissionHTTP, configuration: ImmersiveSuperTuxKartAPIConfiguration,
+                               validate: @escaping @MainActor () -> Bool, validateRecovery: @escaping @MainActor () -> Bool) async throws -> Bool { true }
+-        func suspendParticipantBindings() { witness = false }
++        func suspendParticipantBindings() { suspensions += 1; witness = false }
+         func rebindParticipants(_ bindings: [ImmersiveSTKSpatialParticipantBinding], http: ImmersiveSTKDefenseHTTP,
+                                 configuration: ImmersiveSuperTuxKartAPIConfiguration, validate: @escaping @MainActor () -> Bool) async throws { rebinds += 1 }
+         func producerExited() async { isPrepared = false }
+--- host/Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift
++++ host/Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift
+@@ -2149,6 +2149,59 @@
+ @Suite("Immersive SC5 host discovery and profile recovery")
+ @MainActor struct ImmersiveSTKCrewOrchestrationTests {
+     @Test(arguments: [false, true])
++    func unverifiedBindingsInTheSameTurnOfferRebindOnTheExistingGrant(previouslyVerified: Bool) async throws {
++        let h = try HostExchange(); h.required = true; h.bindingsVerified = previouslyVerified; h.inputBound = true
++        let adapter = ImmersiveSTKCrewPreparationFlowTests.Adapter(); adapter.isPrepared = true; adapter.witness = true
++        let (runtime, _) = h.runtime(capabilities: try h.capabilities(), adapter: adapter)
++        await runtime.connectAndRefresh(); await runtime.refresh()
++        let identity = try #require(runtime.scintillaCrewState?.identity)
++        if previouslyVerified { #expect(!runtime.scintillaParticipantRebindRequired) }
++
++        h.bindingsVerified = false // Native state after loss/reacquisition; no new turn/epoch.
++        await runtime.refresh()
++        #expect(runtime.scintillaCrewState?.identity == identity)
++        #expect(runtime.scintillaParticipantRebindRequired && !runtime.isScintillaSpatialInputPrepared)
++        #expect(adapter.isPrepared && !adapter.witness && adapter.suspensions == 1)
++        #expect(runtime.scintillaPhysicalInputSessionID == "input.synthetic")
++        await runtime.refresh()
++        #expect(adapter.suspensions == 1) // Polling cannot continuously supersede a recovery.
++        await runtime.closeOwnedProducer()
++    }
++
++    @Test(arguments: [false, true])
++    func stageAKeepsCurrentBindingsUntilTheNativeDriverCommit(operatorConfirmation: Bool) async throws {
++        let h = try HostExchange(); h.required = true; h.bindingsVerified = true; h.inputBound = true
++        let adapter = ImmersiveSTKCrewPreparationFlowTests.Adapter(); adapter.isPrepared = true; adapter.witness = true
++        let (runtime, client) = h.runtime(capabilities: try h.capabilities(), adapter: adapter)
++        await runtime.connectAndRefresh()
++        #expect(!runtime.scintillaParticipantRebindRequired)
++
++        func state(driver: String, handoff: Bool, version: Int) throws -> ImmersiveSTKStateResponse {
++            let object: [String: Any] = ["session_id": "sc5-host", "state_version": version, "player_count": 2,
++                "loaded_track_id": "lighthouse", "active_driver": ["player_id": driver],
++                "arcade_session": ["session_id": "sc5-host", "state": handoff ? "lap_handoff" : "running",
++                    "player_count": 2, "active_driver": ["player_id": driver], "handoff_active": handoff,
++                    "waiting_for_operator_confirm": operatorConfirmation && handoff, "handoff_countdown": 0,
++                    "input_locked": true, "can_pause": true]]
++            return try JSONDecoder().decode(ImmersiveSTKStateResponse.self, from: JSONSerialization.data(withJSONObject: object))
++        }
++        await client.setState(try state(driver: "p1", handoff: true, version: 2)); await runtime.refresh()
++        #expect(runtime.snapshot.handoffActive && !runtime.scintillaParticipantRebindRequired)
++        #expect(adapter.witness && runtime.isScintillaSpatialInputPrepared)
++        if operatorConfirmation {
++            await runtime.confirmHandoff()
++            #expect(await client.lifecycleCalls() == ["handoff"])
++        }
++        // This fixture proves runtime transitions, not video readiness or a
++        // physical handoff. Native controller tests cover the held B latch.
++        await client.setState(try state(driver: "p2", handoff: false, version: 3)); await runtime.refresh()
++        #expect(!runtime.snapshot.handoffActive && runtime.scintillaParticipantRebindRequired)
++        #expect(!adapter.witness && !runtime.isScintillaSpatialInputPrepared && adapter.isPrepared)
++        #expect(runtime.scintillaPhysicalInputSessionID == "input.synthetic")
++        await runtime.closeOwnedProducer()
++    }
++
++    @Test(arguments: [false, true])
+     func controllerRecreationDiscoversRequiredSC5BeforeAnyReady(malformed: Bool) async throws {
+         let h = try HostExchange(); h.required = true
+         let caps = try h.capabilities(malformed: malformed)
+@@ -2326,6 +2379,8 @@
+         var qualified = true
+         var missionRequired = true
+         var missionPrepared = false
++        var bindingsVerified = false
++        var inputBound = false
+         var missionRevision: UInt64 = 2
+         var rejectPreflight = false
+         var preflights = 0
+@@ -2334,7 +2389,7 @@
+             var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(ImmersiveSTKCapabilitiesResponse.testDefault)) as! [String: Any]
+             object["feature_flags"] = (object["feature_flags"] as? [String] ?? []) + ["scintilla_mission_sc4"]
+             object["scintilla_crew_sc5"] = ["contract": ScintillaCrewContract.contract, "schemaVersion": 1, "implemented": true,
+-                "crewRoles": true, "crewHandoffVerification": true, "partyBoost": true, "layoutProfile": "front_rear_crew_v3",
++                "crewRoles": true, "crewHandoffVerification": true, "partyBoost": true, "guidanceRevision": "2", "layoutProfile": "front_rear_crew_v3",
+                 "layoutRevision": malformed ? "2" : "3", "producerUUID": producerUUID,
+                 "profiles": ["sc5_crew_standard_v1", "sc5_crew_party_v1"]]
+             return try JSONDecoder().decode(ImmersiveSTKCapabilitiesResponse.self, from: JSONSerialization.data(withJSONObject: object))
+@@ -2385,12 +2440,12 @@
+         }
+         func crewObject() -> [String: Any] {
+             var object = ImmersiveSTKCrewHTTPTests.object(prepared: false)
+-            object["required"] = required; object["bindingsVerified"] = false; object["profileId"] = profile.rawValue
++            object["required"] = required; object["bindingsVerified"] = bindingsVerified; object["profileId"] = profile.rawValue
+             object["partyEnabled"] = profile.partyEnabled
+             if !required { object["participants"] = [] }
+             var identity = object["identity"] as! [String: Any]
+             identity["raceEpoch"] = race; identity["crewIntentRevision"] = String(revision); identity["driverTurnId"] = "0"
+-            identity["rosterRevision"] = "1"; identity["inputSessionID"] = ""; identity["inputEpoch"] = "0"
++            identity["rosterRevision"] = "1"; identity["inputSessionID"] = inputBound ? "input.synthetic" : ""; identity["inputEpoch"] = inputBound ? "1" : "0"
+             object["identity"] = identity
+             object["party"] = ["state": profile.partyEnabled ? "idle" : "disabled", "reason": profile.partyEnabled ? "none" : "party_disabled",
+                 "proposalId": NSNull(), "deadlineTick": NSNull(), "consentingParticipantIds": [], "requiredCount": 1, "cost": 15,
+--- host/scripts/ci/test_app_isolated.py
++++ host/scripts/ci/test_app_isolated.py
+@@ -330,6 +330,8 @@
+         "frameIDsRejectBooleanFractionalNonfiniteAndUnsafeNumbers",
+     },
+     "ImmersiveSTKCrewOrchestrationTests": {
++        "unverifiedBindingsInTheSameTurnOfferRebindOnTheExistingGrant",
++        "stageAKeepsCurrentBindingsUntilTheNativeDriverCommit",
+         "controllerRecreationDiscoversRequiredSC5BeforeAnyReady",
+         "layoutV3StillDiscoversCrewWhenTheCapabilityFieldIsAbsent",
+         "aMissingCapabilityDoesNotOfferSC5OrChangeTheSelectedSC4Profile",
+@@ -493,6 +495,8 @@
+ 
+ 
+ SCINTILLA_PARAMETER_MINIMA = {
++    ("ImmersiveSTKCrewOrchestrationTests", "unverifiedBindingsInTheSameTurnOfferRebindOnTheExistingGrant"): 2,
++    ("ImmersiveSTKCrewOrchestrationTests", "stageAKeepsCurrentBindingsUntilTheNativeDriverCommit"): 2,
+     ("ImmersiveSTKCrewOrchestrationTests", "controllerRecreationDiscoversRequiredSC5BeforeAnyReady"): 2,
+     ("ImmersiveSTKCrewOrchestrationTests", "preparedSC3OrSC4UpgradeUsesANewNativeRaceAndPreservesTheGrant"): 2,
+     ("ImmersiveSTKCrewReportTests", "sessionReportPreservesTheFrozenCrewEnvelopeAndSeparateBucket"): 2,

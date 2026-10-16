@@ -1,0 +1,71 @@
+{
+  "kind": "SC2 audit point 4: persistent tool rearm and target-busy feedback; source-only evidence",
+  "SC3_started": false,
+  "checks": {
+    "previous_beam_loss_checkpoint_hashes": 7,
+    "combat_source_math": 10,
+    "tool_feedback_source_geometry": 6,
+    "depth_source_math": 6,
+    "git_diff_check": "pass"
+  },
+  "native_regressions_added": 6,
+  "combat_cases_registered_total": 25,
+  "spatial_cases_registered_total": 66,
+  "native_tests_executed": false,
+  "build_or_typecheck_executed": false,
+  "shader_compiled_or_executed": false,
+  "files": [
+    {
+      "path": "data/shaders/utils/immersive_scintilla.frag",
+      "sha256": "ea75c2c7b8a38d5a22ecfda1abcfe1bf70a286063df83aae4c2b8d55b82ac632"
+    },
+    {
+      "path": "docs/immersive/scintilla/sc2-tool-feedback-2026-10-15/README.md",
+      "sha256": "ec244632020b933d8e09348a696a6b498a62e444b13119a1728d24c13d4763bc"
+    },
+    {
+      "path": "src/modes/immersive_relay/scintilla_combat.cpp",
+      "sha256": "6f77c7e3d96992267015304ada2751df60c07b694977e8109a8b386e907a34b8"
+    },
+    {
+      "path": "src/modes/immersive_relay/scintilla_combat.hpp",
+      "sha256": "25335ebd7a05d584dfa551ee3dbb284ac5f40b9a1298b57ff404d01148b5f523"
+    },
+    {
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "sha256": "2ccbb0b422109aa1cdbd715196813f55f0895abdb6936817b511caf77d0df34c"
+    },
+    {
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "sha256": "34216b1e62b8ec879b622440f8cfaa34905c5665d2f9a8b2b0f61d1c3195a674"
+    },
+    {
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "sha256": "85cfa8c6ea1400d845985613d6b63d3ff384518c28fd2cb31e828c7cda1a1b95"
+    },
+    {
+      "path": "tools/immersive/tests/README.md",
+      "sha256": "90679d5a0e433f0af0d262479ccb688cc3326a18391c85707d9a0eb08f809906"
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_tool_feedback.py",
+      "sha256": "086a98705cb6f86a6b98d9e682001b3dfb44d3a8e80e3134bf54ff2d3458525f"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_combat_cases.inc",
+      "sha256": "6db80a6e46696be1603fba5732331e3fa702d3f22879ee27383ef43667d5d6c4"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_combat_regression.cpp",
+      "sha256": "d3185ac6731c6f8c069884052010d121381b4539dd1384f2c20f0ebd35dc8ab4"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_input_cases.inc",
+      "sha256": "d5f93280b87d01dbcbb8106fe89f0a1078710e2bb4e227acd1fa83242108689f"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+      "sha256": "1c46910d9a38987188edd5bef74fba8aafe6e52d828e65ae02ace036b8ea9532"
+    }
+  ]
+}

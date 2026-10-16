@@ -1,0 +1,19 @@
+{
+  "step": 7,
+  "independent_source_review": "passed after texture cache lifecycle and separate recoverable asset flag fixes",
+  "input_regressions_total_written_reviewed": 102,
+  "new_layout_cases": 8,
+  "source_asset_contracts_passed": 18,
+  "depth_math_source_tests_passed": 8,
+  "native_result_atlas_visual_review": true,
+  "layout_geometry_samples": 17328,
+  "legacy_mask_grid_samples": 28227,
+  "GPU_cases_written_reviewed": {
+    "depth": 64,
+    "style": 87,
+    "cable": 13,
+    "decorations": 10,
+    "HUD": 89
+  },
+  "native_compilation_GPU_or_runtime": false
+}

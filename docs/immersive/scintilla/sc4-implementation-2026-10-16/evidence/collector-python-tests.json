@@ -1,0 +1,20 @@
+{
+  "scope": "offline_mock_transport_export",
+  "command": [
+    "python3",
+    "-B",
+    "tools/immersive/scintilla/test_collect_mission_measurement.py"
+  ],
+  "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc4-implementation-2026-10-16/stk",
+  "testCount": 10,
+  "exitCode": 0,
+  "actualHTTP": false,
+  "nativeExecution": false,
+  "compilerOrBuild": false,
+  "qualificationReportProduced": false,
+  "fixtureMount": "synthetic boundary; real fixture files on the verified task SSD",
+  "sourceSHA256": {
+    "collect_mission_measurement.py": "d4b316fcc894197a808ca9f393b8eb3eaf3e1717d638067bd974a28b3f33949f",
+    "test_collect_mission_measurement.py": "ee36bc122688937c0054cf10ed00f7c21ab28fa923371fd196f73e4846313c7a"
+  }
+}

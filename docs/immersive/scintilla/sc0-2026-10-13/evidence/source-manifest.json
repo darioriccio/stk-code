@@ -1,0 +1,344 @@
+{
+  "phase": "SC0",
+  "client_date": "2026-10-13",
+  "captured_at": "2026-10-13T15:54:05.308957+02:00",
+  "scope": "Local source/document inspection; hashes do not certify binaries, hardware or external SI2 test results",
+  "stk": {
+    "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+    "head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+    "branch": "main",
+    "files": [
+      {
+        "path": "AGENTS.md",
+        "sha256": "fa36035bc57d16b2575ec979bfc14a335029f32e77edab533d40724fe810c8f9",
+        "tracked": false
+      },
+      {
+        "path": "docs/AGENTS.md",
+        "sha256": "d271b32d260a0ad8f38e7ef91bf4b9f1a9292b359493ef86d90911983e2d3371",
+        "tracked": true
+      },
+      {
+        "path": "docs/Tholus_STK_Missione_Scintilla_Design_v2.md",
+        "sha256": "97ba07260f6cb176042b11863537fdca9a6a9e3012efe3339d9c52195854317f",
+        "tracked": false
+      },
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "cd137fa564ed16ff39bb11644c26923ddbee12046d053f7ae95d6a9b1312a4bf",
+        "tracked": true
+      },
+      {
+        "path": "sources.cmake",
+        "sha256": "a51b26ffca1d5a9f8c6d69bb150c6c7fe18403779b9278c77d8b47bd2b336d16",
+        "tracked": true
+      },
+      {
+        "path": "docs/immersive_relay_tholustos_integration.md",
+        "sha256": "9769f9a22f071ea3a9225dd37b8e35db9341acc19e6d71410904e1701d27df83",
+        "tracked": true
+      },
+      {
+        "path": "docs/immersive_relay_phase46_projection_generalization.md",
+        "sha256": "a4a523f946afeca3a6364980295f421b326ce26950a6863e294a314ad82dc804",
+        "tracked": true
+      },
+      {
+        "path": "docs/immersive_relay_swift_integration_contract.md",
+        "sha256": "c1aca1322c7aaa191aa87e3ec51edd424bc2b3f53ec31c9573b4340045be6bec",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+        "sha256": "d32debf270033c40f255ac82859612eb9e5086a62632ee5012300a6ca73dd56c",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+        "sha256": "550a3251f6bbbde0e35a6e56fa9d78b1d3e63f4877bb4a68a705c9ff21db1b66",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+        "sha256": "b849b1d9fd80b6ae3d5f7c86597383f95d29d3110918bfb6b67a2f1c3c3a0e27",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_main_hooks.cpp",
+        "sha256": "54175488593223b0167f5e5732ca8075a5488f20d95861f8681de2a8c288213a",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_action_handler.cpp",
+        "sha256": "adf8c12f386d19e69bc90b22890f5362520ef0649352583a4d5e590aeb7fa67d",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_role_manager.cpp",
+        "sha256": "e4bf79575e664f66c1c2a88be01067c7614e5ff5483a909e89ae332c38101095",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/crew_event_director.cpp",
+        "sha256": "ad10e3c1b1637ee0b7813fab0fd4672df005e22a8141f0c7d24c9967c5f057f3",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/relay_difficulty_director.cpp",
+        "sha256": "3e3174cb27b163c90629833baf130f01a65e8b9d62334d9347a842028de90658",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_world_controller.cpp",
+        "sha256": "ec634599361ee5c4dba845b9e85fe43d9e624771439e837c91494749402904dc",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+        "sha256": "2b8196339fca2dbbd4ddf17e3e34ee7966f8eb260abebc290bf9d5f6d4078a6c",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+        "sha256": "4b8cf30520a2323a9a77597f368bc4e82728f590898b62b52a6c97d9a79c91c2",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/remote/local_control_server.cpp",
+        "sha256": "a9c9d1a8705bdd07694b3be1a901344de497c75f647b15fbc6dc990f2502b7b2",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/camera/immersive_camera_rig.cpp",
+        "sha256": "4f7acd57aa4eef7152cce9a3b76e69a964322fe84a9300837a12c6692bc6e9a9",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/camera/immersive_camera_rig.hpp",
+        "sha256": "622bf6f109e6a7f3e9eae5cc858b8114bbe29222a9e99d242895bba0bae0fe87",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/cubemap_render_target.cpp",
+        "sha256": "b9dc2392dbee227dc148ab3e882d24f20393ea1185ff9cb173d732f9fd451281",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/full_sphere_capture.hpp",
+        "sha256": "8e3eed0ecd9713b118129600daa6fe1cfdfd960d0edf6d2c83cfedef62f1dbc0",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_config.cpp",
+        "sha256": "639b1cf8be35d1377035e508d899b91ae64121270f6a6783ae0151b6721c0eb3",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/immersive_render_pipeline.cpp",
+        "sha256": "087b4e15a75c9e475c6bc44a5c72f6429770036409870bc64894c0b7b3d447d3",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/equirectangular_projection.cpp",
+        "sha256": "38ea06c1302e549a9382cc852fcdeb3fa779e48c9ed1adcdd5dc88fb1acdce2b",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/render/projection/equirectangular_projection.hpp",
+        "sha256": "74469ec6831e1f1cd30f7a2b82808fe6fd36c31b6ac4e292adbe6dbc37a07586",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/output/immersive_output_adapter.hpp",
+        "sha256": "a98b914c3fbb66929b8cb554dbb58e92c5bc28d4bd80300908b5180f79b9e24c",
+        "tracked": true
+      },
+      {
+        "path": "src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.mm",
+        "sha256": "c710331653d6e05b05ba206527c2a32a99e2ce1335f0749ad1ba0314fece861f",
+        "tracked": true
+      },
+      {
+        "path": "data/shaders/immersive_equirectangular.frag",
+        "sha256": "2da70d6448fadf659a937fb4479c34cf02e0d223bf8a6a5139b2249498306379",
+        "tracked": true
+      },
+      {
+        "path": "data/shaders/utils/immersive_sphere_sampling.frag",
+        "sha256": "420c258113709b8f6c3a6630b24da182800369e608484d9e706d7cc434c84871",
+        "tracked": true
+      },
+      {
+        "path": "data/shaders/immersive_fisheye_domemaster.frag",
+        "sha256": "0684c3c1696be7c1499e5a9c0e75ce6db298fa4c0a3b40fa0e7081e2c99e530c",
+        "tracked": true
+      },
+      {
+        "path": "src/items/powerup.cpp",
+        "sha256": "13a18d9716bacb97f9f6f2f75825526d5f3ea3222db50e8d60f84f3c83b42a44",
+        "tracked": true
+      },
+      {
+        "path": "src/items/powerup_manager.cpp",
+        "sha256": "10cfcd1ac2a8d8577cbf376a73d93a575e8472a7a39c2a23b3beb8c3c5d3563e",
+        "tracked": true
+      },
+      {
+        "path": "src/items/powerup_manager.hpp",
+        "sha256": "51babd2f1af4135ad0aba7b658d3921a6fca247da1bff033e4a94f8bb22872e7",
+        "tracked": true
+      },
+      {
+        "path": "src/items/attachment.cpp",
+        "sha256": "aaf554588c11ae3fd73ad54080d977fc07d0d69445fe995882f116d7905bc872",
+        "tracked": true
+      },
+      {
+        "path": "src/karts/explosion_animation.cpp",
+        "sha256": "d0fb926a7c23519619b6364126426a1267901dd7a283ed48ea693aeb30a91d82",
+        "tracked": true
+      },
+      {
+        "path": "data/powerup.xml",
+        "sha256": "519a4ab09f1b42fbbc7e8cc9ddb13d5b67a5e3d8e94452f9822a34efc50a4d11",
+        "tracked": true
+      },
+      {
+        "path": "tools/immersive/BuildRelayMVP.sh",
+        "sha256": "fad1b5aaf3238b226763c41cd572f6f5dcb9629b3a4ac9ae32cf510add4c5b28",
+        "tracked": true
+      },
+      {
+        "path": "tools/immersive/RunRelayTholusOS.command",
+        "sha256": "334f21113b44e9f65e292f3d7f7df694f1bb906d930c4e7f60927bb572df3846",
+        "tracked": true
+      },
+      {
+        "path": "tools/immersive/CheckRelayProjectionSource.py",
+        "sha256": "ffc4cd026aeec58992496c2281ca6d913912e91e7b56368237107b43acb2094b",
+        "tracked": true
+      }
+    ],
+    "preexisting_wip_hashes": {
+      "docs/AGENTS.md": "d271b32d260a0ad8f38e7ef91bf4b9f1a9292b359493ef86d90911983e2d3371",
+      "docs/immersive_relay_adaptive_difficulty_brief.md": "e993c9327f4c87b26fbcda5d7a6625feb1a1f51546cfd930fc4887a430d437d7",
+      "docs/supertuxkart_immersive_relay_master_spec.md": "36e7b072b0e8b1d1bb7db416e5cc21701fd26e5b49340477c17ff634fccc487b",
+      "src/modes/immersive_relay/relay_race_mode.cpp": "b849b1d9fd80b6ae3d5f7c86597383f95d29d3110918bfb6b67a2f1c3c3a0e27",
+      "src/modes/immersive_relay/relay_session_controller.cpp": "d32debf270033c40f255ac82859612eb9e5086a62632ee5012300a6ca73dd56c",
+      "src/modes/immersive_relay/relay_session_controller.hpp": "550a3251f6bbbde0e35a6e56fa9d78b1d3e63f4877bb4a68a705c9ff21db1b66",
+      "AGENTS.md": "fa36035bc57d16b2575ec979bfc14a335029f32e77edab533d40724fe810c8f9",
+      "docs/Tholus_STK_Missione_Scintilla_Design_v2.md": "97ba07260f6cb176042b11863537fdca9a6a9e3012efe3339d9c52195854317f"
+    },
+    "design_referenced_commit_present_locally": false
+  },
+  "host": {
+    "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+    "head": "db940be8aa23adf82b8eef3fa9898d36a266833a",
+    "working_tree_clean": false,
+    "files": [
+      {
+        "path": "Packages/TholusSpatialInput/README.md",
+        "sha256": "5700e8a81b5319626728e17e01888b24f5183d5cf0e2d9593a3b33f389d8d0ff",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Package.swift",
+        "sha256": "6ad0e776d764d4f34148c59085f0ad59bb93f694f4f6a9cca9e879c8f4d1631a",
+        "tracked": true
+      },
+      {
+        "path": "contracts/TholusSpatialInput/README.md",
+        "sha256": "594a2c60610501d6a0b802a4e3b9c20b69db5a851c381aee384349e62fb789d0",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/Models.swift",
+        "sha256": "f41cc19136bca41bcd014bc92a2b7bbe4f4b49ddb47d99dcfe1a256a2c4acba8",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/SpatialInputPipeline.swift",
+        "sha256": "d036a0f40bb6939116dfae0906a98db0cc0dd51e8778b1a74051da6f6502cf5f",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/SpatialInputRuntime.swift",
+        "sha256": "d845c199e8c1471de1c7cb40e112de69bcd0554fcc55f5094807e6409384afde",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/Resources/Contracts/spatial-input.schema.json",
+        "sha256": "e6119f20c7f047af48f1ccb8ee3439c2cbb6f0dfa052f9f3ca3a7cd09865236e",
+        "tracked": true
+      },
+      {
+        "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/Resources/Contracts/descriptor.schema.json",
+        "sha256": "7f41e6b9847687201a8f67a45681ff2a55c69d295b2c9f868e7405934a24ee66",
+        "tracked": true
+      },
+      {
+        "path": "Modules/Accessories/SpatialInput/RoomSpatialInputService.swift",
+        "sha256": "52c7c794e9f12bfdedf73ebd00cbe9d43571fd9d5eff2a614157c8b36ce1c9b1",
+        "tracked": true
+      },
+      {
+        "path": "docs/spatial-input/si2-2026-10-13/REPORT.md",
+        "sha256": "b2d3b6cc1a4ebb3308408dd32266e778ce67e4fe5620910ca2bbd0877ed4a09a",
+        "tracked": true
+      },
+      {
+        "path": "tools/TholusTrackingBridge/README.md",
+        "sha256": "98f13364f7eb4cac3854ecf896535e6c159612594e76bcd18b8bdb38d3539fd9",
+        "tracked": false
+      },
+      {
+        "path": "tools/TholusTrackingBridge/actions/room-actions.json",
+        "sha256": "b7bcf407430261d178ede2183c0f2a1985d26ec20164d1dc51d76c3677042f59",
+        "tracked": false
+      },
+      {
+        "path": "tools/TholusTrackingBridge/actions/vive-controller.json",
+        "sha256": "fdef351241b580a169048d78d92e9de1c202045ef7f7c8cb68a6cf447675de4a",
+        "tracked": false
+      },
+      {
+        "path": "tools/TholusTrackingBridge/bridge/acquisition.py",
+        "sha256": "81c066700929731fedeaf57632541ed06f5ba2209947ecbb827e740acef5edda",
+        "tracked": false
+      },
+      {
+        "path": "tools/TholusTrackingBridge/bridge/openvr_backend.py",
+        "sha256": "8de3203e01e2db4b5d66ce766c41d3716edab58d124e66b85074b89b54571cd5",
+        "tracked": false
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+        "sha256": "bf49769804552a60f7893dd5ed151f86cffab6a2cae30637aa49f80729e4a9fc",
+        "tracked": true
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSTKSurfaceRoutingBridge.swift",
+        "sha256": "ec43ad82acf52cba1a28b7b09794345c412a38aee282a60187b5af276c39f403",
+        "tracked": true
+      },
+      {
+        "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIModels.swift",
+        "sha256": "eb7d3b985f219ca676ae318a4981569f9459de8e54567be37c9d5041529f38ce",
+        "tracked": true
+      }
+    ],
+    "si2_test_results": "historical report read, not rerun by SC0"
+  },
+  "shared_plan": {
+    "path": "/Users/dario/Downloads/TholusOS_Spatial_Input_Handoff_v2/TholusOS_Spatial_Input_Piano_Implementazione_v2.md",
+    "sha256": "c97a3e306abe691f8a67d75cced690c2b5095d76c88c4351bc6738e04edc4735"
+  },
+  "preexisting_audit": {
+    "path": "docs/immersive/repo_audit.md",
+    "sha256": "4604989608e746c48d29e38a9dc68607350d9fdc64d38b81e3f825cb4599e88e"
+  },
+  "worktree": {
+    "base_head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+    "purpose": "document authoring only; current instructions and design copied in; actual source audit read main with WIP"
+  }
+}

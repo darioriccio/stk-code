@@ -1,0 +1,28 @@
+SC1 verification — 2026-10-14
+No build, compiler, typecheck, shader compiler, app launch or hardware execution.
+
+$ python3 -B tools/immersive/CheckRelayProjectionSource.py
+test_actual_shared_face_sampler_has_full_sphere_coverage (__main__.ProjectionSourceTests.test_actual_shared_face_sampler_has_full_sphere_coverage) ... ok
+test_cardinal_contract_and_vertical_publication (__main__.ProjectionSourceTests.test_cardinal_contract_and_vertical_publication) ... ok
+test_independent_receiver_round_trip (__main__.ProjectionSourceTests.test_independent_receiver_round_trip) ... ok
+test_render_thread_and_presentation_gate_wiring (__main__.ProjectionSourceTests.test_render_thread_and_presentation_gate_wiring) ... ok
+test_seam_continuity_and_poles (__main__.ProjectionSourceTests.test_seam_continuity_and_poles) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.093s
+
+OK
+
+exit=0
+$ git diff --check
+
+exit=0
+Manifest SHA-256 verification: PASS (27 files in two repositories).
+Local documentation links: PASS.
+Worktree host localization guard: PASS (1640 Swift files, 0 new findings).
+Host git diff --check: PASS.
+C++ and Swift regression sources: WRITTEN, NOT COMPILED, NOT RUN.
+Source review: canonical contracts, roster, replay, clocks, projection/depth, GL resource lifetime, Syphon lease.
+Existing unrelated WIP SHA-256: unchanged at integration.
+No staging, commit or push performed.
+Cleanup: two task-only detached worktrees and baseline copies removed after manifest equality and ancestor checks; delivered sources/evidence preserved.

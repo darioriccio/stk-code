@@ -1,0 +1,34 @@
+{
+  "recordedAt": "2026-10-16T11:34:33.368715+00:00",
+  "scope": "source_and_python_math_only",
+  "nativeCompiled": false,
+  "nativeExecuted": false,
+  "gpuExecuted": false,
+  "sc5Started": false,
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/immersive/tests/check_scintilla_combat.py",
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc4-implementation-2026-10-16/stk",
+      "exitCode": 0,
+      "testCount": 10,
+      "result": "Ran 10 tests in 0.021s\nOK",
+      "sha256": "9c00bb884ecf9477bc68bd2e559e2cc7849694d8e3e8b6ecb23c88db8e464c91"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/immersive/tests/check_scintilla_tool_feedback.py",
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc4-implementation-2026-10-16/stk",
+      "exitCode": 0,
+      "testCount": 6,
+      "result": "Ran 6 tests in 0.022s\nOK",
+      "sha256": "24ac8c77471338f6c74d45752f5b9db3baa8e5d1810996184327ef0ac47524ce"
+    }
+  ],
+  "guardChanges": [
+    "Evaluate actual unconfigured start predicate for independent mission and defense intent.",
+    "Evaluate typed sticky loss predicate for original SC2 loss traces plus kind and phase revision changes.",
+    "Verify sole primary drain and epoch barrier before proof mutation.",
+    "Evaluate legacy versus mission shader status and held-ring predicates.",
+    "Scope release clearing to combat, defense and mission feedback before the release reply.",
+    "Registry minimums plus required regression names, uniqueness and exact zero-argument definition coverage."
+  ]
+}

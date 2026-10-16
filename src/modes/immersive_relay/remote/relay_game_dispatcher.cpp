@@ -8,7 +8,7 @@
 #include <memory>
 #include <mutex>
 
-namespace
+namespace RelayGameDispatcher
 {
 struct Request
 {
@@ -21,43 +21,61 @@ struct Request
     bool cancelled = false;
     RelayHttpResponse response;
 };
+}
+namespace
+{
+using RelayGameDispatcher::Request;
 std::mutex queue_mutex;
 std::deque<std::shared_ptr<Request> > queue;
 bool stopped = false;
 }
 
-RelayHttpResponse RelayGameDispatcher::dispatch(
-    const std::string& method, const std::string& path, const std::string& body,
-    bool api_active, int port)
+RelayGameDispatcher::Ticket RelayGameDispatcher::submit(
+    const std::string& method,const std::string& path,const std::string& body,
+    bool api_active,int port)
 {
-    // Snapshot reads remain responsive while a scene is loading.
-    const std::string route_path = path.substr(0, path.find('?'));
-    if (method != "POST" && route_path != "/immersive/v1/tracks" &&
-        route_path != "/immersive/v1/karts" && route_path != "/immersive/v1/input/devices" &&
-        route_path != "/immersive/v1/input/state")
-        return RelayCommandRouter::route(method, path, body, api_active, port);
-
-    std::shared_ptr<Request> request(new Request());
-    request->method = method;
-    request->path = path;
-    request->body = body;
-    request->api_active = api_active;
-    request->port = port;
+    Ticket request(new Request());request->method=method;request->path=path;
+    request->body=body;request->api_active=api_active;request->port=port;
+    // Preserve snapshot reads that remain responsive while a scene is loading.
+    const std::string route_path=path.substr(0,path.find('?'));
+    if(method!="POST"&&route_path.compare(0,std::string("/immersive/v1/spatial/").size(),"/immersive/v1/spatial/")!=0&&route_path.compare(0,std::string("/immersive/v1/scintilla/").size(),"/immersive/v1/scintilla/")!=0&&route_path!="/immersive/v1/tracks"&&
+       route_path!="/immersive/v1/karts"&&route_path!="/immersive/v1/input/devices"&&route_path!="/immersive/v1/input/state"&&route_path!="/immersive/v1/capabilities")
+    {request->response=RelayCommandRouter::route(method,path,body,api_active,port);request->done=true;return request;}
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    if(stopped||queue.size()>=64)
     {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        if (stopped)
-            return RelayHttpResponse(503, "{\"ok\":false,\"error\":\"game_stopping\"}");
-        queue.push_back(request);
+        request->response=RelayHttpResponse(503,stopped?"{\"ok\":false,\"error\":\"game_stopping\"}":"{\"ok\":false,\"error\":\"game_command_backpressure\"}");
+        request->done=true;
     }
+    else queue.push_back(request);
+    return request;
+}
+bool RelayGameDispatcher::poll(const Ticket& ticket,RelayHttpResponse* response)
+{
+    std::lock_guard<std::mutex> lock(ticket->mutex);
+    if(!ticket->done)return false;
+    *response=ticket->response;return true;
+}
+void RelayGameDispatcher::cancel(const Ticket& ticket)
+{
+    // Routing that has already started retains its existing uncertain-effect
+    // semantics; only queued work can be prevented from executing.
+    {std::lock_guard<std::mutex> lock(ticket->mutex);if(!ticket->done)ticket->cancelled=true;}
+    // Do not let disconnected/expired clients fill the finite queue with jobs
+    // that can no longer execute. Never nest queue and ticket mutexes.
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    for(auto it=queue.begin();it!=queue.end();)if(*it==ticket)it=queue.erase(it);else ++it;
+}
+RelayHttpResponse RelayGameDispatcher::dispatch(
+    const std::string& method,const std::string& path,const std::string& body,
+    bool api_active,int port)
+{
+    Ticket request=submit(method,path,body,api_active,port);
     std::unique_lock<std::mutex> lock(request->mutex);
-    if (!request->ready.wait_for(lock, std::chrono::seconds(30),
-                                [&request] { return request->done; }))
+    if(!request->ready.wait_for(lock,std::chrono::seconds(30),[&request]{return request->done;}))
     {
-        // A queued job is cancelled. If loading already began, the caller
-        // must refresh /state before retrying rather than assume no effect.
-        request->cancelled = true;
-        return RelayHttpResponse(503,
-            "{\"ok\":false,\"error\":\"game_command_timeout_refresh_state\"}");
+        request->cancelled=true;
+        return RelayHttpResponse(503,"{\"ok\":false,\"error\":\"game_command_timeout_refresh_state\"}");
     }
     return request->response;
 }

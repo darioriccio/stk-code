@@ -1,0 +1,52 @@
+{
+  "kind": "SC2 audit point 2: physical stagger clearance; source-only evidence",
+  "SC3_started": false,
+  "checks": {
+    "stagger_clearance_source_math": 6,
+    "combat_source_math": 8,
+    "git_diff_check": "pass",
+    "vanilla_animation_tail_identical_to_baseline": true
+  },
+  "native_regressions_added": 4,
+  "combat_cases_registered_total": 21,
+  "native_tests_executed": false,
+  "build_or_typecheck_executed": false,
+  "files": [
+    {
+      "path": "docs/immersive/scintilla/sc2-stagger-clearance-2026-10-15/README.md",
+      "sha256": "8fd283e3d8f225ed060ecc8bab28d2b52d42bd9c8721000bff75def6a6ea84ca"
+    },
+    {
+      "path": "src/karts/explosion_animation.cpp",
+      "sha256": "231f2b34d028753eb1726f864ce1160e2a35f75fce83bc418d8bf1b0f57801d0"
+    },
+    {
+      "path": "src/modes/immersive_relay/scintilla_combat.cpp",
+      "sha256": "cc758203ecb54048d51bc3dff48ee63b2f674f4a2f1b5cad310232d6312950ad"
+    },
+    {
+      "path": "src/modes/immersive_relay/scintilla_combat.hpp",
+      "sha256": "2d57f5655fbc33ec4bff69d2f4db70ff80fd127eef55be3027d00e15c55c0b9b"
+    },
+    {
+      "path": "tools/immersive/tests/README.md",
+      "sha256": "0d364a57fdccac3f954e690502f2760f84f3ce8586a8ff9191e8dc7b99da9d5b"
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_combat.py",
+      "sha256": "bc313ccd329e531a0e9ec0694cc5cb12fcfe3ce6fcecb1ca5b38bad1e02e6d4c"
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_stagger_clearance.py",
+      "sha256": "21187e7351f3d72ddda16a5c00024529ef56b9c907a45a28c2d4d77ce775ff95"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_combat_cases.inc",
+      "sha256": "6af4e076624d3723ea2347a90144c713d2efe25ec351a254b066a3aa571ff5c6"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_combat_regression.cpp",
+      "sha256": "44ed94f3024e36c582b25745faa6a43628ac343a7044482b92881a85eb03707a"
+    }
+  ]
+}

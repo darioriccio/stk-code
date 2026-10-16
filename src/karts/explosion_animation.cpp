@@ -33,6 +33,127 @@
 #include "mini_glm.hpp"
 
 #include <cstring>
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/scintilla_combat.hpp"
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
+#include "network/network_config.hpp"
+#include "network/rewind_manager.hpp"
+#include "physics/physics.hpp"
+#include <btBulletDynamicsCommon.h>
+#include <cmath>
+#include <algorithm>
+#include <limits>
+#endif
+
+#ifdef ENABLE_IMMERSIVE_RELAY
+namespace {
+bool relaySupportingContact(const btVector3& normal,const btVector3& point,
+                            const btVector3& origin,const btVector3& up,btScalar bottom)
+{
+    const btScalar length=normal.length();
+    return std::isfinite(double(length))&&length>0&&
+        ScintillaCombat::StaggerEnvelope::supportingFace(double(normal.dot(up)/length),
+            double((point-origin).dot(up)),double(bottom));
+}
+// Support contacts below the actual body's bottom may be left behind. An
+// upward-facing obstacle elsewhere is not automatically supporting ground.
+struct RelayOverlap : btCollisionWorld::ContactResultCallback {
+    const btCollisionObject* probe;
+    const btCollisionObject* self;
+    btVector3 origin,up;
+    btScalar bottom;
+    bool blocked=false;
+    RelayOverlap(const btCollisionObject* p,const btCollisionObject* body,const btVector3& o,const btVector3& n,btScalar b)
+      :probe(p),self(body),origin(o),up(n),bottom(b){}
+    btScalar addSingleResult(btManifoldPoint& point,const btCollisionObject* a,int,int,
+                             const btCollisionObject* b,int,int) override {
+        const bool first=a==probe;
+        const auto* other=first?b:a;
+        const btVector3 normal=first?point.m_normalWorldOnB:-point.m_normalWorldOnB;
+        const btVector3 hit=first?point.getPositionWorldOnB():point.getPositionWorldOnA();
+        if(other!=self&&point.getDistance()<=0&&!relaySupportingContact(normal,hit,origin,up,bottom))blocked=true;
+        return 0;
+    }
+};
+struct RelayClearance : btCollisionWorld::ClosestConvexResultCallback {
+    const btCollisionObject* self;
+    btVector3 origin,up;
+    btScalar bottom;
+    RelayClearance(const btVector3& from,const btVector3& to,const btCollisionObject* body,
+                   const btVector3& o,const btVector3& normal,btScalar b)
+      :btCollisionWorld::ClosestConvexResultCallback(from,to),self(body),origin(o),up(normal),bottom(b){}
+    btScalar addSingleResult(btCollisionWorld::LocalConvexResult& r,bool worldNormal) override {
+        if(r.m_hitCollisionObject==self)return 1;
+        const btVector3 n=worldNormal?r.m_hitNormalLocal:r.m_hitCollisionObject->getWorldTransform().getBasis()*r.m_hitNormalLocal;
+        // Bullet's ClosestConvexResultCallback also takes this point as world space.
+        if(relaySupportingContact(n,r.m_hitPointLocal,origin,up,bottom))return 1;
+        return btCollisionWorld::ClosestConvexResultCallback::addSingleResult(r,worldNormal);
+    }
+};
+bool relayStaggerClearance(AbstractKart* kart,btCollisionWorld* world,float* pitch)
+{
+    const auto* shape=kart->getBody()->getCollisionShape();
+    if(!shape)return false;
+    btTransform identity;identity.setIdentity();btVector3 lower,upper;
+    shape->getAabb(identity,lower,upper);
+    const double lo[3]={double(lower.x()),double(lower.y()),double(lower.z())};
+    const double hi[3]={double(upper.x()),double(upper.y()),double(upper.z())};
+    ScintillaCombat::StaggerEnvelope bounds;
+    if(!ScintillaCombat::StaggerEnvelope::create(lo,hi,0.25,8.0*3.14159265358979323846/180.0,&bounds))return false;
+    btVector3 center(0,0,0),half(0,0,0);
+    for(unsigned i=0;i<3;++i){
+        center[i]=btScalar(bounds.center[i]);
+        // Account for center conversion, and round the outer extent up.
+        half[i]=std::nextafter(btScalar(bounds.halfExtents[i]+std::abs(double(center[i])-bounds.center[i])),
+                               std::numeric_limits<btScalar>::infinity());
+        if(!std::isfinite(double(center[i]))||!std::isfinite(double(half[i]))||half[i]<=0)return false;
+    }
+    btBoxShape envelope(half);
+    const btTransform body=kart->getTrans();
+    btTransform from=body;from.setOrigin(body(center));btTransform to=from;
+    const btVector3 normal=body.getBasis().getColumn(1).normalized();
+    to.setOrigin(from.getOrigin()+normal*0.25f);
+    for(unsigned i=0;i<3;++i)
+        if(!std::isfinite(double(from.getOrigin()[i]))||!std::isfinite(double(to.getOrigin()[i])))return false;
+    btCollisionObject probe;probe.setCollisionShape(&envelope);probe.setWorldTransform(from);
+    RelayOverlap overlap(&probe,kart->getBody(),body.getOrigin(),normal,lower.y());
+    world->contactTest(&probe,overlap);
+    RelayClearance clearance(from.getOrigin(),to.getOrigin(),kart->getBody(),body.getOrigin(),normal,lower.y());
+    world->convexSweepTest(&envelope,from,to,clearance);
+    // The whole pitch interval is enclosed at both ends of this translation.
+    // Never use a partial sweep as permission to rotate through an obstacle.
+    if(overlap.blocked||clearance.hasHit())return false;
+    *pitch=std::nextafter(float(bounds.pitch),0.0f);
+    return true;
+}
+}
+ExplosionAnimation* ExplosionAnimation::createRelayStagger(AbstractKart* kart,int64_t ticks)
+{
+    World* world=World::getWorld();
+    if(!ImmersiveRelay::ScintillaEngine::combatPolicyActive()||!world||!world->isRacePhase()||world->isFinishPhase()||
+       !kart||kart==world->getPlayerKart(0)||kart->isEliminated()||kart->hasFinishedRace()||kart->getKartAnimation()||
+       kart->isInvulnerable()||kart->isShielded()||ticks<1||ticks>10000||
+       NetworkConfig::get()->isNetworking()||RewindManager::isEnabled()||RaceManager::get()->isWatchingReplay()||RaceManager::get()->isRecordingRace())return nullptr;
+    float height=0,pitch=0;
+    auto* physics=Physics::get();
+    if(!physics||!physics->getPhysicsWorld()||!kart->getBody())return nullptr;
+    if(relayStaggerClearance(kart,physics->getPhysicsWorld(),&pitch))height=0.25f;
+    auto* animation=new ExplosionAnimation(kart,int(ticks),height,pitch);
+    kart->playCustomSFX(SFXManager::CUSTOM_EXPLODE);
+    return animation;
+}
+ExplosionAnimation::ExplosionAnimation(AbstractKart* kart,int ticks,float height,float pitch)
+  :AbstractKartAnimation(kart,"RelayStagger")
+{
+    m_direct_hit=true;m_reset_ticks=-1;m_velocity=0;
+    memset(m_reset_trans_compressed,0,sizeof(m_reset_trans_compressed));
+    m_relay_stagger=true;m_relay_ticks=ticks;m_relay_height=height;m_relay_pitch=pitch;
+    m_end_ticks=m_created_ticks+ticks;
+    m_normal=m_created_transform.getBasis().getColumn(1).normalized();
+    kart->getBody()->setLinearVelocity(btVector3(0,0,0));
+    kart->getBody()->setAngularVelocity(btVector3(0,0,0));
+}
+#endif
 
 /** A static create function that does only create an explosion if
  *  the explosion happens to be close enough to affect the kart.
@@ -163,6 +284,9 @@ ExplosionAnimation::~ExplosionAnimation()
     {
         m_kart->getBody()->setLinearVelocity(btVector3(0,0,0));
         m_kart->getBody()->setAngularVelocity(btVector3(0,0,0));
+#ifdef ENABLE_IMMERSIVE_RELAY
+        if(m_relay_stagger)return; // base destructor still restores the physics body
+#endif
         // Don't reset spectate camera
         auto cl = LobbyProtocol::get<ClientLobby>();
         if (!GUIEngine::isNoGraphics() && (!cl || !cl->isSpectator()))
@@ -245,6 +369,19 @@ void ExplosionAnimation::init(bool direct_hit, const Vec3& normal,
  */
 void ExplosionAnimation::update(int ticks)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(m_relay_stagger){
+        const int elapsed=World::getWorld()->getTicksSinceStart()-m_created_ticks;
+        const double w=ScintillaCombat::Profile::staggerCurve(double(elapsed)/m_relay_ticks);
+        m_kart->setXYZ(m_created_transform.getOrigin()+m_normal*(m_relay_height*w));
+        m_kart->setRotation((m_created_transform.getRotation()*btQuaternion(btVector3(1,0,0),m_relay_pitch*w)).normalized());
+        if(elapsed>=m_relay_ticks){
+            m_kart->setXYZ(m_created_transform.getOrigin());m_kart->setRotation(m_created_transform.getRotation());
+            m_end_ticks=World::getWorld()->getTicksSinceStart();
+        }
+        AbstractKartAnimation::update(ticks);return; // may delete this
+    }
+#endif
     float dur = stk_config->ticks2Time(
         World::getWorld()->getTicksSinceStart() - m_created_ticks);
 
@@ -289,6 +426,9 @@ void ExplosionAnimation::update(int ticks)
 // ----------------------------------------------------------------------------
 void ExplosionAnimation::updateGraphics(float dt)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(m_relay_stagger){AbstractKartAnimation::updateGraphics(dt);return;}
+#endif
     if (m_kart->getStarsEffect() && !m_kart->getStarsEffect()->isEnabled())
     {
         // Set graphical effects for invulnerable time in updateGraphics

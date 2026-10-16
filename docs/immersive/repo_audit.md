@@ -2,6 +2,17 @@
 
 Date: 2026-06-08
 
+> **Checkpoint 2026-10-13:** the [Missione Scintilla SC0 baseline](scintilla/sc0-2026-10-13/README.md)
+> maps the current local checkout, shared Spatial Input, native equirectangular
+> source implementation, proposed powerup policy and open frame/hardware gates.
+> The audit below remains historical; its build results do not qualify that
+> checkpoint. SC1 had not started at that historical checkpoint.
+>
+> **Checkpoint 2026-10-14:** [SC1 source implementation](scintilla/sc1-2026-10-14/README.md)
+> adds canonical input, calibrated host mapping, independent reticles and
+> historical presented-frame/depth resolution. No build or runtime qualification
+> was executed; SC2 has not started.
+
 ## Scope
 
 This audit was performed for the SuperTuxKart Immersive Relay MVP. The

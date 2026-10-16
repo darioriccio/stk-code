@@ -1,0 +1,337 @@
+{
+  "status": "software_corrected_source_reviewed_native_qualification_pending",
+  "constraints": [
+    "no build, compiler, native test execution or hardware"
+  ],
+  "checkpoints": {
+    "4_clock_renewal": {
+      "status": "source_corrected_and_reviewed",
+      "checks": [
+        "canonical host-domain frontier/candidate invariance",
+        "server freshness/activation/capture preserved",
+        "source regressions positive/negative offset, pending depth, clipped proof, rewrite and backward frontier",
+        "git diff --check passed"
+      ],
+      "native_tests": "written and reviewed; not compiled or run",
+      "sha256_at_review": {
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp": "7908813db1ef76b1e1eff55801c86d26a57f1cf0738b1aebc540a521606cc9f3",
+        "tools/immersive/tests/scintilla_input_regression.cpp": "6c8020bfabec570bb214619efbf53ae86cf8bef0e3be5b35beb43ac4ab5d4c03"
+      }
+    },
+    "5_replay": {
+      "status": "source_corrected_and_reviewed",
+      "checks": [
+        "author + primary + independent source review",
+        "bounded 512/source, 1 second receive-time TTL, lifetime action sequences retained",
+        "6000-edge stress + clock renewal, retired/recent/global duplicates, quota isolation and recovery source regressions",
+        "git diff --check passed"
+      ],
+      "native_tests": "written and reviewed; not compiled or run",
+      "reference": "https://www.rfc-editor.org/rfc/rfc4303.html#section-3.4.3",
+      "sha256_at_review": {
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp": "34a03877899db7c5d063c542fd31446d2ba271517e648d16cbecf9439c1fcd37",
+        "tools/immersive/tests/scintilla_input_regression.cpp": "0b7b0086d474aa3ecd1f1b22fb6b1a448e5188b54979a63793f1cdee5cc333f1"
+      }
+    },
+    "6_history_admission": {
+      "status": "source_corrected_and_reviewed",
+      "checks": [
+        "actual published metadata/signaled depth pregrant admission, no inferred FPS",
+        "all-candidate immutable copies/depth leases, 60ms selection/original250ms overall deadline",
+        "operational resource loss disarms and keeps renewable grant; recovery fresh release; closed protocol preserved",
+        "bounded retired actual IDs vs never-published gaps; monotone ACKed host export",
+        "author + primary + independent source reviews; git diff --check in both repos",
+        "localization guard:1645 Swift files,0 new findings"
+      ],
+      "native_tests": "C++ and Swift regressions written and reviewed; not compiled/run",
+      "sha256_at_review": {
+        "stk": {
+          "src/modes/immersive_relay/spatial/scintilla_input.cpp": "06d801f2c9980bbf07448a23325e09fd2594c71d29f5f6f5a545e977cd02e626",
+          "src/modes/immersive_relay/spatial/scintilla_input.hpp": "3e905b7b30ea15394472c721edf688b231a2fd05afeb32947d4e6ddc62025bb5",
+          "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "dced682352de87fbd7563a8a93bf9ff283073405c55831952cc4a83bc500e5af",
+          "src/modes/immersive_relay/spatial/scintilla_engine.hpp": "6d498168f3275bd7264fcc0bb05ad322f5f7bf353a6bcbbb53825fd9c32504a1",
+          "src/modes/immersive_relay/remote/relay_command_router.cpp": "057ea7256d14314e3ac4fb16a92d047456c9f68a64959d1041a54d96648a46a0",
+          "tools/immersive/tests/scintilla_input_regression.cpp": "b0d3abcc93dc0c214454d41957c89d6e53d0ec0b6e7f69039c3c69ece2da26e8"
+        },
+        "host": {
+          "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": "8ab62e1164d1f99e0a8fe532e5406c15f0fea49898435e69cc1e48e881c8c1ac",
+          "Modules/GameShowControl/ImmersiveSTKSpatialHistory.swift": "670dff28a344fa219b394cfd4907176ae442fdabebb880771a744befab1311ba",
+          "Modules/GameShowControl/ImmersiveSTKSpatialPresentation.swift": "6c111a26d9a1ea431b5057203b358909b38f1352091f6964a84d9291672b645d",
+          "Modules/GameShowControl/Sagitta/Core/SagittaPresentation.swift": "c1893d7bc4cf0d0340821dd49fd9d18f665f3265516d95460d9adad637339c9b",
+          "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift": "b0ff8a3ba846c35ee56e23e293baeb3dc4b1cb733782eb73295b000ad9bb0ea1",
+          "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHistoryTests.swift": "cd04519289d55359bce85302ab03379e60f906845dc835f31f711531d92e8a5b"
+        }
+      }
+    },
+    "7_visual_feedback": {
+      "status": "source_corrected_and_reviewed",
+      "checks": [
+        "separate frozen feedback UV and 0..4 category/timestamps vs live aim",
+        "monotone 500ms result/250ms pending, latest press sequence+revision prevents old async overwrite",
+        "independent five-source uniform binding and distinct non-color-only glyphs; THB1 alpha preserved",
+        "resource-loss rejection vs preserved authentic terminal, explicit lifecycle clears",
+        "author + primary + independent source review; git diff --check passed"
+      ],
+      "native_tests_and_visual": "regressions written/reviewed; no compile, native execution or shader/render/hardware verification",
+      "sha256_at_review": {
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp": "2b1f29f02e40ab5431f96b8237c95f7946a082814e59789659204c023db326e9",
+        "src/modes/immersive_relay/spatial/scintilla_input.hpp": "60d2d83d2cdbcdb5084b34087bb8f88b23070d127b1890704d2f5ee395e4bd35",
+        "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "75267ae874bf313c3869567489ec8a820b9690ebd5196420165f64f0b604017d",
+        "data/shaders/utils/immersive_scintilla.frag": "cf730b7425bc6df5e97e543ae40da12c2d15079dca51a845673ea7fae7afcfe2",
+        "tools/immersive/tests/scintilla_input_regression.cpp": "95a82b2ece58d09f45efbe4ec940179b8e1e8c1d04ffec683b6c33ec013c8a89"
+      }
+    },
+    "8_regression_infrastructure": {
+      "status": "source_corrected_and_reviewed",
+      "cpp_ctest_cases": 33,
+      "host_methods": 50,
+      "host_minimum_parameter_cases": 87,
+      "checks": [
+        "author + primary + independent source review",
+        "always-active C++ checks; opt-in standalone CMake/CTest",
+        "moving historical camera, five independent sources, 4800-shot session with 500ms renewal",
+        "production HTTP helper injected transport, actual runtime controller pause/resume synthetic API",
+        "host profile explicit lifecycle method selection, strict missing/skip/parameter checks, unit-only runner dispatch",
+        "28 Python runner unit checks passed; no compiler/native subprocess",
+        "5 projection source/math checks passed (4000 independent round trips)",
+        "git diff --check in both repos",
+        "late malformed-response finding: top-level present ok/accepted must both be actual true booleans; contradictory/type/null regression variants author+primary source-reviewed"
+      ],
+      "native_tests": "written, runner-wired and reviewed; no configure/compile/typecheck/execution",
+      "sha256_at_review": {
+        "stk": {
+          "CMakeLists.txt": "e74d9b80adef0696d4a2b0da316718abf283ddf853ca5a6caac6d9e88f7c7424",
+          "tools/immersive/tests/CMakeLists.txt": "ceb3e4a12a54733cd4b43f636324bf51cbcdb758351f2a8286221e48070715b7",
+          "tools/immersive/tests/scintilla_input_cases.inc": "f6e81ace4dcf7b84864a30b29a13dd2b7ceabe17e6ab1ff6e8962aa4d86e85a1",
+          "tools/immersive/tests/scintilla_input_regression.cpp": "a8428692828683d54b08108929734703ba541e19226231dd8c76b27fdcc469f1",
+          "tools/immersive/tests/README.md": "37015d18ec828af157bcae9a35dc22e8f41dcf2f6f5b3ee338f280a41e7f0f6c"
+        },
+        "host": {
+          "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift": "926fd8a5accd389384dc33ef6bbc2a319d6233423a20072c626a135df0ea78a7",
+          "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": "f2ac2c54e830e8043010b488301c9ebb112b6943d006f6d0418f1364d865cfe4",
+          "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift": "b9c313eaae3e9e7e46f2c8331b1e9cc88d4f2ca59af984c87f6be6b3c1274139",
+          "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift": "3fa847667a4bf68d7707c83bb68a6489be4c08c888580275cfa1688c867017d9",
+          "scripts/ci/test_app_isolated.py": "dcffce5d079f336a4a9014cc53ed5027f093479d6028fb96545b6b26cb139422",
+          "scripts/ci/tests/test_app_isolated_runner.py": "ac13915196af064bec4f3b0463d1e4cd625ffdf241b4494e9550c0ea83a2230d"
+        }
+      }
+    },
+    "9_http_worker": {
+      "status": "source_corrected_and_reviewed",
+      "checks": [
+        "author + primary + independent source review",
+        "strict bounded framing, header-only auth before further body reads; complete body only",
+        "bounded nonblocking pool/fairness/absolute deadlines; worker socket ownership + stop wake",
+        "opaque async FIFO game ticket adapter; cancel capacity reclamation and uncertain started effects",
+        "11 native regression sources + CTest; API feature guard + POSIX/Windows boundaries reviewed",
+        "git diff --check passed"
+      ],
+      "native_tests": "7 socketpair helper + 4 actual dispatcher/stub-router cases written and reviewed; no execution/compile",
+      "references": [
+        "https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3",
+        "https://pubs.opengroup.org/onlinepubs/9799919799/functions/poll.html"
+      ],
+      "sha256_at_review": {
+        "src/modes/immersive_relay/remote/local_control_server.cpp": "41b92cb75fa9ca426c540cda7b19afc4afcb45b34f525067c5a660cb0c87fbd6",
+        "src/modes/immersive_relay/remote/local_control_server.hpp": "6fd05d8d5d2627f8d41388dce715ebed52a5ce94e765d9eed8fe929b26b5a863",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp": "c388221111baec008135ee84c42b5f5d5d6a060ebeb0858654959e74b69735dd",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.hpp": "daff333f1928751b0ba1671544b6804d50b3fe304900c1aec2b8d926fede2740",
+        "src/modes/immersive_relay/remote/relay_http_transport.cpp": "9f726b04105ab665d9475229c930d6e032f57f345950c0c4b6f020e999785c57",
+        "src/modes/immersive_relay/remote/relay_http_transport.hpp": "376dbee578565bbfbab49490edee2c4063e60f1304f7f352edb47fff6a3ab905",
+        "sources.cmake": "f2338d498ed93e97d52cde2bcfa54e7ef6be49168ce159255cd4f7f48b2818ef",
+        "tools/immersive/tests/CMakeLists.txt": "d652a4817ee754d30139a6a50003cff4844abcdbe65343f41b55d4326dd06e29",
+        "tools/immersive/tests/README.md": "113e77a50903e0776b460a6b237b40caff794553842e78efc245c066eb98780c",
+        "tools/immersive/tests/relay_http_transport_regression.cpp": "d1a25421a1c8cee7ae6e7ae645657c617e7a4b4705d6339dc172b3541dbd9212",
+        "tools/immersive/tests/relay_http_transport_cases.inc": "adceee1d7367d6a55679f615bd8acceab78be62053cbbd70d43d8be720795a32",
+        "tools/immersive/tests/relay_game_dispatcher_regression.cpp": "3f332fb4be09c477e27e5b23bf006f78db7e5d8b96c54dde0aada2614e124ac7",
+        "tools/immersive/tests/relay_game_dispatcher_cases.inc": "a2531cc022c897909c38323df73a726ec071a5663aafad5e921e5a94f6ddb053"
+      }
+    }
+  },
+  "executed_checks": {
+    "host_runner_python": "28 passed",
+    "projection_source_math": "5 passed, including 4000 independent receiver round trips",
+    "host_localization": "1646 Swift files, 0 new findings",
+    "native_cpp_ctest": "44 cases wired and source-reviewed; not executed",
+    "native_host": "50 methods, minimum87 parameter cases wired and source-reviewed; not executed",
+    "source_registry": "44 unique declared C++ cases, always-active CHECKs; no native execution",
+    "whitespace": "all selected tracked and untracked files passed; new document local links passed"
+  },
+  "not_executed": [
+    "CMake configure",
+    "builds",
+    "compiler/typecheck",
+    "shader compilation",
+    "native CTest/Swift tests",
+    "app/game/server launch",
+    "live API",
+    "tracking/Syphon/Metal/projection/hardware",
+    "venue acceptance"
+  ],
+  "final_source_sha256": {
+    "stk": {
+      "CMakeLists.txt": "e74d9b80adef0696d4a2b0da316718abf283ddf853ca5a6caac6d9e88f7c7424",
+      "sources.cmake": "f2338d498ed93e97d52cde2bcfa54e7ef6be49168ce159255cd4f7f48b2818ef",
+      "data/shaders/utils/immersive_scintilla.frag": "cf730b7425bc6df5e97e543ae40da12c2d15079dca51a845673ea7fae7afcfe2",
+      "docs/immersive/scintilla/sc1-2026-10-14/README.md": "bb3fe6ba3ecdde53ac0183733f0afa868d3d7cd6b4ca0f4e24ec84ac7243a06a",
+      "docs/immersive/scintilla/sc1-remediation-2026-10-15/README.md": "97f17bbab010f21b4e29450fc74a56b01f8743a0ba682e1aaff8c60656bdfa12",
+      "docs/immersive_relay_tholustos_integration.md": "58007eec4336418d1a754d39b5cc3e86f24f2e4890692fcf99f767848446ca64",
+      "src/modes/immersive_relay/remote/relay_command_router.cpp": "057ea7256d14314e3ac4fb16a92d047456c9f68a64959d1041a54d96648a46a0",
+      "src/modes/immersive_relay/spatial/scintilla_input.cpp": "2b1f29f02e40ab5431f96b8237c95f7946a082814e59789659204c023db326e9",
+      "src/modes/immersive_relay/spatial/scintilla_input.hpp": "60d2d83d2cdbcdb5084b34087bb8f88b23070d127b1890704d2f5ee395e4bd35",
+      "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "75267ae874bf313c3869567489ec8a820b9690ebd5196420165f64f0b604017d",
+      "src/modes/immersive_relay/spatial/scintilla_engine.hpp": "6d498168f3275bd7264fcc0bb05ad322f5f7bf353a6bcbbb53825fd9c32504a1",
+      "src/modes/immersive_relay/remote/local_control_server.cpp": "41b92cb75fa9ca426c540cda7b19afc4afcb45b34f525067c5a660cb0c87fbd6",
+      "src/modes/immersive_relay/remote/local_control_server.hpp": "6fd05d8d5d2627f8d41388dce715ebed52a5ce94e765d9eed8fe929b26b5a863",
+      "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp": "c388221111baec008135ee84c42b5f5d5d6a060ebeb0858654959e74b69735dd",
+      "src/modes/immersive_relay/remote/relay_game_dispatcher.hpp": "daff333f1928751b0ba1671544b6804d50b3fe304900c1aec2b8d926fede2740",
+      "src/modes/immersive_relay/remote/relay_http_transport.cpp": "9f726b04105ab665d9475229c930d6e032f57f345950c0c4b6f020e999785c57",
+      "src/modes/immersive_relay/remote/relay_http_transport.hpp": "376dbee578565bbfbab49490edee2c4063e60f1304f7f352edb47fff6a3ab905",
+      "tools/immersive/tests/CMakeLists.txt": "d652a4817ee754d30139a6a50003cff4844abcdbe65343f41b55d4326dd06e29",
+      "tools/immersive/tests/README.md": "113e77a50903e0776b460a6b237b40caff794553842e78efc245c066eb98780c",
+      "tools/immersive/tests/scintilla_input_cases.inc": "f6e81ace4dcf7b84864a30b29a13dd2b7ceabe17e6ab1ff6e8962aa4d86e85a1",
+      "tools/immersive/tests/scintilla_input_regression.cpp": "a8428692828683d54b08108929734703ba541e19226231dd8c76b27fdcc469f1",
+      "tools/immersive/tests/relay_http_transport_cases.inc": "adceee1d7367d6a55679f615bd8acceab78be62053cbbd70d43d8be720795a32",
+      "tools/immersive/tests/relay_http_transport_regression.cpp": "d1a25421a1c8cee7ae6e7ae645657c617e7a4b4705d6339dc172b3541dbd9212",
+      "tools/immersive/tests/relay_game_dispatcher_cases.inc": "a2531cc022c897909c38323df73a726ec071a5663aafad5e921e5a94f6ddb053",
+      "tools/immersive/tests/relay_game_dispatcher_regression.cpp": "3f332fb4be09c477e27e5b23bf006f78db7e5d8b96c54dde0aada2614e124ac7"
+    },
+    "host": {
+      "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": "f2ac2c54e830e8043010b488301c9ebb112b6943d006f6d0418f1364d865cfe4",
+      "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift": "926fd8a5accd389384dc33ef6bbc2a319d6233423a20072c626a135df0ea78a7",
+      "Modules/GameShowControl/ImmersiveSTKSpatialHistory.swift": "670dff28a344fa219b394cfd4907176ae442fdabebb880771a744befab1311ba",
+      "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift": "b0ff8a3ba846c35ee56e23e293baeb3dc4b1cb733782eb73295b000ad9bb0ea1",
+      "Modules/GameShowControl/ImmersiveSTKSpatialPresentation.swift": "6c111a26d9a1ea431b5057203b358909b38f1352091f6964a84d9291672b645d",
+      "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md": "abcbaf3dbe3caaef1ed028ce39dd32762c9ecd7cc3dfb15af33fff3e64598059",
+      "Modules/GameShowControl/Sagitta/Core/SagittaPresentation.swift": "c1893d7bc4cf0d0340821dd49fd9d18f665f3265516d95460d9adad637339c9b",
+      "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift": "b9c313eaae3e9e7e46f2c8331b1e9cc88d4f2ca59af984c87f6be6b3c1274139",
+      "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHistoryTests.swift": "cd04519289d55359bce85302ab03379e60f906845dc835f31f711531d92e8a5b",
+      "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift": "3fa847667a4bf68d7707c83bb68a6489be4c08c888580275cfa1688c867017d9",
+      "SocialTableController/Localizable.xcstrings": "4a481f69f5dfa3581c425de2b4273367a4c203a5e74631bfa28a702b5df243c4",
+      "scripts/ci/test_app_isolated.py": "dcffce5d079f336a4a9014cc53ed5027f093479d6028fb96545b6b26cb139422",
+      "scripts/ci/tests/test_app_isolated_runner.py": "ac13915196af064bec4f3b0463d1e4cd625ffdf241b4494e9550c0ea83a2230d"
+    }
+  },
+  "integration": {
+    "status": "copied_and_hash_verified",
+    "paths": {
+      "stk": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "host": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController"
+    },
+    "allowlist": {
+      "stk": [
+        "CMakeLists.txt",
+        "sources.cmake",
+        "data/shaders/utils/immersive_scintilla.frag",
+        "docs/immersive/scintilla/sc1-2026-10-14/README.md",
+        "docs/immersive/scintilla/sc1-remediation-2026-10-15/README.md",
+        "docs/immersive/scintilla/sc1-remediation-2026-10-15/verification.json",
+        "docs/immersive_relay_tholustos_integration.md",
+        "src/modes/immersive_relay/remote/relay_command_router.cpp",
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+        "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+        "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+        "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+        "src/modes/immersive_relay/remote/local_control_server.cpp",
+        "src/modes/immersive_relay/remote/local_control_server.hpp",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.hpp",
+        "src/modes/immersive_relay/remote/relay_http_transport.cpp",
+        "src/modes/immersive_relay/remote/relay_http_transport.hpp",
+        "tools/immersive/tests/CMakeLists.txt",
+        "tools/immersive/tests/README.md",
+        "tools/immersive/tests/scintilla_input_cases.inc",
+        "tools/immersive/tests/scintilla_input_regression.cpp",
+        "tools/immersive/tests/relay_http_transport_cases.inc",
+        "tools/immersive/tests/relay_http_transport_regression.cpp",
+        "tools/immersive/tests/relay_game_dispatcher_cases.inc",
+        "tools/immersive/tests/relay_game_dispatcher_regression.cpp"
+      ],
+      "host": [
+        "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+        "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+        "Modules/GameShowControl/ImmersiveSTKSpatialHistory.swift",
+        "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+        "Modules/GameShowControl/ImmersiveSTKSpatialPresentation.swift",
+        "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md",
+        "Modules/GameShowControl/Sagitta/Core/SagittaPresentation.swift",
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift",
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHistoryTests.swift",
+        "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+        "SocialTableController/Localizable.xcstrings",
+        "scripts/ci/test_app_isolated.py",
+        "scripts/ci/tests/test_app_isolated_runner.py"
+      ]
+    },
+    "preservation": "selected files guarded against baseline; concurrent catalog preserved with only one entry merged",
+    "catalog_previous_sha256": "f5f21f9f4e6dfc1924ba5d9e906d8f6810a86f986d2aa94dfb899a1f464584fa",
+    "temporary_worktrees_cleanup": "completed: two task worktrees removed after delivery/unique-commit checks; no build or shared cache created/removed",
+    "manifest_self_hash": "excluded",
+    "preserved_preexisting_wip_recovery": {
+      "reason": "Pre-existing WIP copied into private worktree; main advanced concurrently. Preserve the older unique snapshot before removing only the task worktree. Main WIP is untouched.",
+      "base_commit": "8cbe6a83ddfa6bd49fdb542328a1d81c739b096f",
+      "patch_path": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc1-remaining-20261014/preserved-host-baseline.patch",
+      "patch_sha256": "d9d89520db3d3ebed5c0ce3a8cceb34b4b439f9282b90259fc12e8532e03cb3d",
+      "original_file_sha256": {
+        "services/tholus-studio-mcp/test/chroma-production.ts": "babe33dd672d353cc10ba12f6886690fc2fd23af9c25102a28d880b8d2a19092",
+        "services/tholus-studio-mcp/src/chroma/production-service.ts": "f521bef1c05349ec15a5504d9c0cbf6eaec7b2382a925b490b089e7c8928559b",
+        "docs/chroma-p6/PUBBLICAZIONE_2026-10-14.md": "477143923583963737e8a26ca18c6b9915f9b975d525b8c2a89673165d606723",
+        "contracts/TholusChromaMCP/schemas/get-chroma-authoring-context-output-v1.schema.json": "b3bd64bf0a2e9746f7e0e2348555e38392138e443f4be27cba709c4e0c9c9ea1",
+        "services/tholus-studio-mcp/src/chroma/production-model.ts": "7cfbbe017744cbbbcbf58a28b80abfa75fa9fa22d418e98ce7d515f8c7cc0754",
+        "services/tholus-studio-mcp/src/chroma/protocol.ts": "e2f0ba81a286bc6fb872c9f9819e91654bd9e804260cce9692427969ae786475",
+        "contracts/TholusChromaMCP/README.md": "19f2d9fb0d4356aa6e433875aaa18810ff5fe01375b7daab546457ace23f6c58",
+        "services/tholus-studio-mcp/src/chroma/register-tools.ts": "f452cebb7d0eeaf810a11af0dfb665a7ddcbb99b85953d7b0827d078df8838e4",
+        "services/tholus-studio-mcp/src/chroma/production-protocol.ts": "eb773a479b864c199f1c9bc1b6311a25986e0c88e303a3c768aeca7f60658f37",
+        "services/tholus-studio-mcp/test/chroma-production-mcp.ts": "e13809328696d1d9150d0f7c864b30187e495aaeed4474f2e70c822a0eb3e550",
+        "services/tholus-studio-mcp/src/server.ts": "fb004019a9083e08c1876c000f56dc46a26b9dae9ca5ac0b01ec0e1684eb3ae7"
+      },
+      "main_files_preserved": true,
+      "patch_reverse_check": "passed against the private baseline before removal; no source or index mutation"
+    },
+    "source_before_sha256": {
+      "stk": {
+        "CMakeLists.txt": "cd137fa564ed16ff39bb11644c26923ddbee12046d053f7ae95d6a9b1312a4bf",
+        "sources.cmake": "a16bd7b201a59948af1ab1161bf56b7213b329325b0ecf6915ac94a8bc3b04e7",
+        "data/shaders/utils/immersive_scintilla.frag": "2a792b5a3fdbd9295db18421630430228fbbd66f4e2ce07f3b46a4297af3510d",
+        "docs/immersive/scintilla/sc1-2026-10-14/README.md": "88a072cd3daca53dbfa4863f3f7ed105bea33383ebd95823f1acd79e6d49c625",
+        "docs/immersive/scintilla/sc1-remediation-2026-10-15/README.md": null,
+        "docs/immersive/scintilla/sc1-remediation-2026-10-15/verification.json": null,
+        "docs/immersive_relay_tholustos_integration.md": "a62c7aebf5064e8e71426f516167774a77641d43edf12b359963dd7db6d202f2",
+        "src/modes/immersive_relay/remote/relay_command_router.cpp": "d7ae6a0059ac402c44427de7d42ba3caa1ee65f848dbb36e26564fc20bf1ae8e",
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp": "9d23431d542fceca8c1b70cea93e11c8119ceeba136fe95bbf3f008f39022171",
+        "src/modes/immersive_relay/spatial/scintilla_input.hpp": "6240de6694cd08dc03cb64d780a9f5394e81ba591d2201a93c0965b31c8e23ae",
+        "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "935b94f12808252b9f464ae2607b2fd85458533dfd9bb92f196635bd4c38ab0b",
+        "src/modes/immersive_relay/spatial/scintilla_engine.hpp": "8dc1dec73288dc9cef0c4e0d1a6186d053530890569f410b7e45dd7dd47eeb24",
+        "src/modes/immersive_relay/remote/local_control_server.cpp": "a9c9d1a8705bdd07694b3be1a901344de497c75f647b15fbc6dc990f2502b7b2",
+        "src/modes/immersive_relay/remote/local_control_server.hpp": "bbc7129ab539e14ccbd0bd160dd7b276b408f81d115d57931a122b6365bb7d84",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp": "f34fdc20e3c81c91402bc65351c350d6f94c30cd9aa4b4ccb48f36085b7537e5",
+        "src/modes/immersive_relay/remote/relay_game_dispatcher.hpp": "fce748d95cadf5ed87e4651dec55d06abea05c8a634c78e15257c267859732c0",
+        "src/modes/immersive_relay/remote/relay_http_transport.cpp": null,
+        "src/modes/immersive_relay/remote/relay_http_transport.hpp": null,
+        "tools/immersive/tests/CMakeLists.txt": null,
+        "tools/immersive/tests/README.md": null,
+        "tools/immersive/tests/scintilla_input_cases.inc": null,
+        "tools/immersive/tests/scintilla_input_regression.cpp": "ca48c6ba7c824a5a244677c7bc2410d7944974fab2ce76ed770e8d2991cd1afc",
+        "tools/immersive/tests/relay_http_transport_cases.inc": null,
+        "tools/immersive/tests/relay_http_transport_regression.cpp": null,
+        "tools/immersive/tests/relay_game_dispatcher_cases.inc": null,
+        "tools/immersive/tests/relay_game_dispatcher_regression.cpp": null
+      },
+      "host": {
+        "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": "e2dca7bf22cc7e486377e86ebe1b4db056d51da402b1cf575a10514a70050fc1",
+        "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift": null,
+        "Modules/GameShowControl/ImmersiveSTKSpatialHistory.swift": null,
+        "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift": "c7f3d45a22440db28c3b67e58a3505fcf8798c71cbd49bc8884084fe1ea89aed",
+        "Modules/GameShowControl/ImmersiveSTKSpatialPresentation.swift": "9a9f3420d76d3a7d1267d36e8b82541dbe3e16d041b1c7cd8385fa85a2e35b9a",
+        "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md": "a5559d3f287da4204c2976795cbd87bffa20e94444118e519dadc3c3ce21a41b",
+        "Modules/GameShowControl/Sagitta/Core/SagittaPresentation.swift": "69ebffdfab1b0f08f626a61739604200935eb7e531e98a9c56f8cabf92b238d3",
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift": null,
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHistoryTests.swift": null,
+        "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift": "7b6048ba85b385b9a409846e8789b8c1d5df2fe97b3b9ac3cfffd139fb7dd860",
+        "SocialTableController/Localizable.xcstrings": "f5f21f9f4e6dfc1924ba5d9e906d8f6810a86f986d2aa94dfb899a1f464584fa",
+        "scripts/ci/test_app_isolated.py": "3b9fcaa4527dce13e3d171143f7424fc435b698b3d4c6e9e6706089959db061e",
+        "scripts/ci/tests/test_app_isolated_runner.py": "7a285d2c17fe3ac83229b15ecf9eba18c70dc562f9d71e63edd90bc246a97cfc"
+      }
+    }
+  }
+}

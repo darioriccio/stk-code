@@ -1,0 +1,127 @@
+{
+  "scope": "source_and_math_only_no_native_build_or_execution",
+  "timestamp": "2026-10-15T18:42:29.641612+00:00",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_depth.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_actual_rules_and_engine_shader_wiring_match (__main__.DepthVisibilityTests.test_actual_rules_and_engine_shader_wiring_match) ... ok\ntest_audit_wall_counterexample (__main__.DepthVisibilityTests.test_audit_wall_counterexample) ... ok\ntest_depth_code_edges_are_conservative (__main__.DepthVisibilityTests.test_depth_code_edges_are_conservative) ... ok\ntest_equal_ambiguous_and_clear_depth_boundaries (__main__.DepthVisibilityTests.test_equal_ambiguous_and_clear_depth_boundaries) ... ok\ntest_invalid_values_and_strict_clip_planes (__main__.DepthVisibilityTests.test_invalid_values_and_strict_clip_planes) ... ok\ntest_occluders_reject_behind_and_preserve_separated_front_markers (__main__.DepthVisibilityTests.test_occluders_reject_behind_and_preserve_separated_front_markers) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.764s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_stagger_clearance.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose (__main__.StaggerClearanceChecks.test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose) ... ok\ntest_bullet_queries_use_the_actual_shape_center_and_conservative_fallback (__main__.StaggerClearanceChecks.test_bullet_queries_use_the_actual_shape_center_and_conservative_fallback) ... ok\ntest_float_center_and_extent_conversion_only_expands_the_envelope (__main__.StaggerClearanceChecks.test_float_center_and_extent_conversion_only_expands_the_envelope) ... ok\ntest_original_ceiling_counterexample_is_inside_the_checked_sweep (__main__.StaggerClearanceChecks.test_original_ceiling_counterexample_is_inside_the_checked_sweep) ... ok\ntest_pitch_displacement_cannot_enter_an_admitted_supporting_plane (__main__.StaggerClearanceChecks.test_pitch_displacement_cannot_enter_an_admitted_supporting_plane) ... ok\ntest_upward_ledges_and_invalid_contacts_are_not_support (__main__.StaggerClearanceChecks.test_upward_ledges_and_invalid_contacts_are_not_support) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.260s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_combat.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.013s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_tool_feedback.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_actual_render_gate_hides_released_or_mismatched_feedback (__main__.ToolFeedbackSourceChecks.test_actual_render_gate_hides_released_or_mismatched_feedback) ... ok\ntest_authoritative_state_publishes_after_effects_and_contends_by_current_owner (__main__.ToolFeedbackSourceChecks.test_authoritative_state_publishes_after_effects_and_contends_by_current_owner) ... ok\ntest_new_regressions_are_registered_once_in_existing_native_runners (__main__.ToolFeedbackSourceChecks.test_new_regressions_are_registered_once_in_existing_native_runners) ... ok\ntest_persistent_badges_fit_both_projection_domains_and_do_not_overlap (__main__.ToolFeedbackSourceChecks.test_persistent_badges_fit_both_projection_domains_and_do_not_overlap) ... ok\ntest_status_codes_uniforms_and_both_projections_agree (__main__.ToolFeedbackSourceChecks.test_status_codes_uniforms_and_both_projections_agree) ... ok\ntest_sticky_input_loss_precedes_any_same_epoch_core_view (__main__.ToolFeedbackSourceChecks.test_sticky_input_loss_precedes_any_same_epoch_core_view) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.013s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_defense.py"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "test_additive_routes_and_all_server_start_gates (__main__.DefenseSourceAndMathChecks.test_additive_routes_and_all_server_start_gates) ... ok\ntest_asymmetric_socket_aabb_radius_contains_every_corner (__main__.DefenseSourceAndMathChecks.test_asymmetric_socket_aabb_radius_contains_every_corner) ... ok\ntest_bundled_bullet_abi_and_actual_shape_lifetime (__main__.DefenseSourceAndMathChecks.test_bundled_bullet_abi_and_actual_shape_lifetime) ... ok\ntest_compound_arc_error_and_separation_bound (__main__.DefenseSourceAndMathChecks.test_compound_arc_error_and_separation_bound) ... ok\ntest_fixed_point_rates_and_ceiling_windows (__main__.DefenseSourceAndMathChecks.test_fixed_point_rates_and_ceiling_windows) ... ok\ntest_impact_is_tangential_idempotent_and_boost_commits_cost_last (__main__.DefenseSourceAndMathChecks.test_impact_is_tangential_idempotent_and_boost_commits_cost_last) ... ok\ntest_native_fixtures_registered_once_with_actual_bullet (__main__.DefenseSourceAndMathChecks.test_native_fixtures_registered_once_with_actual_bullet) ... ok\ntest_native_physics_step_is_bracketed_and_missing_trace_cancels (__main__.DefenseSourceAndMathChecks.test_native_physics_step_is_bracketed_and_missing_trace_cancels) ... ok\ntest_native_source_delimiters_are_balanced (__main__.DefenseSourceAndMathChecks.test_native_source_delimiters_are_balanced) ... ok\ntest_optical_proof_not_a_warning_seen_boolean (__main__.DefenseSourceAndMathChecks.test_optical_proof_not_a_warning_seen_boolean) ... ok\ntest_race_reset_retains_physical_authority_but_clears_gameplay (__main__.DefenseSourceAndMathChecks.test_race_reset_retains_physical_authority_but_clears_gameplay) ... ok\ntest_release_and_new_epoch_precede_admission_and_deadline (__main__.DefenseSourceAndMathChecks.test_release_and_new_epoch_precede_admission_and_deadline) ... ok\ntest_same_grant_rebind_preserves_physical_authority_and_replay (__main__.DefenseSourceAndMathChecks.test_same_grant_rebind_preserves_physical_authority_and_replay) ... ok\ntest_single_rear_composite_read_only_and_opaque_hud (__main__.DefenseSourceAndMathChecks.test_single_rear_composite_read_only_and_opaque_hud) ... ok\ntest_socket_sweep_covers_the_relocated_segment (__main__.DefenseSourceAndMathChecks.test_socket_sweep_covers_the_relocated_segment) ... ok\ntest_world_offense_is_independent_of_defense_threat (__main__.DefenseSourceAndMathChecks.test_world_offense_is_independent_of_defense_threat) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.030s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/immersive/scintilla/sc3-plan-2026-10-15/verifica_calcoli.py"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"scope\": \"pure_math_only_not_native_or_hardware_validation\",\n  \"ticks\": {\n    \"60\": {\n      \"3000000\": {\n        \"min\": 180,\n        \"max\": 180\n      },\n      \"2500000\": {\n        \"min\": 150,\n        \"max\": 150\n      },\n      \"600000\": {\n        \"min\": 36,\n        \"max\": 36\n      },\n      \"250000\": {\n        \"min\": 15,\n        \"max\": 15\n      },\n      \"8000000\": {\n        \"min\": 480,\n        \"max\": 480\n      },\n      \"12000000\": {\n        \"min\": 720,\n        \"max\": 720\n      },\n      \"5000000\": {\n        \"min\": 300,\n        \"max\": 300\n      },\n      \"500000\": {\n        \"min\": 30,\n        \"max\": 30\n      },\n      \"900000\": {\n        \"min\": 54,\n        \"max\": 54\n      }\n    },\n    \"120\": {\n      \"3000000\": {\n        \"min\": 360,\n        \"max\": 360\n      },\n      \"2500000\": {\n        \"min\": 300,\n        \"max\": 300\n      },\n      \"600000\": {\n        \"min\": 72,\n        \"max\": 72\n      },\n      \"250000\": {\n        \"min\": 30,\n        \"max\": 30\n      },\n      \"8000000\": {\n        \"min\": 960,\n        \"max\": 960\n      },\n      \"12000000\": {\n        \"min\": 1440,\n        \"max\": 1440\n      },\n      \"5000000\": {\n        \"min\": 600,\n        \"max\": 600\n      },\n      \"500000\": {\n        \"min\": 60,\n        \"max\": 60\n      },\n      \"900000\": {\n        \"min\": 108,\n        \"max\": 108\n      }\n    },\n    \"144\": {\n      \"3000000\": {\n        \"min\": 432,\n        \"max\": 432\n      },\n      \"2500000\": {\n        \"min\": 360,\n        \"max\": 360\n      },\n      \"600000\": {\n        \"min\": 87,\n        \"max\": 86\n      },\n      \"250000\": {\n        \"min\": 36,\n        \"max\": 36\n      },\n      \"8000000\": {\n        \"min\": 1152,\n        \"max\": 1152\n      },\n      \"12000000\": {\n        \"min\": 1728,\n        \"max\": 1728\n      },\n      \"5000000\": {\n        \"min\": 720,\n        \"max\": 720\n      },\n      \"500000\": {\n        \"min\": 72,\n        \"max\": 72\n      },\n      \"900000\": {\n        \"min\": 130,\n        \"max\": 129\n      }\n    }\n  },\n  \"budgets\": [\n    {\n      \"frequency\": 60,\n      \"crew\": 1,\n      \"reserve\": 70.0,\n      \"max_initial_heat\": 18.75,\n      \"full_defense_cost\": 65.0,\n      \"minimum_defense_cost\": 17.0,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 13.0,\n      \"heat_recovery_seconds\": 3.75\n    },\n    {\n      \"frequency\": 60,\n      \"crew\": 2,\n      \"reserve\": 60.0,\n      \"max_initial_heat\": 31.25,\n      \"full_defense_cost\": 55.0,\n      \"minimum_defense_cost\": 17.0,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 11.0,\n      \"heat_recovery_seconds\": 3.125\n    },\n    {\n      \"frequency\": 120,\n      \"crew\": 1,\n      \"reserve\": 70.0,\n      \"max_initial_heat\": 18.75,\n      \"full_defense_cost\": 65.0,\n      \"minimum_defense_cost\": 17.0,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 13.0,\n      \"heat_recovery_seconds\": 3.75\n    },\n    {\n      \"frequency\": 120,\n      \"crew\": 2,\n      \"reserve\": 60.0,\n      \"max_initial_heat\": 31.25,\n      \"full_defense_cost\": 55.0,\n      \"minimum_defense_cost\": 17.0,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 11.0,\n      \"heat_recovery_seconds\": 3.125\n    },\n    {\n      \"frequency\": 144,\n      \"crew\": 1,\n      \"reserve\": 70.0,\n      \"max_initial_heat\": 18.75,\n      \"full_defense_cost\": 65.0,\n      \"minimum_defense_cost\": 17.083333333333332,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 13.0,\n      \"heat_recovery_seconds\": 3.75\n    },\n    {\n      \"frequency\": 144,\n      \"crew\": 2,\n      \"reserve\": 60.0,\n      \"max_initial_heat\": 31.25,\n      \"full_defense_cost\": 55.0,\n      \"minimum_defense_cost\": 17.083333333333332,\n      \"energy_after\": 5.0,\n      \"heat_after\": 93.75,\n      \"energy_recovery_seconds\": 11.0,\n      \"heat_recovery_seconds\": 3.125\n    }\n  ],\n  \"rear_projection\": {\n    \"horizontal_tan\": 1.1917535925942098,\n    \"vertical_fov_degrees_aspect2\": 61.5794660576643,\n    \"upper_right_direction\": [\n      -0.7153653819586878,\n      0.3576826909793439,\n      -0.6002628281585292\n    ],\n    \"rotation_determinant\": 1\n  },\n  \"layout\": {\n    \"mirror_radius_bound\": 0.7871467461661771,\n    \"node_radius_bound\": 0.9327861844049197,\n    \"boost_radius_bound\": 0.9099999999999999,\n    \"rectangles\": [\n      {\n        \"dimensions\": [\n          1024,\n          1024\n        ],\n        \"rectangle_pixels\": [\n          327.68,\n          153.60000000000002,\n          696.3199999999999,\n          337.91999999999996\n        ],\n        \"pixel_area_fraction\": 0.0648\n      },\n      {\n        \"dimensions\": [\n          2048,\n          1024\n        ],\n        \"rectangle_pixels\": [\n          839.6800000000001,\n          153.60000000000002,\n          1208.32,\n          337.91999999999996\n        ],\n        \"pixel_area_fraction\": 0.0324\n      },\n      {\n        \"dimensions\": [\n          2048,\n          2048\n        ],\n        \"rectangle_pixels\": [\n          655.36,\n          307.20000000000005,\n          1392.6399999999999,\n          675.8399999999999\n        ],\n        \"pixel_area_fraction\": 0.0648\n      }\n    ]\n  },\n  \"ballistics\": [\n    {\n      \"velocity\": [\n        0,\n        0,\n        0\n      ],\n      \"solution\": {\n        \"time_seconds\": 0.5,\n        \"direction\": [\n          0.0,\n          0.0,\n          1.0\n        ],\n        \"profile_admitted\": true\n      }\n    },\n    {\n      \"velocity\": [\n        0,\n        0,\n        10\n      ],\n      \"solution\": {\n        \"time_seconds\": 0.6666666666666666,\n        \"direction\": [\n          0.0,\n          0.0,\n          1.0\n        ],\n        \"profile_admitted\": true\n      }\n    },\n    {\n      \"velocity\": [\n        10,\n        0,\n        0\n      ],\n      \"solution\": {\n        \"time_seconds\": 0.5163977794943222,\n        \"direction\": [\n          0.25,\n          0.0,\n          0.9682458365518544\n        ],\n        \"profile_admitted\": true\n      }\n    },\n    {\n      \"velocity\": [\n        0,\n        0,\n        -10\n      ],\n      \"solution\": {\n        \"time_seconds\": 0.4,\n        \"direction\": [\n          0.0,\n          0.0,\n          1.0\n        ],\n        \"profile_admitted\": true\n      }\n    },\n    {\n      \"velocity\": [\n        0,\n        0,\n        40\n      ],\n      \"solution\": null\n    },\n    {\n      \"velocity\": [\n        0,\n        0,\n        -40\n      ],\n      \"solution\": {\n        \"time_seconds\": 0.25,\n        \"direction\": [\n          0.0,\n          0.0,\n          1.0\n        ],\n        \"profile_admitted\": false\n      }\n    }\n  ],\n  \"sphere_ccd_oracle_only\": {\n    \"static_fraction\": 0.3999999999999999,\n    \"moving_fraction\": 0.44999999999999996\n  },\n  \"child_offset_subdivision\": {\n    \"steps\": 6,\n    \"error_m\": 0.0009517784181422018\n  },\n  \"impact\": {\n    \"before\": [\n      10,\n      -2,\n      20\n    ],\n    \"after\": [\n      8.5,\n      -2.0,\n      17.0\n    ],\n    \"tangential_kinetic_energy_fraction\": 0.7224999999999999\n  },\n  \"checks\": [\n    \"ceil_minimum_floor_maximum_three_frequencies\",\n    \"fixed_point_budgets_match_exact_integrals_and_stepwise_consumption\",\n    \"sector_admission_retention_and_wrap\",\n    \"rear_round_trip_unmirrored_basis_and_rounded_rectangle_aspects\",\n    \"layout_inside_disc_and_declared_regions_separated_not_optical_stamp_validation\",\n    \"stable_ballistic_roots_and_profile_rejections\",\n    \"continuous_sphere_cases_that_endpoint_tests_miss\",\n    \"compound_child_arc_sagitta_bound\",\n    \"impact_preserves_normal_velocity_and_has_stated_energy_ratio\",\n    \"warning_minimum_after_interval_upper_bound\"\n  ],\n  \"passed\": 10\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "nativeTests": "written_and_registered_not_compiled_or_executed",
+  "hardware": "not_executed",
+  "nativeCases": {
+    "consumer": {
+      "total": 80,
+      "added": 6,
+      "executed": false
+    },
+    "bulletCollision": {
+      "total": 10,
+      "added": 4,
+      "executed": false
+    },
+    "swiftController": {
+      "addedVariants": 11,
+      "executed": false
+    }
+  },
+  "review": {
+    "order": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "independentStaticReview": "no additional concrete blocker found in focused host and STK paths; no native execution",
+    "hostLifecycleSourceAssertions": "passed: retain-before-await; authority recheck; current-race preflight; rebind before SC2 before SC3; pending clears after final preparation",
+    "serverSourceAssertions": "passed: results reset returns before ordinary Ready; ordinary Ready retains presentation and Scintilla gates"
+  },
+  "hostChecks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "scripts/localization/check_mac_localization.py",
+        "--base",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdout": "Localization guard: 1648 Swift files, 0 new findings.\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdout": ""
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "scope": "Read-only SC0 inventory; no build, game, hardware acquisition or network probe",
+  "architecture": "arm64",
+  "macos": "26.5.2",
+  "cpu": "Apple M1 Pro",
+  "tools": {
+    "python": {
+      "exit_code": 0,
+      "version": [
+        "Python 3.14.6"
+      ]
+    },
+    "cmake": {
+      "exit_code": 0,
+      "version": [
+        "cmake version 3.31.1",
+        ""
+      ]
+    },
+    "clang": {
+      "exit_code": 0,
+      "version": [
+        "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+        "Target: arm64-apple-darwin25.5.0"
+      ]
+    },
+    "xcode": {
+      "exit_code": 0,
+      "version": [
+        "Xcode 26.6",
+        "Build version 17F113"
+      ]
+    }
+  },
+  "assets": {
+    "snowtuxpeak": {
+      "track_xml_exists": true,
+      "track_xml_sha256": "7eafc1461992d35a628f9d6b3562b6615f15ba16a19a9fd0ad054eb26c12464e"
+    },
+    "lighthouse": {
+      "track_xml_exists": true,
+      "track_xml_sha256": "6b4af42aeffe7b2675b8b719a75806d195bb4686127a28ab93b0f4e3977d0a6a"
+    },
+    "olivermath": {
+      "track_xml_exists": true,
+      "track_xml_sha256": "c43a2233da9c9c0f4465a8c2bdb465b58048f96070689371cae0e63362351418"
+    }
+  },
+  "snowtuxpeak_items": {
+    "banana": 4,
+    "small-nitro": 4,
+    "big-nitro": 0,
+    "item": 13,
+    "bonus-box": 0
+  },
+  "snowtuxpeak_scene_sha256": "0adf4a8d814e850f1cde1f134fbf38317719520fd10d6aeb0ff8e4f90beefec9",
+  "native_build_artifacts": [
+    {
+      "path": "cmake_build_mvp_syphon",
+      "cached_flags_not_current_build_proof": {
+        "CMAKE_BUILD_TYPE": "STKRelease",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "",
+        "ENABLE_IMMERSIVE_RELAY": "ON",
+        "ENABLE_RELAY_LOCAL_API": "ON",
+        "ENABLE_RELAY_TEST_TOOLS": "OFF",
+        "ENABLE_SYPHON_OUTPUT": "ON"
+      },
+      "binary_exists": true
+    },
+    {
+      "path": "cmake_build_mvp_vanilla",
+      "cached_flags_not_current_build_proof": {
+        "CMAKE_BUILD_TYPE": "STKRelease",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "",
+        "ENABLE_IMMERSIVE_RELAY": "OFF",
+        "ENABLE_RELAY_LOCAL_API": "OFF",
+        "ENABLE_RELAY_TEST_TOOLS": "OFF",
+        "ENABLE_SYPHON_OUTPUT": "OFF"
+      },
+      "binary_exists": false
+    },
+    {
+      "path": "cmake_build_relay_phase1",
+      "cached_flags_not_current_build_proof": {
+        "CMAKE_BUILD_TYPE": "",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "26.4",
+        "ENABLE_IMMERSIVE_RELAY": "ON",
+        "ENABLE_RELAY_LOCAL_API": "ON",
+        "ENABLE_RELAY_TEST_TOOLS": "ON",
+        "ENABLE_SYPHON_OUTPUT": "OFF"
+      },
+      "binary_exists": true
+    }
+  ]
+}

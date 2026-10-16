@@ -1,0 +1,47 @@
+{
+  "manifestSHA256": "775512c3405743981237e5b7cc1a5fb00acc31c732ca43fe299ae42f4bfc4c61",
+  "scope": "offline asset hash/metadata/image inspection, complete decode",
+  "appBuildRun": false,
+  "physicalProjection": false,
+  "variants": [
+    {
+      "variantId": "C1",
+      "videoSHA256": "f1fb7d01976d8270f983b3d6aacd51d00244c8a9ba789245988321e1c3851be3",
+      "bytes": 2243747,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "frames": 1200,
+      "durationSeconds": 40,
+      "panels": 6,
+      "subtitles": 6,
+      "completeDecode": true
+    },
+    {
+      "variantId": "C2",
+      "videoSHA256": "383077058cee79366deeadd7d164e2eb1550ddaa0f43de4d07b1af46eafdf495",
+      "bytes": 2237013,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "frames": 1200,
+      "durationSeconds": 40,
+      "panels": 6,
+      "subtitles": 6,
+      "completeDecode": true
+    },
+    {
+      "variantId": "C3plus",
+      "videoSHA256": "5ac507a1f1c29e7b09e04642c6a41555d0bd6dc78228c5f01deb664540e0c4d1",
+      "bytes": 2277175,
+      "width": 1920,
+      "height": 1080,
+      "fps": "30/1",
+      "frames": 1200,
+      "durationSeconds": 40,
+      "panels": 6,
+      "subtitles": 6,
+      "completeDecode": true
+    }
+  ]
+}

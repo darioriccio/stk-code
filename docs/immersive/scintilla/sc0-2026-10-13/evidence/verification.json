@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-13",
+  "phase": "SC0",
+  "checks": {
+    "phase_boundary": true,
+    "participant_and_source_counts": true,
+    "all_ten_powerups_classified": true,
+    "profile_not_runtime_enabled": true,
+    "sc2_fixed_rules": true,
+    "balance_values_match_design": true,
+    "canonical_schemas_parse": true,
+    "source_math_suite": true,
+    "main_head_unchanged": true,
+    "preexisting_wip_unchanged": true,
+    "recorded_sources_unchanged_since_manifest": true,
+    "local_links_resolve": true,
+    "all_delivered_json_parse": true,
+    "markdown_code_fences_balanced": true,
+    "tracked_diff_whitespace": true,
+    "delivered_copy_verified": true,
+    "preexisting_wip_preserved_after_delivery": true,
+    "temporary_worktree_removed": true
+  },
+  "source_drift": [],
+  "not_executed": [
+    "game or host build",
+    "shader compilation",
+    "game launch",
+    "operational API calls",
+    "Syphon pixel reception",
+    "hardware acquisition or pairing",
+    "physical projection",
+    "SC1 implementation"
+  ],
+  "delivered_runtime_source_changes": 0,
+  "projection_test_count": 5,
+  "cleanup": "completed: temporary authoring worktree removed after byte-for-byte delivery and clean/unique-commit checks; shared caches and other worktrees untouched",
+  "local_link_count": 40,
+  "missing_links": []
+}

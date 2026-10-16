@@ -1,0 +1,125 @@
+{
+  "contract": "tholus.stk-scintilla-intro/2",
+  "schemaVersion": 2,
+  "profileId": "sc5_crew_party_v1",
+  "profileRevision": "1",
+  "locale": "it",
+  "durationSeconds": 40,
+  "frameRateNumerator": 30,
+  "frameRateDenominator": 1,
+  "frameCount": 1200,
+  "width": 1920,
+  "height": 1080,
+  "license": "CC-BY-4.0",
+  "author": "Immersive Relay contributors (Codex-assisted)",
+  "variants": [
+    {
+      "variantId": "C1",
+      "minCrew": 1,
+      "maxCrew": 1,
+      "videoPath": "C1/intro_it.mp4",
+      "videoSHA256": "edd394fdbf588294ad74245d03e150278602cbe6f7cee7fb8a9afeafbc0cdee1",
+      "subtitlesPath": "C1/intro_it.vtt",
+      "subtitlesSHA256": "829db3bfcfdd191c142f09386c24fafa23cdf5845d799b78cfe32bc9df89e586",
+      "panels": [
+        {
+          "path": "C1/panel_01.png",
+          "sha256": "926ed4d0b74c935cc2619beac63b27ec164472816af1c4f690fb6a613ff88aad"
+        },
+        {
+          "path": "C1/panel_02.png",
+          "sha256": "4121bb72805cd81d0afd3500313f475ed755d55840aee51c5c213c919c0869e9"
+        },
+        {
+          "path": "C1/panel_03.png",
+          "sha256": "ae9580afd7c45f4655ca390ed135853e8ad9921ef94ccdb6a92e7dcd3aeed9dd"
+        },
+        {
+          "path": "C1/panel_04.png",
+          "sha256": "e9e1d7fd9d790f313bda4cc89734a18e359d5685bcfb426bf5d37e1279d9d57a"
+        },
+        {
+          "path": "C1/panel_05.png",
+          "sha256": "3db64c12d718c74ba2d46ee30d8b2228c485c3dc60bedd319e1368f2bcfc2362"
+        },
+        {
+          "path": "C1/panel_06.png",
+          "sha256": "01deca6d01f52fd8d0aeed5555cd07d43652169c710024bcf12d09d30ead3dba"
+        }
+      ]
+    },
+    {
+      "variantId": "C2",
+      "minCrew": 2,
+      "maxCrew": 2,
+      "videoPath": "C2/intro_it.mp4",
+      "videoSHA256": "20a8d967fee579acf99a03440db90f31f3b696caf94f20aff6a439019fbf1524",
+      "subtitlesPath": "C2/intro_it.vtt",
+      "subtitlesSHA256": "1cb95ade908d79c12c10a50714d23f7204364938132cd4f1e2df52d4f0bc55a6",
+      "panels": [
+        {
+          "path": "C2/panel_01.png",
+          "sha256": "8836f8756dc6f9215ece0dee186401f4bb9dbf9df042f6f6a29cb58a3c0b37b0"
+        },
+        {
+          "path": "C2/panel_02.png",
+          "sha256": "190dfcfad8d134577bc91f00145542ebf3da25c2d15a1dc62dee29c4b4141062"
+        },
+        {
+          "path": "C2/panel_03.png",
+          "sha256": "0b8c0bbce8dd6bc9de988735b0db5bd15816c6073f6c2dfbcec2999287b3f9ac"
+        },
+        {
+          "path": "C2/panel_04.png",
+          "sha256": "ef93a8d751ce7bb76b201d213e7e1dffd81bc42a796d5ca377350a9f647ef6f9"
+        },
+        {
+          "path": "C2/panel_05.png",
+          "sha256": "e5bed0f87aabeec3856f6b47bb18f6f8ad1aac4e229b7ae2480abc71cd1f00ee"
+        },
+        {
+          "path": "C2/panel_06.png",
+          "sha256": "6c82b2b2a3299e7f596b54e343bbf05576e1e5f0b2fe9846efd9e105d769ee05"
+        }
+      ]
+    },
+    {
+      "variantId": "C3plus",
+      "minCrew": 3,
+      "maxCrew": 5,
+      "videoPath": "C3plus/intro_it.mp4",
+      "videoSHA256": "1f0330eccd0c33c19c45ea7193d6685be29e193ab0f854fe3b3d4654ab92f16a",
+      "subtitlesPath": "C3plus/intro_it.vtt",
+      "subtitlesSHA256": "34e3fab6b0981a7a4e5a3248803917b7f66210c30a37caa2a481e94278a0d6ea",
+      "panels": [
+        {
+          "path": "C3plus/panel_01.png",
+          "sha256": "642ec15b53991bc00a56d5411928e772fa3df094db0b96b1dddebaf3b84a136a"
+        },
+        {
+          "path": "C3plus/panel_02.png",
+          "sha256": "1e4c7a63b10de73f5ab7eeb038bfb8e05b8971075eed6744bc2920b633f4c430"
+        },
+        {
+          "path": "C3plus/panel_03.png",
+          "sha256": "d90113a548dd695461b47317b027d00ec97308c955c00383028787344a192d61"
+        },
+        {
+          "path": "C3plus/panel_04.png",
+          "sha256": "f69e2b47c365190ee2fce5c7e25163eb7480436440d10af13363e5f05eec932f"
+        },
+        {
+          "path": "C3plus/panel_05.png",
+          "sha256": "e6cc0029269fd4db7f5aaed78e939aada6004d4b8e41b9f66fb4d766b9dd1309"
+        },
+        {
+          "path": "C3plus/panel_06.png",
+          "sha256": "ce0559e2a0b67ce381abb46568117ffef41b754bd986a1ec625c3348a67e09a2"
+        }
+      ]
+    }
+  ],
+  "crewRulesRevision": "1",
+  "layoutProfile": "front_rear_crew_v3",
+  "layoutRevision": "3"
+}

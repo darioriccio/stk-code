@@ -1,0 +1,86 @@
+{
+  "phase": "SC4 step 11 host final source audit",
+  "status": "source_review_complete",
+  "verdict": "No remaining concrete blocking defect found in the reviewed host source after the retained commissioning correction.",
+  "pathsReviewed": [
+    "Operator mode selection, explicit held SC3 to SC4 upgrade and atomic native intent acknowledgement.",
+    "SC1 to SC4 preparation sequence, retained physical grant, exact native/input/route authority and measured layout revision 2.",
+    "Operator Start/countdown/resume, phone Ready, results Ready/reset and same-world reprepare.",
+    "Intro asset loader, real playback transport, published-game/livePlayback licensing, natural completion and explicit operator skip.",
+    "Intro cancellation, stale producer/race/roster callbacks, another composition owner, output/license loss and recoverable STK route return.",
+    "Retained SI5 presentation suspension, discarded optical history/actions, ongoing clock and lease renewal and fresh presentation gates.",
+    "Strict canonical decimal DTOs, raw duplicate-key validation, immutable results and highest-mode discovery without SC3 downgrade.",
+    "SC2/SC3 gates, handoff/participant rebind and existing native/player/transport integration.",
+    "Xcode package dependency and synchronized target membership, Swift package scope and explicit isolated-runner discovery."
+  ],
+  "defectFoundAndCorrected": {
+    "severity": "P2",
+    "problem": "Importing the required SC4 measured layout changed full-profile equality in the old SC3 pump and invalidated an otherwise unchanged physical lease.",
+    "correction": "Freeze complete physical commissioning identity independently of its semantic HUD report. Only an explicitly planned held upgrade with a live prepared grant can approve an exact layout1 to layout2 replacement for the same inputSessionID, physical calibration and optical timing. The old pump accepts that approved replacement after resume; ordinary imports retain complete-profile equality.",
+    "invariantsPreserved": [
+      "room and surface identity",
+      "venue manifest hash",
+      "calibration and rigid transform",
+      "complete photon timing and display association",
+      "projection and dimensions",
+      "native input session",
+      "route generation and actual provider ownership",
+      "canonical source identity and participant rebind"
+    ],
+    "independentReadOnlyReview": "sc4_core reviewed the final delta and fixtures; no concrete blocker found.",
+    "testsWrittenNotRun": [
+      "retainedSC3PumpCommissioningSurvivesOnlyItsApprovedHeldSC4Import",
+      "retainedSC4LayoutCannotReplaceTheLeasesPhysicalMeasurements: 11 parameter mutations"
+    ]
+  },
+  "checksExecuted": [
+    {
+      "kind": "source_only",
+      "check": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "kind": "source_only",
+      "check": "Python AST/literal inspection of isolated-runner discovery and 11-case parameter minimum",
+      "result": "passed"
+    },
+    {
+      "kind": "source_only",
+      "check": "New/changed commissioning-source whitespace",
+      "result": "passed"
+    }
+  ],
+  "localization": {
+    "previousVerifiedSwiftFiles": 1657,
+    "previousNewFindings": 0,
+    "rerun": false,
+    "reason": "Final correction changes no interface wording or localization keys."
+  },
+  "testEvidenceLimit": "Fixtures were written and source-reviewed. No retained physical pump was run, and no Swift/C++ compiled tests were executed.",
+  "notExecuted": [
+    "build",
+    "compiler",
+    "typecheck",
+    "app/game/API launch",
+    "GPU execution",
+    "AVFoundation runtime playback",
+    "physical SI5 input",
+    "optical or hardware qualification"
+  ],
+  "publicQualification": "Remains closed until matching real native measurement evidence and pregrant preflight, followed by ordinary preparation gates.",
+  "noSC5": true,
+  "reviewedSourceSHA256": {
+    "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift": "31edde2aae2cff116bcee1a24b24f597082ca21b41d71f18a90cc75de8869f10",
+    "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift": "04399b95d4842a90147293c53d1270527dcae11c3e736b4fa4dd9169964c0f50",
+    "Modules/GameShowControl/ImmersiveSTKSpatialCommissioning.swift": "66b983272abc2ea9d9a35d35b565796ada135bfaba57b1c36f6098bfb76d5a2b",
+    "Modules/GameShowControl/ImmersiveSTKMissionHTTP.swift": "6985771caa7174d3b3dbb62436b173341173f486e8fe269c51a30d8a0abf90ad",
+    "Modules/GameShowControl/ImmersiveSTKIntroMedia.swift": "a9f65e71147186ae49f9b36cc03b64803f0b3b1e6dacee8b687154d846d0afb4",
+    "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": "e79f6d37b94baa44acce933ed12eb8beca39974f946cbc3d24d32c94f5183e9b",
+    "Modules/Shared/MediaBus.swift": "e90aca971cef6b51b572c75aac648d8fee5da6c227dbaddbab2ea9b20586e6e2",
+    "Modules/VideoInputs/VideoInputManager.swift": "df9ec1fe2b9c2a30b95515a9fc697b2bfeba3e61c8824dbd8e57362a4da4923d",
+    "Modules/VideoPlayer/VideoPlayerViewModel.swift": "f8e16fa7b81ccbc61b95593bffb17950cb21ce1a39dcd8bb9efa8eaede5a3225",
+    "Modules/CalibrationEngine/MetalRenderer/DomeRendererViewModel.swift": "db93936b973423c13b6b8084e6ccf26e1970d0930764e40eac268ff1809ab6ff",
+    "Tests/SocialTableControllerTests/ImmersiveSTKSpatialActivationTests.swift": "cc602b0341b7d331e9c8400fbbd79fd7e9cf334ef8bbecb1a98b30a2960f0261",
+    "scripts/ci/test_app_isolated.py": "c813c2103e3caf4f0f97afa868bf83a1887e656afb017da98ab9a5881874f845"
+  }
+}

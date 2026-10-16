@@ -1,0 +1,47 @@
+{
+  "ImmersiveSTKCrewPreparationFlowTests": {
+    "file": "Tests/SocialTableControllerTests/ImmersiveSTKCrewPreparationFlowTests.swift",
+    "methods": {
+      "productionFlowRequiresOneSC1AndOneChallengeBeforeTheGameplayOwners": 1,
+      "lossAtEveryProductionAwaitCannotPublishPreparation": 10,
+      "aDifferentTurnInTheSC1ReplyCannotStartPossession": 1,
+      "changingTheThirteenFieldAuthorityBetweenOwnersStopsTheNextOwner": 1,
+      "aPreparedHistoricalReceiptWithAnUnpreparedFreshStateStaysHeld": 1,
+      "anUnqualifiedPartyProfileStopsBeforePossessionAndGameplayPreparation": 1
+    }
+  },
+  "ImmersiveSTKCrewOrchestrationTests": {
+    "file": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+    "methods": {
+      "controllerRecreationDiscoversRequiredSC5BeforeAnyReady": 2,
+      "layoutV3StillDiscoversCrewWhenTheCapabilityFieldIsAbsent": 1,
+      "aMissingCapabilityDoesNotOfferSC5OrChangeTheSelectedSC4Profile": 1,
+      "explicitSC5PreviewExitConfirmsDisableBeforeSC4Intent": 1,
+      "failedPreflightKeepsTheLegalPreviewExitAvailableThroughTheRuntimeGate": 1,
+      "failedPartyPreflightRetryPreservesTheSelectedProfile": 1,
+      "preparedSC3OrSC4UpgradeUsesANewNativeRaceAndPreservesTheGrant": 2,
+      "resetAndLateRepliesCannotRewriteTheFrozenSC5CrewResult": 1,
+      "latePreviousProducerReportCannotReplaceTheCurrentProducerResult": 1
+    }
+  },
+  "ImmersiveSTKCrewReportTests": {
+    "file": "Tests/SocialTableControllerTests/ImmersiveSTKCrewReportTests.swift",
+    "methods": {
+      "sessionReportPreservesTheFrozenCrewEnvelopeAndSeparateBucket": 2,
+      "unrelatedResultsAndMisclassifiedReportsFailClosed": 8,
+      "legacyAndSC4ReportsKeepTheirOriginalClassification": 1
+    }
+  },
+  "ImmersiveSTKSpatialActivationTests": {
+    "file": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialActivationTests.swift",
+    "methods": {
+      "retainedLeaseCanReviewV2V3AndBackWithoutChangingThePhysicalAnchor": 1
+    }
+  },
+  "ImmersiveSTKIntroMediaTests": {
+    "file": "Tests/SocialTableControllerTests/ImmersiveSTKIntroMediaTests.swift",
+    "methods": {
+      "crewIntroCannotReuseAnotherProfileOrManifest": 1
+    }
+  }
+}

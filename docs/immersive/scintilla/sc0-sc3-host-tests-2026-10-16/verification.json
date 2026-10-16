@@ -1,0 +1,53 @@
+{
+  "scope": "SC0-SC3 host native test completion; no SC4",
+  "date": "2026-10-16T09:44:24.100923+02:00",
+  "status": "HOST_NATIVE_UNITS_PASS",
+  "testBuild": "SUCCEEDED",
+  "passedMethods": 182,
+  "failedMethods": 0,
+  "skippedMethods": 0,
+  "requiredSuites": 11,
+  "requiredMethods": 182,
+  "passedCasesBySuite": {
+    "ImmersiveSTKSpatialHTTPTests": 12,
+    "ImmersiveSTKCombatHTTPTests": 77,
+    "ImmersiveSTKSpatialActivationTests": 69,
+    "ImmersiveSTKSpatialInputTests": 37,
+    "ImmersiveSTKOpticalPresentationTests": 22,
+    "ImmersiveSTKSpatialHistoryTests": 11,
+    "ImmersiveSTKDefenseHTTPTests": 53,
+    "ImmersiveSTKPresentationTests": 9,
+    "ImmersiveSTKSurfaceRoutingTests": 10,
+    "ImmersiveSTKSurfaceRuntimeTests": 10,
+    "ImmersiveSuperTuxKartIntegrationTests": 70
+  },
+  "nativeManifest": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/evidence/host-scintilla-06/manifest.json",
+  "sourceSnapshotSHA256": "891d588053299fa56426d24fc447420b029fbd1b1550f3aa4b3be554ac2fe9b4",
+  "isolatedBundleID": "com.tholusOS.CriticalTestHost.65c211ce8f656a594589038a8bd4ac08",
+  "testHostBinariesSHA256": {
+    "Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app/Contents/MacOS/Updater": "310933f1f233d61fcbd8234d799250bea1cadc7824b60bfd4d36ef5d0bceb736",
+    "Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc/Contents/MacOS/Downloader": "8caaba0d77fc58b903d59640e5fde9841925f095283cb456b2c26b5714d09433",
+    "Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc/Contents/MacOS/Installer": "f5bd39c2e771bcd099613b7df9cea648b7b6be3247756122cf33e96cc575aacd",
+    "Contents/MacOS/TholusOS": "60fc91664ba204b793e659f885afc5c974a65d2c986c0f4435e3c82bbb263243",
+    "Contents/MacOS/TholusOS.debug.dylib": "b22ed4ad1ad41310f004789c1eb5d71e885fe205c07c8d354627a87cc49290fe",
+    "Contents/MacOS/__preview.dylib": "174328ad76f62e6ce06324e286b6bfd7cc3367f5f45fa46add26e50cedd3866b",
+    "Contents/PlugIns/SocialTableControllerTests.xctest/Contents/MacOS/SocialTableControllerTests": "88f600fb1a4bff3cdf5de0b298ec8e2240a26134aee257b13d2a645d92489539"
+  },
+  "previousAttempts": {
+    "04": "Actual execution: 160/163 methods passed, 3 failed; 19 SC2 methods not selected by old profile.",
+    "05": "Decimal fix checked: 161/163 methods passed, 2 failed; same old profile.",
+    "06": "All corrected scopes and mandatory methods passed."
+  },
+  "runnerPythonTests": {
+    "passed": 29,
+    "log": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/evidence/host-test-resume-2026-10-16/runner-python.log"
+  },
+  "enabledEnumerationBefore": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/evidence/host-test-resume-2026-10-16/runner-mapping-before.json",
+  "enabledEnumerationAfter": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/evidence/host-test-resume-2026-10-16/runner-mapping-after.json",
+  "removableVolumeExecutionBlocker": "RESOLVED_FOR_THIS_NATIVE_TEST_EXECUTION",
+  "sourceDuringBuildAndTests": "UNCHANGED_CONFIRMED_BY_RUNNER",
+  "productionAppArtifactRebuiltInThisRun": false,
+  "nativeCxxAndGpuSourceSince20261015": "UNCHANGED_HASHES_VERIFIED_NOT_RETESTED",
+  "hardwareQualified": false,
+  "SC4Started": false
+}

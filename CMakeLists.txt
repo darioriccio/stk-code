@@ -1067,3 +1067,10 @@ if(MINGW)
     install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/ DESTINATION ${STK_INSTALL_BINARY_DIR}
             FILES_MATCHING PATTERN "*.dll")
 endif()
+
+# THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: opt-in core regression target
+if(ENABLE_RELAY_TEST_TOOLS)
+    enable_testing()
+    add_subdirectory(tools/immersive/tests)
+endif()
+# THOLUS_IMMERSIVE_RELAY_HOOK_END

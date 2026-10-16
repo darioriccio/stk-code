@@ -1,4 +1,5 @@
 #stk_include "utils/immersive_sphere_sampling.frag"
+#stk_include "utils/immersive_scintilla.frag"
 
 uniform vec2 resolution;
 uniform float dome_tilt_rad;
@@ -90,7 +91,8 @@ void main()
     float r = length(p);
     if (r > 1.0)
     {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        if(scintilla_measure_mode!=0)discard;
+        FragColor = vec4(0.0, 0.0, 0.0, scintillaAlpha(gl_FragCoord.xy,resolution));
         return;
     }
 
@@ -112,6 +114,10 @@ void main()
     }
     dir = normalize(rotateX(dir, dome_tilt_rad));
 
+    if(scintilla_measure_mode!=0){
+        if(!scintillaMeasurementMask(dir,uv,resolution,scintilla_measure_index,scintilla_measure_mode))discard;
+        FragColor=vec4(0);return;
+    }
     vec4 color = use_multiview != 0 ? sampleMultiview(dir)
                                     : sampleEnvironment(dir);
     if (debug_grid != 0)
@@ -119,5 +125,5 @@ void main()
         vec3 grid = debugGrid(p, r, phi, dome_tilt_rad);
         color.rgb = mix(color.rgb, grid, clamp(max(max(grid.r, grid.g), grid.b), 0.0, 0.85));
     }
-    FragColor = vec4(color.rgb, 1.0);
+    FragColor = vec4(scintillaOverlay(color.rgb,dir,uv,resolution),scintillaAlpha(gl_FragCoord.xy,resolution));
 }

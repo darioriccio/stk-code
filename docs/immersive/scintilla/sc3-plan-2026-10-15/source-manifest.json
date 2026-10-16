@@ -1,0 +1,183 @@
+{
+  "date": "2026-10-15",
+  "scope": "Planning references and source inspection, not build/runtime/hardware qualification. Hashes include uncommitted sources.",
+  "repositories": [
+    {
+      "path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "fa36035bc57d16b2575ec979bfc14a335029f32e77edab533d40724fe810c8f9"
+        },
+        {
+          "path": "docs/AGENTS.md",
+          "sha256": "d271b32d260a0ad8f38e7ef91bf4b9f1a9292b359493ef86d90911983e2d3371"
+        },
+        {
+          "path": "docs/Tholus_STK_Missione_Scintilla_Design_v2.md",
+          "sha256": "97ba07260f6cb176042b11863537fdca9a6a9e3012efe3339d9c52195854317f"
+        },
+        {
+          "path": "docs/immersive_relay_tholustos_integration.md",
+          "sha256": "58007eec4336418d1a754d39b5cc3e86f24f2e4890692fcf99f767848446ca64"
+        },
+        {
+          "path": "docs/immersive/scintilla/sc2-plan-2026-10-15/PIANO_SC2.md",
+          "sha256": "9956e52c2c51dcf466e2b613f2faf7c428bc0b14b5cb0fcd8d2e3a622e579b11"
+        },
+        {
+          "path": "docs/immersive/scintilla/sc2-tool-feedback-2026-10-15/README.md",
+          "sha256": "ec244632020b933d8e09348a696a6b498a62e444b13119a1728d24c13d4763bc"
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_combat.hpp",
+          "sha256": "25335ebd7a05d584dfa551ee3dbb284ac5f40b9a1298b57ff404d01148b5f523"
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_combat.cpp",
+          "sha256": "6f77c7e3d96992267015304ada2751df60c07b694977e8109a8b386e907a34b8"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+          "sha256": "85cfa8c6ea1400d845985613d6b63d3ff384518c28fd2cb31e828c7cda1a1b95"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+          "sha256": "34216b1e62b8ec879b622440f8cfaa34905c5665d2f9a8b2b0f61d1c3195a674"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+          "sha256": "acb7b888715e786621afcf8f5b510a8e94fd3aa9b8d1a95591d39019926a1127"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+          "sha256": "2ccbb0b422109aa1cdbd715196813f55f0895abdb6936817b511caf77d0df34c"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_target_lifetime.hpp",
+          "sha256": "7bad0f7b3f4de5aa5e33dd42abeb716747315c4edfc7c86a5a4e4ec5f5d7e9ce"
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+          "sha256": "b23acee916b90c36ee5aa05b942b0a11bb3faa94c3448a1ac2fc91a88974577f"
+        },
+        {
+          "path": "src/modes/immersive_relay/crew_action_handler.cpp",
+          "sha256": "adf8c12f386d19e69bc90b22890f5362520ef0649352583a4d5e590aeb7fa67d"
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+          "sha256": "7e8718ad978cb50495560ac9f16d55c48ac31faa0e6cbdbc92b8928d415cc3b8"
+        },
+        {
+          "path": "src/modes/immersive_relay/render/camera/immersive_camera_rig.cpp",
+          "sha256": "4f7acd57aa4eef7152cce9a3b76e69a964322fe84a9300837a12c6692bc6e9a9"
+        },
+        {
+          "path": "src/karts/kart.cpp",
+          "sha256": "b8bdaa2aabb43db7e851a62212921a81f2fadbcc1604a8b346855d6ac7f990ed"
+        },
+        {
+          "path": "src/karts/abstract_kart.hpp",
+          "sha256": "f7650a122317c5f7531d8feb189590abda6eff2b44853016f0e2a02bc713983f"
+        },
+        {
+          "path": "src/karts/max_speed.hpp",
+          "sha256": "104ac4befd8f04bd71d4a96d4bff891b9c2074d3ca257d2024d3ee672dfaee66"
+        },
+        {
+          "path": "src/karts/max_speed.cpp",
+          "sha256": "60e9e21334d2e10f117d4c0863d6e21f324a23322ef0e3faa4f91559ffaebd2e"
+        },
+        {
+          "path": "src/physics/physics.cpp",
+          "sha256": "09e89817f81c1f0c34792d688082011328ce324aae9709ff35030da8d731c84b"
+        },
+        {
+          "path": "src/physics/physics.hpp",
+          "sha256": "a1a2a0ea079841328793824d52005d04957626309e29ef1c530a38931d8bfc80"
+        },
+        {
+          "path": "src/physics/btKart.hpp",
+          "sha256": "b20b86f8f2c1f2c2f98e71a02dd3553e4b952edf4e07373efa706f4954886e7a"
+        },
+        {
+          "path": "src/items/flyable.hpp",
+          "sha256": "c8ddbc3da0063c9002933fc135f3575c07441a35a9a0b5d6beb074ac7b9c26c2"
+        },
+        {
+          "path": "lib/bullet/src/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp",
+          "sha256": "f83e97f1b42fd01f9e27d844e1dd0ebe38c87eeb88baa30f5252863165ad6e5e"
+        },
+        {
+          "path": "data/stk_config.xml",
+          "sha256": "c2d1afea1b38925fcd7a3db9a766b8878d16a1ac4d03a00481c591c08359ee62"
+        },
+        {
+          "path": "data/shaders/utils/immersive_scintilla.frag",
+          "sha256": "ea75c2c7b8a38d5a22ecfda1abcfe1bf70a286063df83aae4c2b8d55b82ac632"
+        },
+        {
+          "path": "data/shaders/utils/immersive_sphere_sampling.frag",
+          "sha256": "420c258113709b8f6c3a6630b24da182800369e608484d9e706d7cc434c84871"
+        },
+        {
+          "path": "data/shaders/immersive_equirectangular.frag",
+          "sha256": "eb8634798622a7803733012dc92fa470518918a3563434a29f2df956333190dd"
+        },
+        {
+          "path": "data/shaders/immersive_fisheye_domemaster.frag",
+          "sha256": "50030ac520cc5922024fed3128b7a2a0428a5ebc603ce62fa3d1711ed7c66634"
+        },
+        {
+          "path": "tools/immersive/tests/CMakeLists.txt",
+          "sha256": "8b2067215134b894711f12aa917decd30e9b25240f8c45fc79d59b96c151872a"
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_tool_feedback.py",
+          "sha256": "086a98705cb6f86a6b98d9e682001b3dfb44d3a8e80e3134bf54ff2d3458525f"
+        }
+      ]
+    },
+    {
+      "path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "head": "86192cac835ebe22934d83605b6192480837643d",
+      "files": [
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+          "sha256": "cabb13e209937c95b7ed8fb8fc7a7363cf6c31645e6a23ceb7ef32e2bdb64c2d"
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+          "sha256": "a359e19476347e2fa50ee013cef6742af9b16ca51b65e72c8f43f38cc5f90234"
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+          "sha256": "2cbcaf38f4b4b45b3800cfe3c7f3de9505f3d0e6cfdb23cf19391fd04121cd0c"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "math_oracle_passed": 10,
+    "build": false,
+    "native_tests": false,
+    "app_or_hardware": false,
+    "gameplay_implementation": false
+  },
+  "deliverables": [
+    {
+      "path": "PIANO_SC3.md",
+      "sha256": "2dcaf5e00d3e57d651761f8bff92da0394a745da2fed0d1a226d6b3a67b6e6ba"
+    },
+    {
+      "path": "calcoli.json",
+      "sha256": "32d9103d9a50bac096638b58e25d8d6a967d76813f715e8213833afa1f425639"
+    },
+    {
+      "path": "verifica_calcoli.py",
+      "sha256": "99a39b8579fb5a841bb33ee3cfaa9e8f108f37b5ef7f9997270105c148a95f71"
+    }
+  ]
+}

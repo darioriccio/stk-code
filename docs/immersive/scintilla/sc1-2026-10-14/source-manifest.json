@@ -1,0 +1,182 @@
+{
+  "phase": "SC1 source only; no build",
+  "date": "2026-10-14",
+  "repositories": {
+    "stk": {
+      "path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "initial_head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "integration_head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "files": [
+        {
+          "path": "data/shaders/immersive_equirectangular.frag",
+          "before_sha256": "2da70d6448fadf659a937fb4479c34cf02e0d223bf8a6a5139b2249498306379",
+          "sha256": "eb8634798622a7803733012dc92fa470518918a3563434a29f2df956333190dd",
+          "new": false
+        },
+        {
+          "path": "data/shaders/immersive_fisheye_domemaster.frag",
+          "before_sha256": "0684c3c1696be7c1499e5a9c0e75ce6db298fa4c0a3b40fa0e7081e2c99e530c",
+          "sha256": "50030ac520cc5922024fed3128b7a2a0428a5ebc603ce62fa3d1711ed7c66634",
+          "new": false
+        },
+        {
+          "path": "data/shaders/utils/immersive_scintilla.frag",
+          "before_sha256": null,
+          "sha256": "2a792b5a3fdbd9295db18421630430228fbbd66f4e2ce07f3b46a4297af3510d",
+          "new": true
+        },
+        {
+          "path": "sources.cmake",
+          "before_sha256": "a51b26ffca1d5a9f8c6d69bb150c6c7fe18403779b9278c77d8b47bd2b336d16",
+          "sha256": "a16bd7b201a59948af1ab1161bf56b7213b329325b0ecf6915ac94a8bc3b04e7",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.hpp",
+          "before_sha256": "615940bbed9db03f93853d5a50a4cf322648f236f11f22c41e14b106062564c3",
+          "sha256": "9e9b39eed3a4a225ec28b41237917b87ebaa188f8b5e02eb82300aa6cfb6f17f",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac.mm",
+          "before_sha256": "c710331653d6e05b05ba206527c2a32a99e2ce1335f0749ad1ba0314fece861f",
+          "sha256": "5265160396b5621d7c59999259f0bc189b5b62383c95846b478608726c160085",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/output/syphon_mac/syphon_output_adapter_mac_stub.cpp",
+          "before_sha256": "a00b40a312d7939316e1f8c20ee7cca520fead6b3423d6ddf87dbe524dc9f27c",
+          "sha256": "57b36602b48cff91728521f6f81a95061138c0ea47a41d38f3b2b58b4a2bb1e5",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+          "before_sha256": "b849b1d9fd80b6ae3d5f7c86597383f95d29d3110918bfb6b67a2f1c3c3a0e27",
+          "sha256": "15f685a348d6924ad9e16dcdb1003d4fb09bc6ff4d89dc70092a39b092c228e2",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+          "before_sha256": "d32debf270033c40f255ac82859612eb9e5086a62632ee5012300a6ca73dd56c",
+          "sha256": "2a0a097adc923cdf58f190607ac30d89fec034ddb075627ca61b2ca0bc3d5373",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+          "before_sha256": "550a3251f6bbbde0e35a6e56fa9d78b1d3e63f4877bb4a68a705c9ff21db1b66",
+          "sha256": "425e8111dc4aa6c812cf05bdc6ae53067a1c9f4f8b5eb93ab319e28637a8fb82",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+          "before_sha256": "4b8cf30520a2323a9a77597f368bc4e82728f590898b62b52a6c97d9a79c91c2",
+          "sha256": "a8cf984d57e9fdd16cc90493d3711816802234f2cad6b74f07e8e24ae3eb4ebd",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+          "before_sha256": "2b8196339fca2dbbd4ddf17e3e34ee7966f8eb260abebc290bf9d5f6d4078a6c",
+          "sha256": "f34fdc20e3c81c91402bc65351c350d6f94c30cd9aa4b4ccb48f36085b7537e5",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/render/immersive_render_pipeline.cpp",
+          "before_sha256": "087b4e15a75c9e475c6bc44a5c72f6429770036409870bc64894c0b7b3d447d3",
+          "sha256": "a844441234075265d63a70c2bc38e59b3d0d616f6e3d672a97b7eaf5adfe2d81",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/render/immersive_render_pipeline.hpp",
+          "before_sha256": "6185ee6fa6e405846e2eeadb9ad16b0cf5b5ab92e087999e9cbc2962940d05ae",
+          "sha256": "93f9d6865e9ba24e6756eea88625f913f7bc241140c92df45559fd89b01dfdc4",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/render/projection/fisheye_domemaster_projection.cpp",
+          "before_sha256": "674f3139079795ce55dbe4e6241295223b9f78af4d68271bb876ba480df1335d",
+          "sha256": "74e6a5b5418ef4bab0100be577298970c760516dacf7fdee65034f101f67e826",
+          "new": false
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+          "before_sha256": null,
+          "sha256": "f06a0b471eead30a53116392d9fec8b98f2cbee15e1999acd78a00268a9c62e8",
+          "new": true
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+          "before_sha256": null,
+          "sha256": "162137f0aef0b2696aa8d04ea204f9a9c6779685928092a27eb7e6622fef5af1",
+          "new": true
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+          "before_sha256": null,
+          "sha256": "8dc1dec73288dc9cef0c4e0d1a6186d053530890569f410b7e45dd7dd47eeb24",
+          "new": true
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+          "before_sha256": null,
+          "sha256": "102327a05dfacac9b8fa3bf2ef8644c12e7e6b85e07ae73db4d5ca8d3254dd0e",
+          "new": true
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+          "before_sha256": null,
+          "sha256": "adb892de5917362773eba0fcbc7edfb3defd44e96b1bfa48e865e922e8b04875",
+          "new": true
+        },
+        {
+          "path": "docs/immersive_relay_tholustos_integration.md",
+          "before_sha256": "9769f9a22f071ea3a9225dd37b8e35db9341acc19e6d71410904e1701d27df83",
+          "sha256": "a62c7aebf5064e8e71426f516167774a77641d43edf12b359963dd7db6d202f2",
+          "new": false
+        },
+        {
+          "path": "docs/immersive/repo_audit.md",
+          "before_sha256": "83f3298150892a5301f9306fda8d14c6c80c36d17cc3f199e1b4d8f1c0c42947",
+          "sha256": "cf2f74d31ababdce47670b5c9713e537cd86c0dc7727c478e7a734a9dc6c6f09",
+          "new": false
+        },
+        {
+          "path": "docs/immersive/scintilla/sc1-2026-10-14/README.md",
+          "before_sha256": null,
+          "sha256": "c45c5313ad2998717837e408bb7ed420e719fc23380f48d6097007b8715c7cef",
+          "new": true
+        }
+      ]
+    },
+    "host": {
+      "path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "initial_head": "c4c8eadf597eb811d5addef9cc717570a7cf7449",
+      "integration_head": "8cbe6a83ddfa6bd49fdb542328a1d81c739b096f",
+      "files": [
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+          "before_sha256": null,
+          "sha256": "10e160a51d82691cd21761977f7023b84c985d038ab19e5d577f91664732bff3",
+          "new": true
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+          "before_sha256": "bf49769804552a60f7893dd5ed151f86cffab6a2cae30637aa49f80729e4a9fc",
+          "sha256": "a8e1ce49c68e5c3cff015d3ea0d1aae680a4f5392ecf8e6dfc6e3bbca005b0db",
+          "new": false
+        },
+        {
+          "path": "SocialTableController/App/AppRuntimeComposition.swift",
+          "before_sha256": "fb68f5814972672fc500843142a530b0a98988c784de2c64430bff6785dd8299",
+          "sha256": "743f5ebef7ee558838abdfe89b5f87f4e6f18a943f9582877b88f09c317b6ab8",
+          "new": false
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialInputTests.swift",
+          "before_sha256": null,
+          "sha256": "c0bf708658f5e576bf43763698ca56304ef733a4fa37e450dc1e846d46b88188",
+          "new": true
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "evidence": "reference mathematics, not production tests",
+  "timing": [
+    {
+      "hz": 60,
+      "hold_ticks": 36,
+      "window_ticks": 180,
+      "latest_start_tick": 143,
+      "latest_start_seconds": 2.3833333333333333,
+      "hold_seconds": 0.6,
+      "tick_ms": 16.666666666666668
+    },
+    {
+      "hz": 120,
+      "hold_ticks": 72,
+      "window_ticks": 360,
+      "latest_start_tick": 287,
+      "latest_start_seconds": 2.3916666666666666,
+      "hold_seconds": 0.6,
+      "tick_ms": 8.333333333333334
+    },
+    {
+      "hz": 144,
+      "hold_ticks": 87,
+      "window_ticks": 432,
+      "latest_start_tick": 344,
+      "latest_start_seconds": 2.388888888888889,
+      "hold_seconds": 0.6041666666666666,
+      "tick_ms": 6.944444444444445
+    }
+  ],
+  "inventory": {
+    "valid_abstract_states": 20,
+    "transitions": 44
+  },
+  "outcomes": {
+    "first=False,full=False": "mission_failed",
+    "first=False,full=True": "cargo_delivered_race_lost",
+    "first=True,full=False": "race_won_cargo_incomplete",
+    "first=True,full=True": "mission_victory"
+  },
+  "opportunity": {
+    "budget_seconds": {
+      "notice": 0.45,
+      "primary_resolution": 0.25,
+      "switch_and_rearm": 0.2,
+      "tool_resolution": 0.25,
+      "continuous_hold": 0.6,
+      "margin": 0.25
+    },
+    "required_seconds": 2.0,
+    "radius_m": 2.0,
+    "min_angular_diameter_deg": 3.0,
+    "angular_max_range_m": 76.40310002822089,
+    "range_m": 75.0,
+    "near_m": 8.0,
+    "transverse_m": 4.0,
+    "usable_path_m": 67.96505414313562,
+    "duration_by_speed": [
+      {
+        "speed_m_s": 15,
+        "available_seconds": 4.531003609542375,
+        "meets_2s_necessary_budget": true
+      },
+      {
+        "speed_m_s": 17,
+        "available_seconds": 3.9979443613609185,
+        "meets_2s_necessary_budget": true
+      },
+      {
+        "speed_m_s": 25,
+        "available_seconds": 2.7186021657254247,
+        "meets_2s_necessary_budget": true
+      },
+      {
+        "speed_m_s": 30,
+        "available_seconds": 2.2655018047711875,
+        "meets_2s_necessary_budget": true
+      },
+      {
+        "speed_m_s": 35,
+        "available_seconds": 1.9418586898038748,
+        "meets_2s_necessary_budget": false
+      },
+      {
+        "speed_m_s": 40,
+        "available_seconds": 1.6991263535783905,
+        "meets_2s_necessary_budget": false
+      }
+    ],
+    "constant_speed_limit_m_s": 33.98252707156781,
+    "required_range_at_40m_s": 87.02018453694569,
+    "required_radius_at_40m_s": 2.27792287236521,
+    "diameter_deg_at_75m": 3.0561371892215092,
+    "equirectangular_pixels_at_2048": 17.386024898682365
+  },
+  "tether": {
+    "offset": [
+      3.0,
+      5.5,
+      6.0
+    ],
+    "radius_m": 0.5,
+    "camera_defaults": [
+      0.0,
+      0.4,
+      -0.25
+    ],
+    "camera_pitch_deg": 35,
+    "camera_relative": [
+      3.0,
+      0.5928226986798197,
+      8.044940102196533
+    ],
+    "distance_m": 8.606538212312776,
+    "diameter_deg": 6.660989204715551,
+    "cable_length_from_local_origin_m": 8.674675786448736,
+    "caveat": "static constructor defaults, no smoothing/occlusion qualification"
+  },
+  "hud": {
+    "cargo": [
+      [
+        -0.18,
+        -0.16,
+        0.06
+      ],
+      [
+        0,
+        -0.16,
+        0.06
+      ],
+      [
+        0.18,
+        -0.16,
+        0.06
+      ]
+    ],
+    "beacons": [
+      [
+        -0.18,
+        -0.27,
+        0.025
+      ],
+      [
+        0,
+        -0.27,
+        0.025
+      ],
+      [
+        0.18,
+        -0.27,
+        0.025
+      ]
+    ],
+    "min_circle_gap": 0.025000000000000015,
+    "pixel_gap_at_min256": 3.200000000000002
+  },
+  "finish": {
+    "previous": 10.0,
+    "current": 10.008333333333333,
+    "native_interpolated": 10.005555555555553
+  },
+  "intro": {
+    "seconds": 40,
+    "fps": 30,
+    "frame_boundaries": [
+      0,
+      180,
+      360,
+      570,
+      780,
+      990,
+      1200
+    ],
+    "audio_rate": 48000,
+    "samples_per_frame": 1600,
+    "sample_boundaries": [
+      0,
+      288000,
+      576000,
+      912000,
+      1248000,
+      1584000,
+      1920000
+    ]
+  },
+  "checks_passed": 146
+}

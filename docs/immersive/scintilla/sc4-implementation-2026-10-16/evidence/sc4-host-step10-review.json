@@ -1,0 +1,80 @@
+{
+  "phase": "SC4 step 10",
+  "reviewer": "sc4_host_inspect",
+  "scope": "independent source review of native measurement and qualification; minimal host operator copy",
+  "verdict": "no remaining concrete blocking defect in the reviewed source delta",
+  "hostChanges": [
+    "Mission preparation distinguishes anchorStatus preflight_required from missing/unqualified evidence without admitting Ready.",
+    "English and Italian operator copy added to Localizable.xcstrings.",
+    "Foundation fixture localPreflightRequiredStateCannotClaimPreparedAuthority written and reviewed; not executed."
+  ],
+  "hostSourceChecks": [
+    {
+      "command": "python3 scripts/localization/check_mac_localization.py --base HEAD",
+      "exitCode": 0,
+      "swiftFiles": 1657,
+      "newFindings": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "nativeSourceReview": [
+    "Held/no-consumer-grant preflight hashes content and reparses the exact hashed raw evidence; public prepare and intent use the cheap bound cache.",
+    "Full fingerprint covers profile, participants, physics cadence, projection, camera, dimensions, shaders, executable, applied content and anchor manifest.",
+    "Maximin windows use native physics minimum speed, exact elapsed duration and advancing ticks; object, phase, crew and lap evidence remain separate.",
+    "Shell activation requires actual progress crossing plus prior native complete-mask visibility. Synthetic and center-only evidence do not grant qualification.",
+    "Short held intervals latch discontinuity before the unconfigured-combat early return; repeated physics ticks earn no time credit.",
+    "GPU query coverage counts full ideal/admissible/visible masks with the shared stable sphere contact and published semantic occluders; pending/unsupported evidence fails closed.",
+    "Native live tether first presentation requires matching published frame and full-mask proof; diagnostic recording creates no SI5 grant, cargo transaction or actual mission target.",
+    "Reset and invalidation clear bounded pending queries and stale coverage even outside an active recording."
+  ],
+  "issuesResolvedDuringReview": [
+    "C>=2 requires two capsules per group.",
+    "Clock narrowing checks precede casts; wide identity metadata remains UInt64.",
+    "Activation recomputes crossing and prefetched Shell visibility.",
+    "Heavy hashing moved to explicit pregrant preflight; report absence checked before expensive work.",
+    "Nonrecording query cleanup, presentation mask selection and applied camera fingerprint admission corrected.",
+    "Pause continuity, semantic marker occlusion and stable shared sphere contact corrected.",
+    "Repeated-tick continuity and natural-finish footer validation aligned between C++ and Python."
+  ],
+  "operatorProcedure": [
+    "Collect real native diagnostic traces with no prepared SI5 consumer grant.",
+    "Validate the local qualified report against the matching anchor manifest and applied producer fingerprint.",
+    "Run the technical measurement preflight while the world is held and before SI5 preparation.",
+    "Retry the normal mission preparation; Ready remains closed until all native qualification and presentation gates pass."
+  ],
+  "notExecuted": [
+    "build",
+    "compiler",
+    "typecheck",
+    "compiled tests",
+    "host or game launch",
+    "GPU execution",
+    "runtime acceptance",
+    "physical input",
+    "optical qualification",
+    "hardware qualification"
+  ],
+  "qualificationClaim": "No real qualified report was manufactured; actual native/GPU, runtime, optical and hardware evidence remain pending.",
+  "constraints": [
+    "no SC5",
+    "step 11 not started",
+    "preserve concurrent work"
+  ],
+  "reopenedReview": {
+    "status": "closed after rereading current filesystem and original baseline",
+    "clippingFinding": "Withdrawn: original C++ and shader already choose the nearest positive front surface before clipping; the current shared sphere-contact helper preserves that established policy.",
+    "runtimeFingerprintGate": "missionPreparationBound compares the applied measurementFingerprint with qualificationFingerprint before admission. beginMissionStep calls it before native StandardRace physics and returns false with input suspended and Start closed on mismatch.",
+    "measurementMismatchDetail": "Final owner delta reread: prepareMissionMeasurementFrame now interrupts and resets pending/runtime proofs on mismatch even without an active recorder; runtime mismatch also closes missionAPIPrepared/Start, suspends input and reports preflight_required. The independent admission fingerprint gate remains in missionPreparationBound.",
+    "checksRepeated": "Source reads only; no repeated Python tests, localization run, build or runtime launch."
+  },
+  "reviewedNativeSourceSHA256": {
+    "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "28e5e0644c5ee743a4a0ccfae9febec02bf0668f6e4da30a08d4aa611d85f7c0",
+    "src/modes/immersive_relay/spatial/scintilla_measurement_native.hpp": "421b40a92c5c39efbfc9de2741253394f49cd43ff9ae87a5b3acdef88c24babd",
+    "src/modes/immersive_relay/spatial/scintilla_input.cpp": "effc0863adb745451fa12e54a1ca840624f46ba8d6e990b1e1f4ce04c0e696b2",
+    "src/modes/immersive_relay/scintilla_mission_measurement.hpp": "8b456d39d678f6cf9d9f19999df3adad5369e5abd046a6eea81b87dcc26e5c97",
+    "data/shaders/utils/immersive_scintilla.frag": "b484a1e3d25f738ef5a6414f7515737fe076ef921ae1be2410fa6aa7af2c937a"
+  }
+}

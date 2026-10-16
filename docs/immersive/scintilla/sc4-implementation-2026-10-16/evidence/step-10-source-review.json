@@ -1,0 +1,44 @@
+{
+  "step": 10,
+  "status": "software_source_gate_passed",
+  "realQualification": "blocked_by_no_build_no_native_run",
+  "profileData": "development_unqualified",
+  "publicReadiness": "closed_until_native_geometry_evidence_and_normal_SC1_SC2_SC3_intro_preparation",
+  "evidence": [
+    "evidence/sc4-phase10-native-source-check.json",
+    "evidence/sc4-host-step10-review.json",
+    "evidence/qualification-python-tests.json",
+    "evidence/collector-python-tests.json",
+    "evidence/sc2-sc3-source-checks-updated.json"
+  ],
+  "pythonChecks": {
+    "qualification": 25,
+    "collector": 10,
+    "combat": 10,
+    "defense": 20,
+    "depth": 8,
+    "missionAPI": 15,
+    "missionFinish": 20,
+    "missionHUD": 18,
+    "missionLifecycle": 16,
+    "missionPresentation": 12,
+    "staggerClearance": 6,
+    "toolFeedback": 6
+  },
+  "notRun": [
+    "CMake configure",
+    "compiler/typecheck",
+    "app/game builds",
+    "C++/Swift compiled tests",
+    "native API execution",
+    "GPU raster execution",
+    "actual anchor measurements",
+    "SC4 natural race",
+    "physical input/optics/venue"
+  ],
+  "notes": [
+    "No fabricated qualified descriptor or raw native capture",
+    "Source clipping matches current baseline; an initial root review concern was disproved by reading and hashing original C++/GLSL",
+    "Tether measured-speed bound is observational; live actual fullmask and normal SC1 admission govern first presentation and recovery"
+  ]
+}

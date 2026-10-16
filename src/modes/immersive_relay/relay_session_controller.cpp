@@ -9,6 +9,9 @@
 #ifdef ENABLE_IMMERSIVE_RELAY
 
 #include "modes/immersive_relay/relay_session_controller.hpp"
+#include "modes/immersive_relay/scintilla_mission_result_json.hpp"
+#include "modes/immersive_relay/scintilla_crew_result_json.hpp"
+#include "modes/immersive_relay/scintilla_crew_report_file.hpp"
 
 #include "race/race_manager.hpp"
 #include "utils/log.hpp"
@@ -335,6 +338,18 @@ RelaySessionController::RelaySessionController()
     m_world_elapsed_ms = 0;
     m_paused = false;
     m_presentation_ready = true;
+    m_scintilla_start_permitted = true;
+    m_crew_required = false;
+    m_crew_start_permitted = true;
+    m_crew_handoff_ready_required = false;
+    m_crew_pending_administrative_handoff = false;
+    m_crew_observed_completed_handoffs = 0;
+    m_crew_administrative_handoffs = 0;
+    m_mission_required = false;
+    m_mission_presentation_held = false;
+    m_spatial_world_held = false;
+    m_spatial_resume_revision = 0;
+    m_spatial_resume_at_us = 0;
     m_state = RELAY_STATE_ATTRACT;
     m_state_before_handoff = RELAY_STATE_RUNNING;
     m_state_version = 1;
@@ -367,8 +382,52 @@ void RelaySessionController::destroy()
     m_instance = NULL;
 }
 
+bool RelaySessionController::crewBlocksGameplayLocked() const
+{
+    // The physical transfer/countdown must be able to create the next driver
+    // before that driver's new logical bindings can be verified. Physics is
+    // independently held by m_rotation throughout this stage A exception.
+    return m_crew_required && !m_crew_start_permitted &&
+        !m_rotation.isHandoffActive();
+}
+
+bool RelaySessionController::missionBlocksGameplayLocked() const
+{
+    return (m_mission_required && (m_mission_presentation_held || m_mission_result.valid)) ||
+        crewBlocksGameplayLocked();
+}
+
+void RelaySessionController::resetCrewAdmissionLocked()
+{
+    if(m_crew_required)m_crew_start_permitted=false;
+    m_crew_handoff_ready_required=false;
+    m_crew_pending_administrative_handoff=false;
+    m_crew_observed_completed_handoffs=0;
+    m_crew_administrative_handoffs=0;
+}
+
+bool RelaySessionController::isWorldHeldLocked() const
+{
+    return m_runtime_enabled &&
+        (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+         m_crew_handoff_ready_required || m_paused || m_rotation.isHandoffActive() ||
+         (m_operator_controlled && !isSessionPlayableStateLocked()));
+}
+
 void RelaySessionController::bumpVersionLocked()
 {
+    const bool held = isWorldHeldLocked();
+    if (held != m_spatial_world_held)
+    {
+        m_spatial_world_held = held;
+        if (!held)
+        {
+            ++m_spatial_resume_revision;
+            if (m_spatial_resume_revision == 0) m_spatial_resume_revision = 1;
+            m_spatial_resume_at_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+        }
+    }
     m_state_version++;
     if (m_state_version == 0)
         m_state_version = 1;
@@ -436,6 +495,8 @@ RelaySessionReport RelaySessionController::buildReportLocked(
     report.m_crew_mode_enabled = m_active_config.m_crew_mode == "enabled";
     report.m_crew_actions_enabled = m_crew_actions_accepted > 0;
     report.m_crew_actions_accepted = m_crew_actions_accepted;
+    report.m_mission = m_mission_result;
+    report.m_scintilla_crew = m_crew_result;
 
     if (final_result == "finished_operator_abort")
         report.m_rank = "aborted";
@@ -458,6 +519,13 @@ RelaySessionReport RelaySessionController::buildReportLocked(
 void RelaySessionController::publishReportLocked(
     const std::string& final_result)
 {
+    // A mission report is publishable only once its immutable terminal facts
+    // exist. Retrying/late input never rebuilds it with changed crew statistics.
+    if(m_mission_required && (!m_mission_result.valid ||
+       (m_last_report.m_available && m_last_report.m_mission.valid))) return;
+    // Missing SC5 roster evidence is an incomplete SC5 report, never a legacy
+    // race. The gameplay gate remains held until a complete new configuration.
+    if(m_mission_required&&m_crew_required&&!m_crew_result.valid)return;
     m_session_finished_at = m_last_race_time;
     m_last_report = buildReportLocked(final_result);
 
@@ -467,9 +535,10 @@ void RelaySessionController::publishReportLocked(
         std::string path = report_dir;
         if (!path.empty() && path[path.size() - 1] != '/')
             path += "/";
-        path += m_last_report.m_session_id + ".json";
-        std::ofstream file(path.c_str());
-        if (file)
+        path += m_last_report.m_scintilla_crew.valid
+            ? ScintillaCrew::reportFileName(m_last_report.m_session_id,m_last_report.m_scintilla_crew)
+            : m_last_report.m_session_id + ".json";
+        std::ostringstream file;
         {
             file << "{";
             file << "\"session_id\":\""
@@ -510,8 +579,18 @@ void RelaySessionController::publishReportLocked(
                  << (m_last_report.m_crew_actions_enabled ? "true" : "false");
             file << ",\"crew_actions_accepted\":"
                  << m_last_report.m_crew_actions_accepted;
+            file << ",\"mission\":";
+            ScintillaMission::writeResultJSON(file,m_last_report.m_mission);
+            file << ",\"crew\":";
+            ScintillaCrew::writeResultJSON(file,m_last_report.m_scintilla_crew);
+            if(m_last_report.m_scintilla_crew.valid)
+                file << ",\"leaderboard_bucket\":\"" << m_last_report.m_scintilla_crew.bucket << '"';
             file << "}\n";
         }
+        if(m_last_report.m_scintilla_crew.valid) {
+            if(!ScintillaCrew::writeReportExclusive(path,file.str()))
+                Log::warn("ImmersiveRelayArcade","SC5 report archive was not created (existing or unavailable): %s",path.c_str());
+        } else {std::ofstream legacy(path.c_str());if(legacy)legacy<<file.str();}
     }
 
     Log::info("ImmersiveRelayArcade",
@@ -520,6 +599,36 @@ void RelaySessionController::publishReportLocked(
               m_last_report.m_final_result.c_str(),
               m_last_report.m_score,
               m_last_report.m_rank.c_str());
+}
+
+ScintillaCrew::Observation RelaySessionController::crewReportObservationLocked() const
+{
+    const auto rotation=m_rotation.getSnapshot(m_rotation_time);
+    if(!m_crew_report_observation.available||m_crew_report_observation.snapshot.participants.size()!=m_players.size()||
+       rotation.m_active_index<0||rotation.m_completed_handoffs<0)return ScintillaCrew::Observation();
+    for(unsigned i=0;i<m_players.size();++i)
+        if(m_players[i].m_player_id!=m_crew_report_observation.snapshot.participants[i].assignment.participantId)return ScintillaCrew::Observation();
+    return ScintillaCrew::observeNativeTurn(m_crew_report_observation,unsigned(rotation.m_active_index),
+        uint64_t(rotation.m_completed_handoffs),m_crew_administrative_handoffs);
+}
+
+void RelaySessionController::finalizeMissionArtificialLocked(const std::string& reason)
+{
+    if(!m_mission_required || m_mission_result.valid) return;
+    // Observations include race identity even before physical preparation.
+    // Exactly one terminal record per race: sequence 1 is scoped by raceEpoch.
+    m_mission_result=m_mission_observation;
+    m_mission_result.valid=true;m_mission_result.natural=false;
+    m_mission_result.finishSequence=1;
+    m_mission_result.officialTeamRacePosition=0;
+    m_mission_result.nativeFinishTime=0;
+    m_mission_result.terminationReason=reason;
+    m_mission_result.outcome="not_completed";
+    m_crew_result=ScintillaCrew::freezeResult(crewReportObservationLocked(),m_mission_result);
+    if(m_crew_result.valid) {
+        m_crew_result.comparable=false;
+        m_crew_result.rotationAnomalies=std::max(m_crew_result.rotationAnomalies,m_crew_administrative_handoffs);
+    }
 }
 
 void RelaySessionController::resetArcadeRuntimeLocked(
@@ -585,6 +694,25 @@ void RelaySessionController::resetAdaptiveDifficultyLocked()
 
 void RelaySessionController::configureCrewRolesLocked()
 {
+    const RelayPilotRotationSnapshot rotation=m_rotation.getSnapshot(m_rotation_time);
+    if(rotation.m_completed_handoffs!=m_crew_observed_completed_handoffs)
+    {
+        // Every successful driver commit reaches this method while m_mutex is
+        // still held, before any public world/input query can observe release.
+        if(m_crew_required)
+        {
+            m_crew_start_permitted=false;
+            m_crew_handoff_ready_required=true;
+        }
+        if(rotation.m_completed_handoffs>m_crew_observed_completed_handoffs &&
+            m_crew_pending_administrative_handoff && m_crew_administrative_handoffs<UINT64_MAX)
+            ++m_crew_administrative_handoffs;
+        m_crew_observed_completed_handoffs=rotation.m_completed_handoffs;
+        m_crew_pending_administrative_handoff=false;
+    }
+    else if(!rotation.m_handoff_active && !rotation.m_handoff_warning_active &&
+            !rotation.m_handoff_pending_safe_zone)
+        m_crew_pending_administrative_handoff=false;
     m_crew_roles.configure(m_players, m_rotation.getActiveIndex(),
         m_active_config.m_crew_mode == "enabled"
             ? m_connected_player_ids : std::vector<std::string>());
@@ -674,14 +802,24 @@ void RelaySessionController::setOperatorControlled(bool enabled)
 bool RelaySessionController::isWorldHeld() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_runtime_enabled &&
-        (!m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
-         (m_operator_controlled && !isSessionPlayableStateLocked()));
+    return isWorldHeldLocked();
+}
+
+RelaySpatialGameplayState RelaySessionController::getSpatialGameplayState() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    RelaySpatialGameplayState state;
+    state.m_active = !isWorldHeldLocked();
+    state.m_resume_revision = m_spatial_resume_revision;
+    state.m_resume_at_us = m_spatial_resume_at_us;
+    return state;
 }
 
 void RelaySessionController::worldLoadFailed(const std::string& reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    finalizeMissionArtificialLocked("world_load_failed");
+    if(m_mission_required) publishReportLocked("finished_operator_abort");
     m_race_attached = false;
     m_loaded_track_id.clear();
     m_state = RELAY_STATE_ERROR_RECOVERABLE;
@@ -925,7 +1063,8 @@ void RelaySessionController::startSessionLocked(
     const RelaySessionConfig& config,
     const std::vector<RelayPlayer>& players)
 {
-    if (!m_presentation_ready) return;
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+        (m_crew_required && (!m_crew_start_permitted || m_crew_handoff_ready_required))) return;
     m_active_config = config;
     if (m_active_config.m_session_id.empty())
         m_active_config.m_session_id = makeArcadeSessionId();
@@ -1037,7 +1176,8 @@ bool RelaySessionController::startSession(
     std::string* reject_reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+        (m_crew_required && (!m_crew_start_permitted || m_crew_handoff_ready_required)))
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1160,6 +1300,7 @@ bool RelaySessionController::configureArcadeLocked(
         unique_ids.push_back(player.m_player_id);
     }
 
+    resetCrewAdmissionLocked();
     m_connected_player_ids.clear();
     m_resume_countdown = false;
     m_active_config = configured;
@@ -1260,6 +1401,71 @@ bool RelaySessionController::setCrewPresence(
     return true;
 }
 
+void RelaySessionController::setScintillaStartPermitted(bool permitted)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_scintilla_start_permitted==permitted)return;
+    m_scintilla_start_permitted=permitted;bumpVersionLocked();
+}
+
+void RelaySessionController::setCrewStartState(bool required,bool permitted)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    const bool allowed=!required||permitted;
+    if(m_crew_required==required&&m_crew_start_permitted==allowed)return;
+    m_crew_required=required;m_crew_start_permitted=allowed;
+    if(!required)m_crew_handoff_ready_required=false;
+    bumpVersionLocked();
+}
+
+uint64_t RelaySessionController::getCrewAdministrativeHandoffs() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_crew_administrative_handoffs;
+}
+
+bool RelaySessionController::crewHandoffReadyRequired() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_crew_handoff_ready_required;
+}
+
+bool RelaySessionController::acknowledgeCrewHandoffReadyLocked(
+    const std::string& player_id,std::string* reject_reason)
+{
+    if(!m_runtime_enabled || !m_arcade_configured || !m_race_attached ||
+        !m_crew_handoff_ready_required || !m_crew_required || !m_crew_start_permitted ||
+        !m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+        m_rotation.isHandoffActive())
+    {
+        if(reject_reason)*reject_reason="scintilla_not_prepared";
+        return false;
+    }
+    const auto rotation=m_rotation.getSnapshot(m_rotation_time);
+    if(!player_id.empty()&&player_id!=rotation.m_active_player_id)
+    {
+        if(reject_reason)*reject_reason="not_expected_pilot";
+        return false;
+    }
+    const auto state=m_arcade_state_machine.getState();
+    if(state!=ARCADE_STATE_RUNNING&&state!=ARCADE_STATE_FINAL_LAP&&state!=ARCADE_STATE_PAUSED)
+    {
+        if(reject_reason)*reject_reason="wrong_state";
+        return false;
+    }
+    if(m_paused)
+    {
+        const auto next=m_current_lap>=m_total_laps?ARCADE_STATE_FINAL_LAP:ARCADE_STATE_RUNNING;
+        if(!transitionArcadeLocked(next,"crew_handoff_ready",reject_reason))return false;
+        m_paused=false;m_state=next==ARCADE_STATE_FINAL_LAP?RELAY_STATE_FINAL_SPRINT:RELAY_STATE_RUNNING;
+        m_race_phase=next==ARCADE_STATE_FINAL_LAP?"final_lap":"racing";
+    }
+    // Stage A already supplied the physical transfer/countdown. The current
+    // pilot/operator explicitly releases only this prepared stage B latch.
+    m_crew_handoff_ready_required=false;
+    bumpVersionLocked();return true;
+}
+
 void RelaySessionController::setPresentationReady(bool ready)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -1268,9 +1474,78 @@ void RelaySessionController::setPresentationReady(bool ready)
     bumpVersionLocked();
 }
 
+void RelaySessionController::beginMissionRace(
+    bool required,const ScintillaMission::Result& observation,const ScintillaCrew::Observation& crew)
+{
+    if(!observation.raceEpoch || observation.valid) return;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_mission_observation.raceEpoch&&observation.raceEpoch<=m_mission_observation.raceEpoch)return;
+    if(m_mission_required&&m_mission_observation.raceEpoch&&
+       observation.raceEpoch!=m_mission_observation.raceEpoch) {
+        finalizeMissionArtificialLocked("race_replaced");publishReportLocked("finished_operator_abort");
+    }
+    if(required || m_mission_required) m_last_report=RelaySessionReport();
+    resetCrewAdmissionLocked();
+    m_mission_required=required;m_mission_presentation_held=false;
+    m_mission_result=ScintillaMission::Result();m_mission_observation=observation;
+    m_crew_result=ScintillaCrew::Result();m_crew_report_observation=ScintillaCrew::boundObservation(crew,observation)?crew:ScintillaCrew::Observation();
+    if(required) m_scintilla_start_permitted=false;
+    bumpVersionLocked();
+}
+
+void RelaySessionController::observeMission(
+    bool required,const ScintillaMission::Result& observation,const ScintillaCrew::Observation& crew)
+{
+    if(!observation.raceEpoch || !observation.missionRevision) return;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_mission_result.valid ||
+       (m_mission_observation.raceEpoch &&
+        observation.raceEpoch!=m_mission_observation.raceEpoch)) return;
+    const bool changed=required!=m_mission_required || required;
+    m_mission_required=required;m_mission_observation=observation;
+    m_crew_report_observation=ScintillaCrew::boundObservation(crew,observation)?crew:ScintillaCrew::Observation();
+    if(changed) bumpVersionLocked();
+}
+
+void RelaySessionController::setMissionPresentationHeld(bool held)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_mission_presentation_held==held) return;
+    m_mission_presentation_held=held;bumpVersionLocked();
+}
+
+ScintillaMission::Result RelaySessionController::getMissionResult() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_mission_result;
+}
+
+ScintillaCrew::Result RelaySessionController::getCrewResult() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);return m_crew_result;
+}
+
+void RelaySessionController::finishMissionArtificial(const std::string& reason)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(!m_mission_required || m_mission_result.valid) return;
+    finalizeMissionArtificialLocked(reason);
+    m_paused=false;m_state=RELAY_STATE_FINISHED_OPERATOR_ABORT;
+    m_race_phase=reason;publishReportLocked("finished_operator_abort");
+    m_arcade_state_machine.transitionTo(ARCADE_STATE_FINISH_SEQUENCE,reason,NULL);
+    m_arcade_state_machine.transitionTo(ARCADE_STATE_RESULTS,reason+"_results",NULL);
+    bumpVersionLocked();
+}
+
 bool RelaySessionController::pilotReady(const std::string& player_id,
                                          std::string* reject_reason)
 {
+    {
+        std::lock_guard<std::mutex> gate(m_mutex);
+        if(!m_scintilla_start_permitted || missionBlocksGameplayLocked()){if(reject_reason)*reject_reason="scintilla_not_prepared";return false;}
+        if(m_crew_handoff_ready_required)return acknowledgeCrewHandoffReadyLocked(player_id,reject_reason);
+    }
+
     // Public methods acquire the mutex individually; no world is replaced here.
     const RelaySessionSnapshot state = getSnapshot();
     if (!state.m_presentation_ready)
@@ -1293,7 +1568,7 @@ bool RelaySessionController::pilotReady(const std::string& player_id,
     if (state.m_paused)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (!m_presentation_ready)
+        if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
         { if (reject_reason) *reject_reason = "presentation_not_ready"; return false; }
         if (!transitionArcadeLocked(ARCADE_STATE_COUNTDOWN, "pilot_ready_resume", reject_reason))
             return false;
@@ -1310,8 +1585,14 @@ bool RelaySessionController::pilotReady(const std::string& player_id,
 
 bool RelaySessionController::operatorStart(std::string* reject_reason)
 {
+    {
+        std::lock_guard<std::mutex> gate(m_mutex);
+        if(!m_scintilla_start_permitted || missionBlocksGameplayLocked()){if(reject_reason)*reject_reason="scintilla_not_prepared";return false;}
+        if(m_crew_handoff_ready_required)return acknowledgeCrewHandoffReadyLocked("",reject_reason);
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1367,7 +1648,7 @@ bool RelaySessionController::operatorStart(std::string* reject_reason)
 bool RelaySessionController::startRunningFromConfiguredLocked(
     std::string* reject_reason)
 {
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1385,8 +1666,14 @@ bool RelaySessionController::startRunningFromConfiguredLocked(
 bool RelaySessionController::operatorCountdown(bool skip,
                                                std::string* reject_reason)
 {
+    {
+        std::lock_guard<std::mutex> gate(m_mutex);
+        if(!m_scintilla_start_permitted || missionBlocksGameplayLocked()){if(reject_reason)*reject_reason="scintilla_not_prepared";return false;}
+        if(m_crew_handoff_ready_required)return acknowledgeCrewHandoffReadyLocked("",reject_reason);
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1462,8 +1749,14 @@ bool RelaySessionController::operatorPause(std::string* reject_reason)
 
 bool RelaySessionController::operatorResume(std::string* reject_reason)
 {
+    {
+        std::lock_guard<std::mutex> gate(m_mutex);
+        if(!m_scintilla_start_permitted || missionBlocksGameplayLocked()){if(reject_reason)*reject_reason="scintilla_not_prepared";return false;}
+        if(m_crew_handoff_ready_required)return acknowledgeCrewHandoffReadyLocked("",reject_reason);
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1514,6 +1807,7 @@ bool RelaySessionController::operatorAbort(std::string* reject_reason)
     m_paused = false;
     m_state = RELAY_STATE_FINISHED_OPERATOR_ABORT;
     m_race_phase = "abort";
+    finalizeMissionArtificialLocked("operator_abort");
     publishReportLocked("finished_operator_abort");
     if (!transitionArcadeLocked(ARCADE_STATE_FINISH_SEQUENCE,
                                 "operator_abort", reject_reason))
@@ -1533,9 +1827,15 @@ bool RelaySessionController::operatorReset(std::string* reject_reason)
             *reject_reason = "reset_in_progress";
         return false;
     }
+    finalizeMissionArtificialLocked("operator_reset");
+    if(m_mission_required&&m_mission_result.valid)publishReportLocked("finished_operator_abort");
     transitionArcadeLocked(ARCADE_STATE_RESETTING,
                            "operator_reset_begin", NULL);
     const bool keep_configuration = m_arcade_configured;
+    // A reset starts a new native race; the previous SC4 preparation cannot
+    // authorize even the short interval before the world-reset callback.
+    resetCrewAdmissionLocked();
+    if (m_mission_required) m_scintilla_start_permitted = false;
     m_paused = false;
     m_state = RELAY_STATE_RESETTING;
     m_state_before_handoff = RELAY_STATE_RUNNING;
@@ -1600,6 +1900,7 @@ bool RelaySessionController::operatorForceFinish(std::string* reject_reason)
          RELAY_STATE_FINISHED_BRONZE);
     m_last_crew_effect = "operator_force_finish";
     m_track_effects["session:finish"] = stateToString(m_state);
+    finalizeMissionArtificialLocked("operator_force_finish");
     publishReportLocked(stateToString(m_state));
     transitionArcadeLocked(ARCADE_STATE_FINISH_SEQUENCE,
                            "operator_force_finish", NULL);
@@ -1611,16 +1912,21 @@ bool RelaySessionController::operatorForceFinish(std::string* reject_reason)
 bool RelaySessionController::operatorNextState(
     const std::string& requested_state, std::string* reject_reason)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    const ArcadeSessionState before = m_arcade_state_machine.getState();
+    if (before == ARCADE_STATE_RESULTS &&
+        (requested_state.empty() || requested_state == "ready_for_players"))
+    {
+        // Match Ready/reset: retain configuration, reset rotation and close
+        // SC4 admission. The router then resets the native world once.
+        lock.unlock();
+        return operatorReset(reject_reason);
+    }
     if (requested_state.empty())
     {
         const ArcadeSessionState state = m_arcade_state_machine.getState();
         if (state == ARCADE_STATE_FINISH_SEQUENCE)
             return transitionArcadeLocked(ARCADE_STATE_RESULTS,
-                                          "operator_next_state",
-                                          reject_reason);
-        if (state == ARCADE_STATE_RESULTS)
-            return transitionArcadeLocked(ARCADE_STATE_READY_FOR_PLAYERS,
                                           "operator_next_state",
                                           reject_reason);
         if (reject_reason)
@@ -1634,6 +1940,15 @@ bool RelaySessionController::operatorNextState(
     {
         if (reject_reason)
             *reject_reason = "invalid_state";
+        return false;
+    }
+    if ((state == ARCADE_STATE_BRIEFING || state == ARCADE_STATE_COUNTDOWN ||
+         state == ARCADE_STATE_RUNNING || state == ARCADE_STATE_FINAL_LAP ||
+         state == ARCADE_STATE_LAP_HANDOFF) &&
+        (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+         m_crew_handoff_ready_required))
+    {
+        if (reject_reason) *reject_reason = "scintilla_not_prepared";
         return false;
     }
     return transitionArcadeLocked(state, "operator_next_state",
@@ -1695,8 +2010,13 @@ bool RelaySessionController::operatorRenderPreset(
 
 bool RelaySessionController::confirmHandoff(std::string* reject_reason)
 {
+    {
+        std::lock_guard<std::mutex> gate(m_mutex);
+        if(!m_scintilla_start_permitted || missionBlocksGameplayLocked()){if(reject_reason)*reject_reason="scintilla_not_prepared";return false;}
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready)
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
     {
         if (reject_reason) *reject_reason = "presentation_not_ready";
         return false;
@@ -1729,8 +2049,10 @@ bool RelaySessionController::confirmHandoff(std::string* reject_reason)
 void RelaySessionController::stopSession(const std::string& reason)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_mission_required && m_mission_result.valid) return;
     m_paused = false;
     m_state = RELAY_STATE_FINISHED_OPERATOR_ABORT;
+    finalizeMissionArtificialLocked(reason);
     publishReportLocked("finished_operator_abort");
     m_arcade_state_machine.transitionTo(
         ARCADE_STATE_FINISH_SEQUENCE, reason, NULL);
@@ -1753,7 +2075,11 @@ void RelaySessionController::pauseSession()
 void RelaySessionController::resumeSession()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_presentation_ready) return;
+    if (!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked()) return;
+    if(m_crew_handoff_ready_required)
+    {
+        acknowledgeCrewHandoffReadyLocked("",NULL);return;
+    }
     m_paused = false;
     if (m_arcade_state_machine.getState() == ARCADE_STATE_PAUSED)
         m_arcade_state_machine.transitionTo(
@@ -1767,7 +2093,11 @@ void RelaySessionController::resumeSession()
 void RelaySessionController::resetSession()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    finalizeMissionArtificialLocked("session_reset");
+    if(m_mission_required&&m_mission_result.valid)publishReportLocked("finished_operator_abort");
     m_paused = false;
+    resetCrewAdmissionLocked();
+    if (m_mission_required) m_scintilla_start_permitted = false;
     m_state = RELAY_STATE_ATTRACT;
     m_state_before_handoff = RELAY_STATE_RUNNING;
     resetArcadeRuntimeLocked(false);
@@ -1833,6 +2163,9 @@ void RelaySessionController::attachRace(const std::string& track_id,
 void RelaySessionController::detachRace()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    finalizeMissionArtificialLocked("world_detached");
+    if(m_mission_required && m_mission_result.valid && !m_last_report.m_available)
+        publishReportLocked("finished_operator_abort");
     m_race_attached = false;
     m_loaded_track_id.clear();
     bumpVersionLocked();
@@ -1885,7 +2218,8 @@ void RelaySessionController::updateProgressLocked(
     }
 
     updateTimedStateLocked(m_last_race_time);
-    if (m_current_lap >= m_total_laps && m_lap_progress >= 1.0f)
+    if (m_current_lap >= m_total_laps && m_lap_progress >= 1.0f &&
+        (!m_mission_required || m_active_config.m_test_accelerated_progress))
     {
         m_race_phase = "finish";
         if (m_crew_score >= 12000)
@@ -1895,6 +2229,7 @@ void RelaySessionController::updateProgressLocked(
         else
             m_state = RELAY_STATE_FINISHED_BRONZE;
         m_track_effects["session:finish"] = stateToString(m_state);
+        finalizeMissionArtificialLocked("test_accelerated_progress");
         publishReportLocked(stateToString(m_state));
         m_arcade_state_machine.transitionTo(
             ARCADE_STATE_FINISH_SEQUENCE, "lap_finish", NULL);
@@ -2004,12 +2339,19 @@ void RelaySessionController::updateTimedStateLocked(float race_time)
     }
 }
 
+void RelaySessionController::updateWorldClock(float race_time)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_world_elapsed_ms = (int)(std::max(0.0f, race_time) * 1000.0f);
+}
+
 void RelaySessionController::updateRace(float dt, float race_time,
                                         bool safe_for_handoff)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_world_elapsed_ms = (int)(std::max(0.0f, race_time) * 1000.0f);
-    if (!m_runtime_enabled || !m_presentation_ready)
+    if (!m_runtime_enabled || !m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+        m_crew_handoff_ready_required)
         return;
 
     if (m_arcade_state_machine.getState() == ARCADE_STATE_COUNTDOWN &&
@@ -2032,7 +2374,10 @@ void RelaySessionController::updateRace(float dt, float race_time,
                     : (next == ARCADE_STATE_FINAL_LAP ? RELAY_STATE_FINAL_SPRINT : RELAY_STATE_RUNNING);
                 m_race_phase = m_rotation.isHandoffActive() ? "handoff" : "racing";
                 if (m_rotation.isHandoffActive())
+                {
                     m_rotation.confirmHandoff(m_rotation_time, &ignored);
+                    configureCrewRolesLocked();
+                }
             }
             else startRunningFromConfiguredLocked(&ignored);
         }
@@ -2166,7 +2511,8 @@ void RelaySessionController::notifyCheckpoint(int checkpoint_id, float distance,
 }
 
 void RelaySessionController::notifyLap(int completed_laps, float race_time,
-                                       bool safe_for_handoff)
+                                       bool safe_for_handoff,
+                                       const ScintillaMission::Result* mission_result)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_runtime_enabled || m_paused ||
@@ -2180,6 +2526,20 @@ void RelaySessionController::notifyLap(int completed_laps, float race_time,
 
     if (completed_laps >= m_total_laps)
     {
+        if(m_mission_required)
+        {
+            if(m_mission_result.valid || !mission_result || !mission_result->valid ||
+               !mission_result->natural || mission_result->finishSequence!=1 ||
+               mission_result->raceEpoch!=m_mission_observation.raceEpoch ||
+               mission_result->missionRevision!=m_mission_observation.missionRevision)
+                return;
+            m_mission_result=*mission_result;
+            m_crew_result=ScintillaCrew::freezeResult(crewReportObservationLocked(),m_mission_result);
+            if(m_crew_result.valid&&m_crew_administrative_handoffs) {
+                m_crew_result.comparable=false;
+                m_crew_result.rotationAnomalies=std::max(m_crew_result.rotationAnomalies,m_crew_administrative_handoffs);
+            }
+        }
         m_last_race_time = race_time;
         m_current_lap = m_total_laps;
         m_lap_progress = 1.0f;
@@ -2250,6 +2610,12 @@ bool RelaySessionController::forceHandoff(const std::string& player_id,
         return false;
     }
 
+    if(crewBlocksGameplayLocked() || m_crew_handoff_ready_required)
+    {
+        if(reject_reason)*reject_reason="scintilla_not_prepared";
+        return false;
+    }
+
     if (!allowsNewHandoffLocked(m_last_race_time))
     {
         if (reject_reason)
@@ -2262,6 +2628,7 @@ bool RelaySessionController::forceHandoff(const std::string& player_id,
     if (m_rotation.forceHandoff(player_id, m_rotation_time,
                                 m_last_safe_for_handoff, reject_reason))
     {
+        m_crew_pending_administrative_handoff=true;
         configureCrewRolesLocked();
         m_state_before_handoff = m_state;
         if (m_rotation.isHandoffActive())
@@ -2280,8 +2647,11 @@ bool RelaySessionController::forceHandoff(const std::string& player_id,
 bool RelaySessionController::skipHandoff()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if(!m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked())
+        return false;
     if (m_rotation.skipHandoff(m_rotation_time))
     {
+        m_crew_pending_administrative_handoff=true;
         configureCrewRolesLocked();
         m_state = m_state_before_handoff;
         m_arcade_state_machine.transitionTo(
@@ -3112,8 +3482,23 @@ std::string RelaySessionController::consumeCrewDomeCallout()
 bool RelaySessionController::isHumanInputLocked() const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_runtime_enabled && (!m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
-        (m_operator_controlled && !isSessionPlayableStateLocked()));
+    return isWorldHeldLocked();
+}
+
+std::vector<std::string> RelaySessionController::getSpatialCrewIDs() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    const std::string driver = m_rotation.getSnapshot(m_rotation_time).m_active_player_id;
+    std::vector<std::string> ids;
+    for (const RelayPlayer& player : m_players)
+        if (player.m_player_id != driver) ids.push_back(player.m_player_id);
+    return ids;
+}
+
+std::vector<RelayPlayer> RelaySessionController::getSpatialParticipants() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_players;
 }
 
 RelaySessionSnapshot RelaySessionController::getSnapshot() const
@@ -3124,10 +3509,13 @@ RelaySessionSnapshot RelaySessionController::getSnapshot() const
     s.m_race_attached = m_race_attached;
     s.m_loaded_track_id = m_loaded_track_id;
     s.m_world_elapsed_ms = m_world_elapsed_ms;
-    s.m_input_locked = !m_presentation_ready || m_paused || m_rotation.isHandoffActive() ||
+    s.m_input_locked = !m_presentation_ready || !m_scintilla_start_permitted || missionBlocksGameplayLocked() ||
+        m_crew_handoff_ready_required || m_paused || m_rotation.isHandoffActive() ||
         (m_operator_controlled && !isSessionPlayableStateLocked());
     s.m_paused = m_paused;
     s.m_presentation_ready = m_presentation_ready;
+    s.m_mission_required = m_mission_required;
+    s.m_mission_presentation_held = m_mission_presentation_held;
     s.m_state = m_state;
     s.m_state_version = m_state_version;
     s.m_session_id = m_active_config.m_session_id;
@@ -3177,17 +3565,21 @@ RelaySessionSnapshot RelaySessionController::getSnapshot() const
     s.m_briefing_seconds = m_active_config.m_briefing_seconds;
     s.m_countdown_seconds = m_active_config.m_countdown_seconds;
     s.m_countdown_remaining_ms = m_countdown_remaining_ms;
-    s.m_can_start = m_arcade_configured &&
+    s.m_can_start = m_arcade_configured && !missionBlocksGameplayLocked() &&
         (m_race_attached || m_active_config.m_test_accelerated_progress) &&
         (s.m_arcade_state == ARCADE_STATE_READY_FOR_PLAYERS ||
          s.m_arcade_state == ARCADE_STATE_SESSION_CONFIGURED ||
-         s.m_arcade_state == ARCADE_STATE_RESULTS);
+         s.m_arcade_state == ARCADE_STATE_RESULTS ||
+         (m_crew_handoff_ready_required && m_crew_start_permitted && m_presentation_ready &&
+          m_scintilla_start_permitted && !m_rotation.isHandoffActive() &&
+          (s.m_arcade_state == ARCADE_STATE_RUNNING || s.m_arcade_state == ARCADE_STATE_FINAL_LAP ||
+           s.m_arcade_state == ARCADE_STATE_PAUSED)));
     s.m_can_pause = m_active_config.m_allow_pause &&
         (s.m_arcade_state == ARCADE_STATE_RUNNING ||
          s.m_arcade_state == ARCADE_STATE_LAP_HANDOFF ||
          s.m_arcade_state == ARCADE_STATE_FINAL_LAP ||
          s.m_arcade_state == ARCADE_STATE_COUNTDOWN);
-    s.m_can_resume = s.m_arcade_state == ARCADE_STATE_PAUSED;
+    s.m_can_resume = s.m_arcade_state == ARCADE_STATE_PAUSED && !missionBlocksGameplayLocked();
     s.m_can_reset = s.m_arcade_state != ARCADE_STATE_RESETTING &&
         s.m_arcade_state != ARCADE_STATE_ERROR_FATAL &&
         s.m_arcade_state != ARCADE_STATE_SHUTDOWN;

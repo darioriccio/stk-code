@@ -1,0 +1,1184 @@
+--- a/stk/docs/immersive/scintilla/sc3-2026-10-15/API.md
++++ b/stk/docs/immersive/scintilla/sc3-2026-10-15/API.md
+@@ -76,3 +76,26 @@
+ canonici, cancel, renew e presentation continuano mentre aim/action danno
+ `participant_rebind_required`. Cambiare il set fisico o le calibrazioni richiede
+ il lifecycle SI5 già esistente, non questo comando.
++
++### Recupero dopo reset della stessa gara configurata
++
++Il reset in-place (`RelayRaceMode::reset`, da operatore o Pronto nei risultati)
++con SC3 richiesta conserva il grant fisico SI5 finché valido. Revoca tutte le
++ammissioni gameplay: pending/held, risultati GPU, target/istanze e storia ottica
++precedenti non passano alla nuova raceEpoch. Anche con crew invariata serve
++`spatial/rebind` → SC2 prepare → SC3 prepare, con inputEpoch incrementato al rebind.
++Il nuovo core parte con E100/H0; pausa e handoff mantengono invece il budget.
++
++Stream e frameId monotoni appartengono allo stesso produttore e rimangono stabili
++nel reset in-place. Il consumer scarta la vecchia storia: un update già in volo
++con quei frame riceve `presentationAccepted:false` e `frame_history_unavailable`,
++senza revocare il grant. Prove nuove devono riferirsi ai nuovi frame. Sequenze,
++registro anti-replay, continuità fisica, lease e clock restano autoritativi;
++release/revoca/scadenza/cambio stream o route non vengono recuperati dal reset.
++Distruzione/ricreazione del mondo e cambio della configurazione fisica mantengono
++l'invalidazione completa e il lifecycle SI5 esistente.
++
++Pronto nei risultati può eseguire il solo reset con video held; non avvia né
++accoda il countdown. Ogni Ready/start/resume successivo mantiene i gate SC2/SC3
++e presentazione. L'host sospende le interazioni prima della richiesta e conserva
++il blocco anche su rifiuto o risposta incerta, fino a nuova preparazione esplicita.
+--- a/stk/docs/immersive/scintilla/sc3-2026-10-15/README.md
++++ b/stk/docs/immersive/scintilla/sc3-2026-10-15/README.md
+@@ -57,3 +57,10 @@
+ Scritti/registrati **21 casi core difesa**, **6 casi Bullet reale** e **8 nuovi casi consumer** oltre ai66 precedenti (74 totali), più le regressioni host nel framework esistente. Questi test nativi sono stati letti e revisionati, **non compilati o eseguiti**. Gli scanner di sorgenti non provano esecuzione C++, GLSL o Swift, collisioni Bullet reali, latenza/GPU, presentazione fisica, audio, comfort o bilanciamento.
+ 
+ Nessuna build, configure, compilazione/typecheck, avvio app/producer/helper, preview o hardware. La qualifica runtime resta il passo11 del piano. Il numero di supporter può cambiare nel core senza ricaricare risorse; la gestione dell'autorizzazione di un diverso set fisico rimane soggetta al lifecycle SI5 reale, da verificare nel relativo scenario operativo.
++
++## Correzioni successive all'audit
++
++Il [checkpoint delle quattro correzioni](../sc3-audit-fixes-2026-10-15/README.md)
++aggiorna handoff operatore, sweep socket, continuità SC2 durante gli allarmi e
++reset in-place con riuso del grant. I conteggi sopra descrivono la prima consegna;
++nuove regressioni e limiti di verifica sono registrati nel checkpoint successivo.
+--- a/stk/src/modes/immersive_relay/relay_race_mode.cpp
++++ b/stk/src/modes/immersive_relay/relay_race_mode.cpp
+@@ -68,7 +68,7 @@
+ 
+ void RelayRaceMode::reset(bool restart)
+ {
+-    ImmersiveRelay::ScintillaEngine::newWorld();
++    ImmersiveRelay::ScintillaEngine::newWorld(true);
+     StandardRace::reset(restart);
+     m_has_previous_front = false;
+     releaseHandoffFreeze();
+--- a/stk/src/modes/immersive_relay/remote/relay_command_router.cpp
++++ b/stk/src/modes/immersive_relay/remote/relay_command_router.cpp
+@@ -1147,9 +1147,6 @@
+     }
+     if (route_path == "/immersive/v1/operator/ready")
+     {
+-        if (!snapshot.m_presentation_ready)
+-            return RelayHttpResponse(409, RelayStatePublisher::errorJson(
+-                "presentation_not_ready", snapshot.m_state_version));
+         std::string player_id, error;
+         if (objectGet(root, "player_id") && !getPlayerId(root, "player_id", &player_id))
+             return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_player_id", snapshot.m_state_version));
+@@ -1160,8 +1157,9 @@
+             if (!controller->operatorReset(&error))
+                 return RelayHttpResponse(409, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
+             if (!snapshot.m_test_accelerated_progress) RelayWorldController::reset();
+-            // A new SC2 world needs a new grant/profile. Ready may reset results,
+-            // but must not combine that reset with an unprepared countdown.
++            // Results Ready only resets a combat race, even with video held.
++            // SC3 retains the physical grant for explicit new-race preparation;
++            // ordinary Ready below still enforces both authoritative start gates.
+             if (ImmersiveRelay::ScintillaEngine::combatRequired())
+                 return RelayHttpResponse(200, RelayStatePublisher::okJson(
+                     controller->getSnapshot(), "scintilla_combat_reset_requires_prepare"));
+--- a/stk/src/modes/immersive_relay/scintilla_defense_collision.cpp
++++ b/stk/src/modes/immersive_relay/scintilla_defense_collision.cpp
+@@ -9,6 +9,34 @@
+ #include <cmath>
+ namespace ScintillaDefenseCollision {
+ btTransform interpolate(const btTransform&a,const btTransform&b,btScalar t){return btTransform(a.getRotation().slerp(b.getRotation(),t),a.getOrigin().lerp(b.getOrigin(),t));}
++bool socketPathClear(btCollisionWorld&world,const btVector3&from,const btVector3&to,const btCollisionObject*source,const btCollisionObject*human)
++{
++    if(!std::isfinite(double(from.length2()))||!std::isfinite(double(to.length2()))||(to-from).length2()<1e-12)return false;
++    struct Sweep:btCollisionWorld::ClosestConvexResultCallback {
++        const btCollisionObject*source,*human;
++        Sweep(const btVector3&a,const btVector3&b,const btCollisionObject*s,const btCollisionObject*h):ClosestConvexResultCallback(a,b),source(s),human(h){}
++        bool needsCollision(btBroadphaseProxy*p)const override {
++            const auto*o=static_cast<btCollisionObject*>(p->m_clientObject);
++            return o!=source&&o!=human&&o->hasContactResponse()&&ClosestConvexResultCallback::needsCollision(p);
++        }
++    } sweep(from,to,source,human);
++    struct Contact:btCollisionWorld::ContactResultCallback {
++        const btCollisionObject*source,*human;bool blocked=false;
++        Contact(const btCollisionObject*s,const btCollisionObject*h):source(s),human(h){}
++        bool needsCollision(btBroadphaseProxy*p)const override {
++            const auto*o=static_cast<btCollisionObject*>(p->m_clientObject);
++            return o!=source&&o!=human&&o->hasContactResponse()&&ContactResultCallback::needsCollision(p);
++        }
++        btScalar addSingleResult(btManifoldPoint&p,const btCollisionObject*,int,int,const btCollisionObject*,int,int)override {
++            if(!std::isfinite(double(p.getDistance()))||p.getDistance()<=0)blocked=true;return 0;
++        }
++    } contact(source,human);
++    // Inflate by 2 mm towards rejection, including the native cast's stop radius.
++    btSphereShape sphere(.122);btCollisionObject socket;socket.setCollisionShape(&sphere);
++    const btTransform a(btQuaternion::getIdentity(),from),b(btQuaternion::getIdentity(),to);
++    for(const auto&pose:{a,b}){socket.setWorldTransform(pose);world.contactTest(&socket,contact);if(contact.blocked)return false;}
++    world.convexSweepTest(&sphere,a,b,sweep,0);return !sweep.hasHit();
++}
+ // Validate a real overlap with the FULL projectile after the conservative inner cast.
+ bool narrowOverlap(const btConvexShape*shape,const btTransform&body,const btTransform&pulse,double guard){
+     btSphereShape sphere(.12);btVoronoiSimplexSolver simplex;btGjkEpaPenetrationDepthSolver penetration;
+--- a/stk/src/modes/immersive_relay/scintilla_defense_collision.hpp
++++ b/stk/src/modes/immersive_relay/scintilla_defense_collision.hpp
+@@ -3,6 +3,9 @@
+ #define HEADER_SCINTILLA_DEFENSE_COLLISION_HPP
+ #include "btBulletCollisionCommon.h"
+ namespace ScintillaDefenseCollision {
++btTransform interpolate(const btTransform&,const btTransform&,btScalar);
++// Physical socket relocation, including both endpoint overlaps.
++bool socketPathClear(btCollisionWorld&,const btVector3& from,const btVector3& to,const btCollisionObject* source,const btCollisionObject* human);
+ struct Result {double human=2,obstacle=2;bool valid=true;};
+ void castShape(const btCollisionShape*,const btTransform& local,const btTransform& from,const btTransform& to,bool human,double epsilon,Result*,const btVector3& pulse0,const btVector3& pulse1,unsigned depth=0);
+ }
+--- a/stk/src/modes/immersive_relay/scintilla_defense_physics.cpp
++++ b/stk/src/modes/immersive_relay/scintilla_defense_physics.cpp
+@@ -75,13 +75,8 @@
+     btVector3 lower,upper;source->getBody()->getCollisionShape()->getAabb(btTransform::getIdentity(),lower,upper);
+     btVector3 extent=lower.absolute();extent.setMax(upper.absolute());const double radius=extent.length()+.15;
+     if(!Ballistic::solve(cv(h)-origin,cv(human->getBody()->getLinearVelocity()),fps,&b))return false;
+-    struct SocketSweep:btCollisionWorld::ClosestConvexResultCallback{
+-        const btCollisionObject*s,*h;
+-        SocketSweep(const btVector3&a,const btVector3&b,const btCollisionObject*ss,const btCollisionObject*hh):ClosestConvexResultCallback(a,b),s(ss),h(hh){}
+-        bool needsCollision(btBroadphaseProxy*p)const override{const auto*o=static_cast<btCollisionObject*>(p->m_clientObject);return o!=s&&o!=h&&o->hasContactResponse()&&ClosestConvexResultCallback::needsCollision(p);}
+-    } socketSweep(a,bv(origin),source->getBody(),human->getBody());
+-    btSphereShape exitShape(.122);world->convexSweepTest(&exitShape,btTransform(btQuaternion::getIdentity(),a),btTransform(btQuaternion::getIdentity(),bv(origin)),socketSweep,0);if(socketSweep.hasHit())return false;
+     origin=origin+b.direction*radius;
++    if(!ScintillaDefenseCollision::socketPathClear(*world,a,bv(origin),source->getBody(),human->getBody()))return false;
+     // Line of launch may leave the source hull; world ray ignores only the source/human.
+     struct Ray:btCollisionWorld::ClosestRayResultCallback{
+         const btCollisionObject*s,*h;
+@@ -90,13 +85,6 @@
+     } ray(a,h,source->getBody(),human->getBody());
+     world->rayTest(a,h,ray);if(ray.hasHit())return false;
+     if(!Ballistic::solve(cv(h)-origin,cv(human->getBody()->getLinearVelocity()),fps,&b))return false;
+-    btSphereShape socketShape(.12);btCollisionObject socket;socket.setCollisionShape(&socketShape);socket.setWorldTransform(btTransform(btQuaternion::getIdentity(),bv(origin)));
+-    struct SocketContact:btCollisionWorld::ContactResultCallback{
+-        const btCollisionObject*s,*h;bool blocked=false;
+-        SocketContact(const btCollisionObject*source,const btCollisionObject*human):s(source),h(human){}
+-        bool needsCollision(btBroadphaseProxy*p)const override{const auto*o=static_cast<btCollisionObject*>(p->m_clientObject);return o!=s&&o!=h&&o->hasContactResponse()&&ContactResultCallback::needsCollision(p);}
+-        btScalar addSingleResult(btManifoldPoint&p,const btCollisionObject*,int,int,const btCollisionObject*,int,int)override{if(p.getDistance()<=.002)blocked=true;return 0;}
+-    } socketContact(source->getBody(),human->getBody());world->contactTest(&socket,socketContact);if(socketContact.blocked)return false;
+     out->sector=sector;out->origin=origin;out->velocity=cv(human->getBody()->getLinearVelocity());out->distance=distance;*solution=b;return true;
+ }
+ void before(AbstractKart*human,AbstractKart*source,const Vec&pulse,const Vec&velocity,int fps)
+--- a/stk/src/modes/immersive_relay/spatial/scintilla_engine.cpp
++++ b/stk/src/modes/immersive_relay/spatial/scintilla_engine.cpp
+@@ -598,9 +598,13 @@
+     return o.str();
+ }
+ 
+-void invalidate(const std::string& reason)
++namespace {
++void invalidateState(const std::string& reason,bool preserveSpatialGrant)
+ {
+-    consumer.reset(reason);combat.suspendInput();defense.suspend(reason);defensePrepared=false;clearDefenseEvidence();
++    const Projection projection=current.projection;
++    const bool retained=preserveSpatialGrant&&consumer.resetForRace();
++    if(!retained)consumer.reset(reason);
++    combat.suspendInput();defense.suspend(reason);defensePrepared=false;clearDefenseEvidence();
+     // Close synchronous/native Ready paths immediately, including between a
+     // projection/world invalidation and the next authoritative race update.
+     RelaySessionController::get()->setScintillaStartPermitted(!combat.required()&&!defense.required());
+@@ -612,8 +616,11 @@
+     clearGraphics();
+ #endif
+     current=Frame();publishedFrames.clear();registered.clear();
+-    if(active)changeStream();
++    if(retained)current.projection=projection;
++    else if(active)changeStream();
++}
+ }
++void invalidate(const std::string& reason){invalidateState(reason,false);}
+ void setEnabled(bool value)
+ {
+     if(active==value)return;
+@@ -654,7 +661,7 @@
+         frame.projectionContextId=consumer.activeProjectionContextId();consumer.addFrame(frame);
+     }
+ }
+-void newWorld(){invalidate("race_generation_changed");combat.reset(true);defense.reset(true);humanPointer=nullptr;humanInstance=0;soloIdleSince=0;combatOwners.clear();simulationTick=0;suppressedStaggerMotion=0;++raceEpoch;++rosterEpoch;lastRoster.clear();}
++void newWorld(bool preserveSpatialGrant){invalidateState("race_generation_changed",preserveSpatialGrant&&active&&defense.required());combat.reset(true);defense.reset(true);humanPointer=nullptr;humanInstance=0;soloIdleSince=0;combatOwners.clear();simulationTick=0;suppressedStaggerMotion=0;++raceEpoch;++rosterEpoch;lastRoster.clear();}
+ void shutdown(){invalidate("output_closed");}
+ bool combatPolicyActive(){return combat.configured();}
+ bool combatRequired(){return combat.required();}
+--- a/stk/src/modes/immersive_relay/spatial/scintilla_engine.hpp
++++ b/stk/src/modes/immersive_relay/spatial/scintilla_engine.hpp
+@@ -14,7 +14,7 @@
+ bool enabled();
+ void setEnabled(bool value);
+ void invalidate(const std::string& reason);
+-void newWorld();
++void newWorld(bool preserveSpatialGrant=false);
+ void shutdown();
+ // Combat commits only from RelayRaceMode; input/render callbacks collect evidence.
+ bool combatPolicyActive();
+--- a/stk/src/modes/immersive_relay/spatial/scintilla_input.cpp
++++ b/stk/src/modes/immersive_relay/spatial/scintilla_input.cpp
+@@ -328,6 +328,7 @@
+     uint64_t heartbeatSeq=0;
+     std::deque<uint64_t> retiredFrames;
+     std::set<uint64_t> retiredFrameIds;
++    uint64_t retiredThrough=0;
+     int64_t leaseUntil=0,clockLow=0,clockHigh=0,clockChecked=0,proofHostFrom=0,proofHostUntil=0,lastNow=0;
+     VisibilityOracle visibility;
+     FramePinOracle pin;
+@@ -398,7 +399,7 @@
+         pending.clear();pendingAims.clear();combatShots.clear();lastReason=reason;
+     }
+     void invalidate(const std::string& reason)
+-    {stop(reason);prepared=false;presented.clear();frames.clear();retiredFrames.clear();retiredFrameIds.clear();proofHostFrom=proofHostUntil=0;stream.clear();}
++    {stop(reason);prepared=false;presented.clear();frames.clear();retiredFrames.clear();retiredFrameIds.clear();retiredThrough=0;proofHostFrom=proofHostUntil=0;stream.clear();}
+     void contextCheck(const J& j) const
+     {if(tok(j,"inputSessionID")!=session||tok(j,"routingGeneration")!=generation)throw Invalid("stale_session");}
+     void clocks(const J& j,int64_t now,int64_t& low,int64_t& high)
+@@ -525,8 +526,11 @@
+                 if(defenseEnabled){
+                     if(!f->defense.enabled||!f->layout.valid()){fail=true;reason="layout_unavailable";break;}
+                     surface=f->layout.classify(p.u,p.v);
+-                    if(surfaceFirst){p.surface=surface;p.threat=f->defense.threat;surfaceFirst=false;}
+-                    else if(surface.context!=p.surface.context||surface.sector!=p.surface.sector||p.threat!=f->defense.threat){fail=true;reason="ambiguous_layout_context";break;}
++                    // World offense belongs to the target/control epoch, independent
++                    // of an AI warning. Only SC3 surfaces bind the threat identity.
++                    const uint64_t contextThreat=surface.context==ScintillaDefense::Context::WorldOffense?0:f->defense.threat;
++                    if(surfaceFirst){p.surface=surface;p.threat=contextThreat;surfaceFirst=false;}
++                    else if(surface.context!=p.surface.context||surface.sector!=p.surface.sector||p.threat!=contextThreat){fail=true;reason="ambiguous_layout_context";break;}
+                     if(surface.context!=ScintillaDefense::Context::WorldOffense){representative=frameID;continue;}
+                 }else p.surface=surface;
+                 Vec3 local;if(!Runtime::projectionDirection(f->projection,p.u,p.v,&local)){fail=true;reason="outside_projection";break;}
+@@ -616,6 +620,21 @@
+ void Runtime::setQueryLeaseOracle(const QueryLeaseOracle& o){m->queryLease=o;}
+ void Runtime::setLiveTargetOracle(const LiveTargetOracle& o){m->live=o;}
+ void Runtime::reset(const std::string& reason){m->invalidate(reason);}
++bool Runtime::resetForRace()
++{
++    if(!m->prepared||!m->allowRebind||m->inputEpoch==UINT64_MAX)return false;
++    m->stop("race_rebind_required");
++    if(!m->frames.empty())m->retiredThrough=std::max(m->retiredThrough,m->frames.back().id);
++    m->frames.clear();m->presented.clear();m->events.clear();m->retiredFrames.clear();m->retiredFrameIds.clear();
++    m->proofHostFrom=m->proofHostUntil=0;m->historyReady=false;m->active=false;m->participantBindingsValid=false;
++    m->hasGameplayObservation=false;m->resumeRevision=0;m->activationNotBefore=std::max(m->activationNotBefore,m->lastNow);
++    m->combatEnabled=false;m->defenseEnabled=false;m->combatTargets.clear();m->simulationTick=0;
++    m->lastRebindFrom=m->lastRebindTo=0;
++    // Stream/frame IDs identify the live producer, not the race. Keep them and
++    // SI5 clocks/lease/source continuity/sequence and replay guards unchanged.
++    return true;
++}
++
+ Reply Runtime::validateCombatPrepare(const std::string& body,const std::string& raceEpoch,const std::string& rosterRevision)const
+ {
+     try {
+@@ -851,6 +870,7 @@
+        !std::isfinite(f.nearPlane)||!std::isfinite(f.farPlane)||!std::isfinite(f.faceFovDeg)||f.nearPlane<=0||f.farPlane<=f.nearPlane||f.faceFovDeg<90||f.faceFovDeg>120||
+        f.targets.size()>256||!sameProjection(f.projection,m->projection)||f.routeRevision!=m->routeRevision||f.projectionContextId!=m->context)
+     {m->invalidate("invalid_producer_frame");return;}
++    if(f.id<=m->retiredThrough){m->invalidate("producer_frame_reused");return;}
+     if(!m->frames.empty()&&(f.stream!=m->frames.back().stream||f.generation!=m->frames.back().generation||f.id<=m->frames.back().id||f.captureUs<m->frames.back().captureUs))
+     {m->invalidate("producer_epoch_changed");return;}
+     std::set<uint64_t> ids;
+@@ -1001,7 +1021,7 @@
+             std::string route=tok(j,"routeRevision"),context=tok(r,"projectionContextId"),installation=tok(r,"installationID"),consumer=tok(r,"consumerID");
+             if(consumer!="external.immersive_supertuxkart")return error(409,"consumer_not_approved");
+             m->stop("prepared");m->frames.clear();m->presented.clear();m->events.clear();m->seenEvents.clear();m->recentEvents.clear();m->reticles.clear();m->stream.clear();m->timingRevision.clear();
+-            m->retiredFrames.clear();m->retiredFrameIds.clear();m->proofHostFrom=m->proofHostUntil=0;m->session=session;m->generation=generation;m->installation=installation;m->consumer=consumer;m->context=context;
++            m->retiredFrames.clear();m->retiredFrameIds.clear();m->retiredThrough=0;m->proofHostFrom=m->proofHostUntil=0;m->session=session;m->generation=generation;m->installation=installation;m->consumer=consumer;m->context=context;
+             m->routeRevision=route;m->projection=p;m->sources=std::move(sources);m->capabilities=std::move(capabilities);m->usedSessions.insert(key);
+             m->clockLow=low;m->clockHigh=high;m->clockChecked=now;m->leaseUntil=expires+low;m->issuedAt=issued+high;m->inputUncertainty=inputUncertainty;m->historyReady=true;m->prepared=true;m->participantBindingsValid=true;m->hasHeartbeat=false;
+             for(size_t i=0;i<m->sources.size();++i){Reticle r;r.sourceId=m->sources[i].identity.source;r.participantId=m->sources[i].participant;r.slot=unsigned(i);r.result="release_required";m->reticles.push_back(r);}
+@@ -1044,7 +1064,7 @@
+                 const Frame* frame=nullptr;for(const auto& f:m->frames)if(f.id==r.id)frame=&f;
+                 if(!frame)
+                 {
+-                    if(m->retiredFrameIds.count(r.id)||std::any_of(m->presented.begin(),m->presented.end(),[&](const Impl::Presented& old){return old.id==r.id;}))retiredPrefix=true;
++                    if(r.id<=m->retiredThrough||m->retiredFrameIds.count(r.id)||std::any_of(m->presented.begin(),m->presented.end(),[&](const Impl::Presented& old){return old.id==r.id;}))retiredPrefix=true;
+                     else throw Invalid("unknown_presentation_frame");
+                 }
+                 else if(frame->captureUs>r.lo)throw Invalid("presentation_precedes_capture");
+--- a/stk/src/modes/immersive_relay/spatial/scintilla_input.hpp
++++ b/stk/src/modes/immersive_relay/spatial/scintilla_input.hpp
+@@ -118,6 +118,8 @@
+     void tick(int64_t nowUs, bool gameplayActive,
+               uint64_t resumeRevision=0, int64_t resumedAtUs=0);
+     void reset(const std::string& reason);
++    // Same producer/route: revoke gameplay authority, retain the live SI5 grant.
++    bool resetForRace();
+     const std::vector<Reticle>& reticles() const;
+     const std::deque<HitEvent>& events() const;
+     void setVisibilityOracle(const VisibilityOracle& oracle);
+--- a/stk/tools/immersive/tests/CMakeLists.txt
++++ b/stk/tools/immersive/tests/CMakeLists.txt
+@@ -115,7 +115,7 @@
+ target_include_directories(scintilla_defense_collision_regression PRIVATE "${STK_REGRESSION_ROOT}/src" "${STK_REGRESSION_ROOT}/lib/bullet/src")
+ target_link_libraries(scintilla_defense_collision_regression PRIVATE bulletcollision bulletmath)
+ set_target_properties(scintilla_defense_collision_regression PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+-foreach(COLLISION_CASE translatedTarget movingTarget actualCompoundOffset rotatingOffset obstacleWinsAndOrderIndependent separatedObstacleIsNotAnUncertainContact)
++foreach(COLLISION_CASE translatedTarget movingTarget actualCompoundOffset rotatingOffset obstacleWinsAndOrderIndependent separatedObstacleIsNotAnUncertainContact socketRelocationRejectsIntermediateObstacle socketRelocationRejectsEndpointOverlap socketRelocationRespectsCollisionExclusions socketRelocationRejectsInvalidSegment)
+     add_test(NAME "scintilla.defense.collision.${COLLISION_CASE}" COMMAND scintilla_defense_collision_regression "${COLLISION_CASE}")
+     set_tests_properties("scintilla.defense.collision.${COLLISION_CASE}" PROPERTIES LABELS "relay;scintilla;defense;bullet" TIMEOUT 120)
+ endforeach()
+--- a/stk/tools/immersive/tests/check_scintilla_defense.py
++++ b/stk/tools/immersive/tests/check_scintilla_defense.py
+@@ -21,7 +21,7 @@
+ 
+ class DefenseSourceAndMathChecks(unittest.TestCase):
+     def test_native_fixtures_registered_once_with_actual_bullet(self):
+-        for stem, macro, expected in (('scintilla_defense','DEFENSE_CASE',21),('scintilla_input','SCINTILLA_CASE',74)):
++        for stem, macro, expected in (('scintilla_defense','DEFENSE_CASE',21),('scintilla_input','SCINTILLA_CASE',80)):
+             names = re.findall(r'^'+macro+r'\((\w+)\)$',(ROOT/f'tools/immersive/tests/{stem}_cases.inc').read_text(),re.M)
+             self.assertEqual(len(names),expected)
+             self.assertEqual(len(set(names)),expected)
+@@ -81,6 +81,42 @@
+         canonical=INPUT.index('if(type=="sourceState"||type=="cancel")')
+         self.assertLess(canonical,INPUT.index('if(!m->participantBindingsValid)return error'))
+ 
++    def test_race_reset_retains_physical_authority_but_clears_gameplay(self):
++        reset=INPUT.split('bool Runtime::resetForRace()',1)[1].split('Reply Runtime::validateCombatPrepare',1)[0]
++        for fragment in ('m->stop("race_rebind_required")','m->frames.clear()','m->presented.clear()',
++                         'm->participantBindingsValid=false','m->resumeRevision=0','m->historyReady=false'):
++            self.assertIn(fragment,reset)
++        for forbidden in ('m->session=','m->leaseUntil=','m->clockLow=','m->seenEvents.clear()',
++                          'm->sources.clear()','m->stream.clear()'):
++            self.assertNotIn(forbidden,reset)
++        self.assertIn('r.id<=m->retiredThrough',INPUT)
++        race=(IR/'relay_race_mode.cpp').read_text()
++        self.assertIn('void RelayRaceMode::reset(bool restart)\n{\n    ImmersiveRelay::ScintillaEngine::newWorld(true);',race)
++        self.assertEqual(race.count('newWorld(true)'),1)
++        self.assertIn('if(retained)current.projection=projection;',ENGINE)
++        self.assertIn('else if(active)changeStream();',ENGINE)
++
++    def test_world_offense_is_independent_of_defense_threat(self):
++        self.assertIn('contextThreat=surface.context==ScintillaDefense::Context::WorldOffense?0:f->defense.threat',INPUT)
++        self.assertIn('p.threat!=contextThreat',INPUT)
++        self.assertIn('p.threat!=source.pressThreat',INPUT) # SC3 still binds warning identity
++        for old,new in ((0,1),(1,2),(2,2)):
++            for world in (True,False):
++                normalized=lambda threat:0 if world else threat
++                self.assertEqual(normalized(old)==normalized(new),world or old==new)
++
++    def test_socket_sweep_covers_the_relocated_segment(self):
++        shift=PHYSICS.index('origin=origin+b.direction*radius')
++        call=PHYSICS.index('ScintillaDefenseCollision::socketPathClear(*world,a,bv(origin)')
++        self.assertLess(shift,call)
++        self.assertIn('world.convexSweepTest(&sphere,a,b,sweep,0)',COLLISION)
++        self.assertIn('world.contactTest(&socket,contact)',COLLISION)
++        self.assertNotIn('struct SocketSweep',PHYSICS)
++        end=(1.0,0.0,math.sqrt(3.0)); obstacle=tuple(x*.5 for x in end)
++        self.assertGreater(abs(obstacle[0]),.1+.122) # center ray is clear
++        self.assertGreater(math.dist(end,obstacle),.1+.122) # final overlap is clear
++        self.assertEqual(math.dist(tuple(x*.5 for x in end),obstacle),0) # swept path blocked
++
+     def test_native_physics_step_is_bracketed_and_missing_trace_cancels(self):
+         native=(ROOT/'src/physics/physics.cpp').read_text()
+         self.assertLess(native.index('beforeDefensePhysics()'),native.index('stepSimulation('))
+@@ -124,8 +160,9 @@
+         for corner in product(*zip(lower,upper)):
+             self.assertGreater(radius,math.sqrt(sum(v*v for v in corner))+.12)
+         self.assertLess(max(math.dist(lower,(0,0,0)),math.dist(upper,(0,0,0))),math.sqrt(50))
+-        self.assertIn('SocketSweep',PHYSICS)
+-        self.assertIn('contactTest(&socket',PHYSICS)
++        self.assertIn('ScintillaDefenseCollision::socketPathClear',PHYSICS)
++        self.assertIn('world.convexSweepTest(&sphere,a,b,sweep,0)',COLLISION)
++        self.assertIn('world.contactTest(&socket,contact)',COLLISION)
+ 
+     def test_impact_is_tangential_idempotent_and_boost_commits_cost_last(self):
+         self.assertIn('normal+tangent*.85',PHYSICS)
+--- a/stk/tools/immersive/tests/check_scintilla_tool_feedback.py
++++ b/stk/tools/immersive/tests/check_scintilla_tool_feedback.py
+@@ -99,7 +99,7 @@
+         self.assertIn('scintillaIdentityColor(i)', block)
+ 
+     def test_new_regressions_are_registered_once_in_existing_native_runners(self):
+-        for prefix, macro, expected in (('scintilla_combat', 'COMBAT_CASE', 25), ('scintilla_input', 'SCINTILLA_CASE', 74)):
++        for prefix, macro, expected in (('scintilla_combat', 'COMBAT_CASE', 25), ('scintilla_input', 'SCINTILLA_CASE', 80)):
+             registry = (ROOT/f'tools/immersive/tests/{prefix}_cases.inc').read_text()
+             tests = (ROOT/f'tools/immersive/tests/{prefix}_regression.cpp').read_text()
+             names = re.findall(r'^'+macro+r'\((\w+)\)$', registry, re.M)
+--- a/stk/tools/immersive/tests/scintilla_defense_collision_regression.cpp
++++ b/stk/tools/immersive/tests/scintilla_defense_collision_regression.cpp
+@@ -1,6 +1,7 @@
+ // Copyright (C) 2026 Immersive Relay contributors. SPDX-License-Identifier: GPL-3.0-or-later
+ #include "modes/immersive_relay/scintilla_defense_collision.hpp"
+ #include <cstdlib>
++#include <cmath>
+ #include <iostream>
+ #include <string>
+ #define CHECK(x) do{if(!(x)){std::cerr<<__LINE__<<": "<<#x<<std::endl;std::exit(1);}}while(false)
+@@ -13,5 +14,39 @@
+ void rotatingOffset(){btSphereShape child(.08);btCompoundShape body;body.addChildShape(at(1),&child);Result s;const btTransform end(btQuaternion(btVector3(0,0,1),.5235987756f),btVector3(0,0,0));castShape(&body,at(0),at(0),end,true,.002,&s,btVector3(.97,-.2,0),btVector3(.97,.7,0));CHECK(s.valid&&s.human<=1);}
+ void obstacleWinsAndOrderIndependent(){btSphereShape human(.08),wall(.08);for(int order=0;order<2;++order){Result r;for(int i=0;i<2;i++){bool h=(i==order);castShape(h?&human:&wall,at(0),at(h?.3:0),at(h?.3:0),h,.002,&r,btVector3(-1,0,0),btVector3(1,0,0));}CHECK(r.valid&&r.obstacle<r.human);}}
+ void separatedObstacleIsNotAnUncertainContact(){btSphereShape obstacle(.08);Result r;castShape(&obstacle,at(0),at(0,3),at(0,3),false,.002,&r,btVector3(-1,0,0),btVector3(1,0,0));CHECK(r.valid&&r.obstacle>1);}
++struct SocketWorld {
++    btDefaultCollisionConfiguration config;btCollisionDispatcher dispatcher;btDbvtBroadphase broadphase;btCollisionWorld world;
++    btSphereShape sourceShape,obstacleShape;btCollisionObject source,obstacle;
++    SocketWorld():dispatcher(&config),world(&dispatcher,&broadphase,&config),sourceShape(2),obstacleShape(.1){
++        source.setCollisionShape(&sourceShape);source.setWorldTransform(at(0));world.addCollisionObject(&source);
++        obstacle.setCollisionShape(&obstacleShape);
++    }
++    void place(const btVector3&p,int flags=btCollisionObject::CF_STATIC_OBJECT){obstacle.setWorldTransform(btTransform(btQuaternion::getIdentity(),p));obstacle.setCollisionFlags(flags);world.addCollisionObject(&obstacle);}
++    ~SocketWorld(){if(obstacle.getBroadphaseHandle())world.removeCollisionObject(&obstacle);world.removeCollisionObject(&source);}
++};
++void socketRelocationRejectsIntermediateObstacle(){
++    const btVector3 start(0,0,0),end(1,0,1.7320508075688772);
++    for(int flags:{0,int(btCollisionObject::CF_STATIC_OBJECT)}){
++        SocketWorld f;CHECK(socketPathClear(f.world,start,end,&f.source,nullptr));
++        // Off the source->human center ray; neither endpoint overlaps the obstacle.
++        f.place(end*.5,flags);CHECK(!socketPathClear(f.world,start,end,&f.source,nullptr));
++    }
+ }
+-int main(int argc,char**argv){if(argc!=2)return 2;const std::string n=argv[1];if(n=="translatedTarget")translatedTarget();else if(n=="movingTarget")movingTarget();else if(n=="actualCompoundOffset")actualCompoundOffset();else if(n=="rotatingOffset")rotatingOffset();else if(n=="obstacleWinsAndOrderIndependent")obstacleWinsAndOrderIndependent();else if(n=="separatedObstacleIsNotAnUncertainContact")separatedObstacleIsNotAnUncertainContact();else return 2;return 0;}
++void socketRelocationRejectsEndpointOverlap(){
++    const btVector3 start(0,0,0),end(1,0,1.7320508075688772);
++    for(const auto&point:{start,end}){SocketWorld f;f.place(point);CHECK(!socketPathClear(f.world,start,end,&f.source,nullptr));}
++}
++void socketRelocationRespectsCollisionExclusions(){
++    SocketWorld f;const btVector3 start(0,0,0),end(1,0,1.7320508075688772);
++    f.place(end*.5,btCollisionObject::CF_NO_CONTACT_RESPONSE);
++    CHECK(socketPathClear(f.world,start,end,&f.source,nullptr));
++    f.world.removeCollisionObject(&f.obstacle);f.place(end*.5);
++    CHECK(socketPathClear(f.world,start,end,&f.source,&f.obstacle));
++}
++void socketRelocationRejectsInvalidSegment(){
++    SocketWorld f;CHECK(!socketPathClear(f.world,btVector3(0,0,0),btVector3(0,0,0),&f.source,nullptr));
++    CHECK(!socketPathClear(f.world,btVector3(0,0,0),btVector3(NAN,0,0),&f.source,nullptr));
++}
++
++}
++int main(int argc,char**argv){if(argc!=2)return 2;const std::string n=argv[1];if(n=="translatedTarget")translatedTarget();else if(n=="movingTarget")movingTarget();else if(n=="actualCompoundOffset")actualCompoundOffset();else if(n=="rotatingOffset")rotatingOffset();else if(n=="obstacleWinsAndOrderIndependent")obstacleWinsAndOrderIndependent();else if(n=="separatedObstacleIsNotAnUncertainContact")separatedObstacleIsNotAnUncertainContact();else if(n=="socketRelocationRejectsIntermediateObstacle")socketRelocationRejectsIntermediateObstacle();else if(n=="socketRelocationRejectsEndpointOverlap")socketRelocationRejectsEndpointOverlap();else if(n=="socketRelocationRespectsCollisionExclusions")socketRelocationRespectsCollisionExclusions();else if(n=="socketRelocationRejectsInvalidSegment")socketRelocationRejectsInvalidSegment();else return 2;return 0;}
+--- a/stk/tools/immersive/tests/scintilla_input_cases.inc
++++ b/stk/tools/immersive/tests/scintilla_input_cases.inc
+@@ -74,3 +74,9 @@
+ SCINTILLA_CASE(defenseParticipantRebindIsAtomicAndIdempotent)
+ SCINTILLA_CASE(defenseParticipantRebindRejectsPhysicalChanges)
+ SCINTILLA_CASE(defenseTwoSourcesMovingFramesPreserveIndependentContexts)
++SCINTILLA_CASE(defenseWarningDoesNotInterruptWorldOffense)
++SCINTILLA_CASE(defenseWarningBoundaryKeepsWorldContextUnambiguous)
++SCINTILLA_CASE(defenseRaceResetReusesGrantAndRearmsNewRace)
++SCINTILLA_CASE(defenseRaceResetKeepsLeaseAndRevocationAuthoritative)
++SCINTILLA_CASE(defenseRaceResetNeverRevivesAnExpiredOrReleasedGrant)
++SCINTILLA_CASE(defenseRaceResetRejectsOldFrameOrChangedStream)
+--- a/stk/tools/immersive/tests/scintilla_input_regression.cpp
++++ b/stk/tools/immersive/tests/scintilla_input_regression.cpp
+@@ -1643,6 +1643,43 @@
+  Runtime r;ready(r);Frame a=frame(1),b=frame(2);a.defense.enabled=b.defense.enabled=true;a.defense.threat=9;b.defense.threat=10;a.layout=b.layout=ScintillaDefense::Layout::create(2048,1024);r.addFrame(a);r.addFrame(b);r.setCombatContext(true,0,{});r.setDefenseContext(true,{});
+  CHECK(r.route("/spatial/presentation",presentation(true),1000000).status==200);CHECK(r.route("/spatial/input",edgeAt("release","released",0,999970),1000000).status==200);
+  auto press=edge("ambiguous","pressed",1);replace(press,"\"v\":0.5","\"v\":0.925");CHECK(r.route("/spatial/input",press,1000000).status==200);CHECK(r.events().back().result=="ambiguous_layout_context");
++}
++void defenseWarningDoesNotInterruptWorldOffense()
++{
++ Runtime r;ready(r);Frame f=frame(1);f.defense.enabled=true;f.layout=ScintillaDefense::Layout::create(2048,1024);
++ f.targets[0].combat.eligible=true;f.targets[0].combat.instance=70;r.addFrame(f);
++ r.setCombatContext(true,3,{});r.setDefenseContext(true,{});
++ r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});r.setVisibilityOracle([](const Frame&,const Target&,const Vec3&,double){return Visibility::Visible;});
++ CHECK(r.route("/spatial/presentation",presentation(),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("world-release","released",0,999970,0,"secondary"),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("world-press","pressed",1,999980,0,"secondary"),1000000).status==200);
++ const auto epoch=r.beamProofs(1000000)[0].controlEpoch;CHECK(r.beamProofs(1000000)[0].visible);
++ for(uint64_t threat:{1u,2u}){
++  f.id=threat+1;f.defense.threat=threat;f.defense.phase=ScintillaDefense::Phase::AwaitWarning;r.addFrame(f);
++  auto proof=presentation();replace(proof,"\"frameId\":1","\"frameId\":"+std::to_string(f.id));
++  const int64_t from=1000000+int64_t(threat)*1000,until=from+999,now=until+5;
++  replace(proof,"\"proofFromUs\":999000","\"proofFromUs\":"+std::to_string(from));replace(proof,"\"proofUntilUs\":1000000","\"proofUntilUs\":"+std::to_string(until));
++  replace(proof,"\"presentedFromUs\":999000","\"presentedFromUs\":"+std::to_string(from));replace(proof,"\"presentedUntilUs\":1000000","\"presentedUntilUs\":"+std::to_string(until));
++  CHECK(r.route("/spatial/presentation",proof,now).status==200);
++  CHECK(r.route("/spatial/input",feedbackAim(from+100,.5,.5,10+threat),now).status==200);
++  CHECK(r.beamProofs(now)[0].visible&&r.beamProofs(now)[0].controlEpoch==epoch&&r.beamProofs(now)[0].target==7);
++ }
++ // Same epoch changing to the HUD still latches release, even on returning.
++ auto hud=feedbackAim(1002200,.5,.925,20);CHECK(r.route("/spatial/input",hud,1003004).status==200);
++ CHECK(r.route("/spatial/input",feedbackAim(1002300,.5,.5,21),1003004).status==200);
++ CHECK(!r.beamProofs(1003004)[0].visible);
++}
++void defenseWarningBoundaryKeepsWorldContextUnambiguous()
++{
++ Runtime r;ready(r);Frame a=frame(1),b=frame(2);a.defense.enabled=b.defense.enabled=true;
++ a.layout=b.layout=ScintillaDefense::Layout::create(2048,1024);b.defense.threat=1;b.defense.phase=ScintillaDefense::Phase::AwaitWarning;
++ a.targets[0].combat.eligible=b.targets[0].combat.eligible=true;a.targets[0].combat.instance=b.targets[0].combat.instance=70;
++ r.addFrame(a);r.addFrame(b);r.setCombatContext(true,3,{});r.setDefenseContext(true,{});
++ r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});r.setVisibilityOracle([](const Frame&,const Target&,const Vec3&,double){return Visibility::Visible;});
++ CHECK(r.route("/spatial/presentation",presentation(true),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("boundary-release","released",0,999970,0,"secondary"),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("boundary-press","pressed",1,999990,1,"secondary"),1000000).status==200);
++ CHECK(r.beamProofs(1000000)[0].visible);CHECK(r.events().back().result=="hit");
+ }
+ void defenseProtocolClosedAndEpochChecked()
+ {
+@@ -1698,6 +1735,69 @@
+  CHECK(r.route("/spatial/input",feedbackAim(999996,.5,.24,10),1000000).status==200);CHECK(r.route("/spatial/input",feedbackAim(999997,.45,.81,11),1000000).status==200);CHECK(!r.defenseBeams(1000000)[0].visible);CHECK(r.beamProofs(1000000)[1].visible);
+ }
+ 
++std::string racePresentation(uint64_t id,int64_t from,int64_t until)
++{
++ auto proof=presentation();replace(proof,"\"frameId\":1","\"frameId\":"+std::to_string(id));
++ replace(proof,"\"proofFromUs\":999000","\"proofFromUs\":"+std::to_string(from));replace(proof,"\"proofUntilUs\":1000000","\"proofUntilUs\":"+std::to_string(until));
++ replace(proof,"\"presentedFromUs\":999000","\"presentedFromUs\":"+std::to_string(from));replace(proof,"\"presentedUntilUs\":1000000","\"presentedUntilUs\":"+std::to_string(until));return proof;
++}
++void defenseRaceResetReusesGrantAndRearmsNewRace()
++{
++ Runtime r;ready(r);r.allowParticipantRebind(true);r.setParticipants({"person1"});Frame f=frame(1);r.addFrame(f);r.setCombatContext(true,3,{},1);
++ bool gpu=false;r.setVisibilityOracle([&](const Frame&,const Target&,const Vec3&,double){return gpu?Visibility::Visible:Visibility::Pending;});r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});
++ CHECK(r.route("/spatial/presentation",presentation(),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("old-release","released",0,999970),1000000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("old-shot","pressed",1,999980),1000000).status==200);
++ const auto epoch=r.inputEpoch();CHECK(r.resetForRace());CHECK(!r.prepared());CHECK(r.inputSessionID()=="session");CHECK(r.inputEpoch()==epoch);
++ CHECK(r.drainCombatShots().empty());CHECK(!r.reticles()[0].primaryHeld);CHECK(!r.defenseVideoReady(1000001));
++ // An already-in-flight old optical proof is unavailable, not grant revocation.
++ const auto oldBatch="{\"contract\":\"tholus.stk-spatial/1\",\"inputs\":[],\"presentation\":"+presentation()+"}";
++ CHECK(r.route("/spatial/update",oldBatch,1000001).status==200);
++ f.id=2;f.generation=2;f.captureUs=1000010;f.targets[0].instance=71;r.addFrame(f);
++ CHECK(r.route("/spatial/presentation",racePresentation(2,1000020,1000900),1001000).status==200);
++ auto binding=participantRebind(std::to_string(epoch),"person1");CHECK(r.rebindParticipants(binding,"2",1001000).status==200);
++ CHECK(r.prepared()&&r.inputEpoch()==epoch+1);CHECK(r.rebindParticipants(binding,"2",1001000).status==200);CHECK(r.inputEpoch()==epoch+1);
++ r.setCombatContext(true,0,{},2);gpu=true;r.tick(1002000,true);
++ CHECK(r.drainCombatShots().empty());
++ CHECK(r.route("/spatial/presentation",racePresentation(2,1000020,1002900),1003000).status==200);
++ // The old event and sequence cannot be replayed after resetting the race.
++ CHECK(r.route("/spatial/input",edgeAt("old-shot","pressed",1,999980),1003000).status==409);
++ CHECK(r.route("/spatial/input",edgeAt("new-release","released",2,1002200),1003000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("new-shot","pressed",3,1002300),1003000).status==409); // fire-rate guard retained
++ CHECK(r.route("/spatial/input",edgeAt("new-tool-release","released",4,1002400,0,"secondary"),1003000).status==200);
++ CHECK(r.route("/spatial/input",edgeAt("new-tool","pressed",5,1002500,0,"secondary"),1003000).status==200);
++ CHECK(r.events().back().result=="hit"&&r.events().back().targetInstance==71);
++ CHECK(r.resetForRace());f.id=3;f.generation=3;f.captureUs=1003010;r.addFrame(f);
++ CHECK(r.route("/spatial/presentation",racePresentation(3,1003020,1003900),1004000).status==200);
++ CHECK(r.rebindParticipants(participantRebind(std::to_string(epoch+1),"person1"),"2",1004000).status==200);CHECK(r.inputEpoch()==epoch+2);
++}
++void defenseRaceResetKeepsLeaseAndRevocationAuthoritative()
++{
++ Runtime r;ready(r);r.allowParticipantRebind(true);r.setParticipants({"person1"});r.addFrame(frame(1));CHECK(r.resetForRace());
++ const std::string renew="{\"contract\":\"tholus.stk-spatial/1\",\"inputSessionID\":\"session\",\"routingGeneration\":\"generation\",\"expiresAtHostUs\":6000000,\"clockSamples\":[{\"hostSentUs\":1000000,\"serverReceivedUs\":1000000,\"serverSentUs\":1000000,\"hostReceivedUs\":1000000},{\"hostSentUs\":1001000,\"serverReceivedUs\":1001000,\"serverSentUs\":1001000,\"hostReceivedUs\":1001000},{\"hostSentUs\":1002000,\"serverReceivedUs\":1002000,\"serverSentUs\":1002000,\"hostReceivedUs\":1002000}]}";
++ CHECK(r.route("/spatial/renew",renew,1003000).status==200);
++ CHECK(r.rebindParticipants(participantRebind("1","person1"),"2",1003000).status==200);
++ const auto revoked="{\"contract\":\"tholus.stk-spatial/1\",\"message\":{"+context+",\"type\":\"sessionRevoked\",\"reason\":\"revoked\"}}";
++ CHECK(r.route("/spatial/input",revoked,1003001).status==200);CHECK(!r.resetForRace());
++ CHECK(r.rebindParticipants(participantRebind("2","person1"),"2",1003001).status==409);
++}
++void defenseRaceResetNeverRevivesAnExpiredOrReleasedGrant()
++{
++ for(bool release:{false,true}){
++  Runtime r;ready(r);r.allowParticipantRebind(true);r.setParticipants({"person1"});r.addFrame(frame(1));CHECK(r.resetForRace());
++  if(release)r.reset("released");else r.tick(2000001,false);
++  CHECK(!r.resetForRace());CHECK(r.rebindParticipants(participantRebind("1","person1"),"2",2000001).status==409);
++ }
++ Runtime vanilla;ready(vanilla);CHECK(!vanilla.resetForRace());CHECK(vanilla.prepared());
++}
++void defenseRaceResetRejectsOldFrameOrChangedStream()
++{
++ for(bool changedStream:{false,true}){
++  Runtime r;ready(r);r.allowParticipantRebind(true);r.addFrame(frame(1));CHECK(r.resetForRace());
++  auto f=frame(changedStream?2:1);f.generation=2;if(changedStream)f.stream=std::string(32,'a');r.addFrame(f);
++  CHECK(!r.resetForRace());CHECK(!r.prepared());
++ }
++}
+ void projectionMatchesShader()
+ {
+  Projection p;p.kind="equirectangular";Vec3 d;CHECK(Runtime::projectionDirection(p,0.5,0.5,&d)&&std::abs(d.z-1)<1e-12);
+--- a/host/Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift
++++ b/host/Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift
+@@ -297,6 +297,7 @@
+     private let launcher = ImmersiveSTKProcessLauncher()
+     var hasOwnedProcess: Bool { launcher.hasOwnedProcess }
+     private let producerOwnership: (@MainActor () -> Bool)?
++    private let spatialInputInvalidationObserver: (@MainActor () -> Void)?
+     var ownsProducer: Bool { producerOwnership?() ?? launcher.ownsProducer }
+     var trackChoices: [ImmersiveSTKTrack] {
+         availableTracks.isEmpty ? ImmersiveSTKTrack.mvpTracks : ImmersiveSTKTrack.mvpTracks.filter { preferred in
+@@ -321,6 +322,7 @@
+     private let scintillaDefenseHTTP: ImmersiveSTKDefenseHTTP
+     private var scintillaPreparationOperation = UUID()
+     private var scintillaPreparationInFlight = false
++    private var scintillaRaceResetPending = false
+     private var scintillaCombatSessionID: String?
+     private var scintillaDefenseSessionID: String?
+     private var scintillaSpatialInput: ImmersiveSTKSpatialInput?
+@@ -444,6 +446,17 @@
+             (mode.requiresDefense && scintillaDefenseState?.required != true) { requestScintillaMode(mode) }
+         let intentConfirmed = await synchronizeScintillaIntent()
+         if !intentConfirmed && mode.requiresDefense && scintillaDefenseUnsupported { throw ImmersiveSTKDefenseEndpointError.unsupported }
++        if mode.requiresDefense && scintillaParticipantRebindRequired && !scintillaPreparationInFlight {
++            let configuration = apiConfiguration, session = snapshot.sessionID, revision = scintillaIntentRevision
++            // Observe a completed reset before fixing this preparation's operation.
++            // A later distinct reset still supersedes the transaction normally.
++            await refreshScintillaCombatState()
++            guard !Task.isCancelled, apiConfiguration == configuration, snapshot.sessionID == session,
++                  scintillaIntentRevision == revision, requestedScintillaMode == mode, ownsProducer,
++                  validatePhysicalCommissioning(), validateCommissioning() else {
++                throw ImmersiveSTKSpatialError.routeChanged
++            }
++        }
+         let reusingGrant = mode.requiresDefense && scintillaSpatialInput?.isPrepared == true && scintillaParticipantRebindRequired
+         if reusingGrant && snapshot.canPause && snapshot.inputLocked { await pause() }
+         guard intentConfirmed, !Task.isCancelled, !scintillaPreparationInFlight, validateCommissioning(), let scintillaSpatialInput, let domeTiltDeg = confirmedDomeTiltDeg,
+@@ -542,6 +555,7 @@
+                 scintillaDefensePolicyUnconfirmed = false
+             }
+             scintillaParticipantRebindRequired = false
++            scintillaRaceResetPending = false
+         } catch {
+             if reusingGrant && scintillaSpatialInput.isPrepared {
+                 // The same process still owns the same qualified sources. A failed
+@@ -591,9 +605,7 @@
+                   defense == nil || (defense?.raceEpoch == state.raceEpoch && defense?.rosterRevision == state.rosterRevision) else { return }
+             scintillaCombatState = state; scintillaCombatSessionID = sessionID
+             if let defense {
+-                if let previous = scintillaDefenseState, previous.raceEpoch == defense.raceEpoch,
+-                   previous.rosterRevision != defense.rosterRevision, defense.requiresDefense,
+-                   scintillaSpatialInput?.isPrepared == true { suspendScintillaParticipantBindings() }
++                observeScintillaDefenseAuthority(defense)
+                 scintillaDefenseState = defense; scintillaDefenseSessionID = sessionID
+                 if scintillaPreparation?.isPreparing != true { scintillaDefensePolicyUnconfirmed = false }
+             }
+@@ -627,16 +639,30 @@
+     }
+ 
+     func stopScintillaSpatialInput() {
++        spatialInputInvalidationObserver?()
+         scintillaPreparationOperation = UUID()
+         scintillaParticipantRebindRequired = false
++        scintillaRaceResetPending = false
+         scintillaSpatialInput?.invalidate()
+     }
+ 
+-    private func suspendScintillaParticipantBindings() {
+-        guard requiresScintillaDefense, scintillaSpatialInput?.isPrepared == true else { stopScintillaSpatialInput(); return }
++    private func suspendScintillaParticipantBindings(forRaceReset: Bool = false) {
++        guard requiresScintillaDefense else { stopScintillaSpatialInput(); return }
+         scintillaPreparationOperation = UUID()
+         scintillaParticipantRebindRequired = true
++        scintillaRaceResetPending = scintillaRaceResetPending || forRaceReset
+         scintillaSpatialInput?.suspendParticipantBindings()
++        if forRaceReset { presentationReadinessAcknowledged = false }
++        schedulePresentationReadiness()
++    }
++
++    private func observeScintillaDefenseAuthority(_ state: ImmersiveSTKDefenseState) {
++        guard state.requiresDefense, let previous = scintillaDefenseState else { return }
++        if previous.raceEpoch != state.raceEpoch {
++            suspendScintillaParticipantBindings(forRaceReset: true)
++        } else if previous.rosterRevision != state.rosterRevision {
++            suspendScintillaParticipantBindings()
++        }
+     }
+ 
+     private let client: any ImmersiveSuperTuxKartAPIClienting
+@@ -668,12 +694,14 @@
+         mediaBus: MediaBus = .shared,
+         scintillaCombatHTTP: ImmersiveSTKCombatHTTP = ImmersiveSTKCombatHTTP(),
+         scintillaDefenseHTTP: ImmersiveSTKDefenseHTTP? = nil,
+-        producerOwnership: (@MainActor () -> Bool)? = nil
++        producerOwnership: (@MainActor () -> Bool)? = nil,
++        spatialInputInvalidationObserver: (@MainActor () -> Void)? = nil
+     ) {
+         self.client = client
+         self.scintillaCombatHTTP = scintillaCombatHTTP
+         self.scintillaDefenseHTTP = scintillaDefenseHTTP ?? scintillaCombatHTTP.defenseClient()
+         self.producerOwnership = producerOwnership
++        self.spatialInputInvalidationObserver = spatialInputInvalidationObserver
+         self.videoInputManager = videoInputManager
+         self.mediaBus = mediaBus
+         syncPhoneSlotsToPlayerCount()
+@@ -894,6 +922,7 @@
+         if scintillaIntentPending && ownsProducer && snapshot.loadedTrackID != nil && !snapshot.canPause {
+             _ = await synchronizeScintillaIntent()
+         }
++        if requiresScintillaDefense { await refreshScintillaCombatState() }
+         refreshSyphonDiagnostics()
+     }
+ 
+@@ -902,6 +931,12 @@
+         if snapshot.hasFinishedCurrentSession {
+             guard await reset() else { return false }
+         }
++        if requiresScintillaDefense, scintillaRaceResetPending,
++           snapshot.loadedTrackID == trackID, appliedConfiguration?.confirms(sessionConfiguration) == true {
++            // Reset retains the loaded world, qualified video route and physical
++            // grant. Pointer preparation will rebind the new logical race epoch.
++            return true
++        }
+         return await configureSession()
+     }
+ 
+@@ -1048,14 +1083,16 @@
+     }
+ 
+     func forceFinish() async {
+-        stopScintillaSpatialInput()
++        if requiresScintillaDefense { suspendScintillaParticipantBindings(forRaceReset: true) }
++        else { stopScintillaSpatialInput() }
+         await performCommand(String(localized: "Force finish inviato", bundle: .main)) {
+             try await client.forceFinish(configuration: apiConfiguration)
+         }
+     }
+ 
+     func abort() async {
+-        stopScintillaSpatialInput()
++        if requiresScintillaDefense { suspendScintillaParticipantBindings(forRaceReset: true) }
++        else { stopScintillaSpatialInput() }
+         await performCommand(String(localized: "Abort inviato", bundle: .main)) {
+             try await client.abort(configuration: apiConfiguration)
+         }
+@@ -1063,16 +1100,36 @@
+ 
+     @discardableResult
+     func reset() async -> Bool {
+-        stopScintillaSpatialInput()
++        let configuration = apiConfiguration, session = snapshot.sessionID
++        let generation = phoneGeneration, owned = ownsProducer
++        let retainGrant = requiresScintillaDefense
++        if retainGrant {
++            // Hold before any await: rejection or an uncertain reply must never
++            // restore old gameplay preparation or destroy the physical lease.
++            suspendScintillaParticipantBindings(forRaceReset: true)
++        } else {
++            stopScintillaSpatialInput()
++        }
++        let operation = scintillaPreparationOperation
++        let authorityIsCurrent: @MainActor () -> Bool = { [weak self] in
++            guard let self else { return false }
++            return !Task.isCancelled && self.apiConfiguration == configuration &&
++                self.snapshot.sessionID == session && self.phoneGeneration == generation &&
++                self.ownsProducer == owned && self.scintillaPreparationOperation == operation
++        }
++        if retainGrant { _ = await closePresentationGate() }
++        guard authorityIsCurrent() else { return false }
+         presenceSuspended = true
+         presenceTask?.cancel()
+         await presenceTask?.value
+         presenceTask = nil
+         defer { presenceSuspended = false; schedulePresenceSync() }
++        guard authorityIsCurrent() else { return false }
+         let accepted = await performCommand(String(localized: "Reset inviato", bundle: .main)) {
+-            try await client.reset(configuration: apiConfiguration)
++            try await client.reset(configuration: configuration)
+         }
+-        if accepted {
++        if accepted, apiConfiguration == configuration, snapshot.sessionID == session,
++           phoneGeneration == generation, ownsProducer == owned {
+             clearPhoneActionMessages()
+             lastPresence = nil
+             _ = await synchronizePresence()
+@@ -1081,7 +1138,8 @@
+     }
+ 
+     func confirmHandoff() async {
+-        stopScintillaSpatialInput()
++        // Confirmation retains the physical lease, as phone Ready does. The
++        // authoritative driver transition suspends only participant bindings.
+         guard permitsSurfaceStart() else { return }
+         await performCommand(String(localized: "Handoff confermato", bundle: .main)) {
+             try await client.confirmHandoff(configuration: apiConfiguration)
+@@ -1201,7 +1259,7 @@
+                 let combatPermitted: Bool
+                 if handoff { combatPermitted = true }
+                 else { combatPermitted = await permitsScintillaStart(allowRaceReset: snapshot.hasFinishedCurrentSession) }
+-                let surfacePermitted = combatPermitted ? permitsSurfaceStart() : false
++                let surfacePermitted = combatPermitted ? permitsSurfaceStart(allowRaceReset: snapshot.hasFinishedCurrentSession) : false
+                 guard combatPermitted, surfacePermitted else {
+                     guard let current = phoneSlots.firstIndex(where: { $0.sessionToken == sessionToken && $0.playerID == playerID }) else {
+                         return .init(ok: false, accepted: false, message: "La partecipazione è cambiata; aggiorna il telefono.", error: "phone_assignment_changed", retryAfterMS: nil)
+@@ -1213,9 +1271,23 @@
+                       phoneReadyIdentityIsCurrent(playerID: playerID), snapshot.handoffActive == handoff,
+                       phoneSlots.contains(where: { $0.sessionToken == sessionToken && $0.playerID == playerID }) else {
+                     return .init(ok: false, accepted: false, message: "La partecipazione è cambiata; aggiorna il telefono.", error: "phone_assignment_changed", retryAfterMS: nil)
++                }
++                let readyConfiguration = apiConfiguration
++                if snapshot.hasFinishedCurrentSession && requiresScintillaDefense {
++                    suspendScintillaParticipantBindings(forRaceReset: true)
++                    let resetOperation = scintillaPreparationOperation
++                    let owned = ownsProducer
++                    _ = await closePresentationGate()
++                    guard !Task.isCancelled, apiConfiguration == readyConfiguration,
++                          scintillaPreparationOperation == resetOperation, ownsProducer == owned,
++                          phoneGeneration == generation, latestSessionID == sessionID,
++                          phoneReadyIdentityIsCurrent(playerID: playerID), snapshot.hasFinishedCurrentSession,
++                          phoneSlots.contains(where: { $0.sessionToken == sessionToken && $0.playerID == playerID }) else {
++                        return .init(ok: false, accepted: false, message: "La partecipazione è cambiata; aggiorna il telefono.", error: "phone_assignment_changed", retryAfterMS: nil)
++                    }
+                 }
+                 successLabel = "Pronto ricevuto."
+-                response = try await client.pilotReady(.init(playerID: playerID), configuration: apiConfiguration)
++                response = try await client.pilotReady(.init(playerID: playerID), configuration: readyConfiguration)
+             } else {
+                 let candidates = latestPhoneStates.filter { $0.playerID == playerID && (role == nil || $0.role == role) }
+                 let matches = candidates.flatMap { state in state.actions.filter { $0.id == actionID || $0.type == actionID }.map { (state, $0) } }
+@@ -1237,8 +1309,9 @@
+             let accepted = response.ok && response.accepted != false && response.error == nil
+             var message = accepted ? successLabel : phoneMessage(for: response.error ?? "action_rejected", retryAfterMS: response.cooldownMS)
+             if accepted, response.event == "scintilla_combat_reset_requires_prepare" {
+-                stopScintillaSpatialInput()
+-                message = String(localized: "Race reset. Prepare SC2 pointers before starting.", bundle: .main)
++                if requiresScintillaDefense { suspendScintillaParticipantBindings(forRaceReset: true) }
++                else { stopScintillaSpatialInput() }
++                message = String(localized: "Race reset. Prepare pointers and the selected Scintilla profile before starting.", bundle: .main)
+             }
+             if accepted, let effect = response.effect {
+                 if effect.contains("|combo:") { message = "Combo della squadra!" }
+@@ -1267,7 +1340,7 @@
+ 
+     private func canPhoneReady(playerID: String) -> Bool {
+         guard phoneReadyIdentityIsCurrent(playerID: playerID),
+-              !requiresSurfaceOutput || (isSurfaceOutputReady && presentationGateAllowsStart) else { return false }
++              !requiresSurfaceOutput || (isSurfaceOutputReady && ((snapshot.hasFinishedCurrentSession && requiresScintillaDefense) || presentationGateAllowsStart)) else { return false }
+         if snapshot.handoffActive { return true }
+         guard !scintillaIntentPending, !scintillaIntentInFlight,
+               !scintillaPreparationInFlight, scintillaPreparation?.isPreparing != true else { return false }
+@@ -1901,9 +1974,7 @@
+             scintillaCombatState = state; scintillaCombatSessionID = sessionID
+             scintillaCombatPolicyUnconfirmed = false
+             if let defense {
+-                if let previous = scintillaDefenseState, previous.raceEpoch == defense.raceEpoch,
+-                   previous.rosterRevision != defense.rosterRevision, defense.requiresDefense,
+-                   scintillaSpatialInput?.isPrepared == true { suspendScintillaParticipantBindings() }
++                observeScintillaDefenseAuthority(defense)
+                 scintillaDefenseState = defense; scintillaDefenseSessionID = sessionID
+                 scintillaDefensePolicyUnconfirmed = false
+             }
+@@ -1933,8 +2004,9 @@
+         return false
+     }
+ 
+-    private func permitsSurfaceStart() -> Bool {
+-        guard !requiresSurfaceOutput || (isSurfaceOutputReady && presentationGateAllowsStart) else {
++    private func permitsSurfaceStart(allowRaceReset: Bool = false) -> Bool {
++        let resetOnly = allowRaceReset && snapshot.hasFinishedCurrentSession && requiresScintillaDefense
++        guard !requiresSurfaceOutput || (isSurfaceOutputReady && (resetOnly || presentationGateAllowsStart)) else {
+             snapshot.lastError = surfaceOutputReadinessMessage
+             return false
+         }
+@@ -1958,7 +2030,8 @@
+     }
+ 
+     private var scintillaStartTransitionPending: Bool {
+-        scintillaIntentPending || scintillaPreparationInFlight || (scintillaParticipantRebindRequired && !snapshot.handoffActive)
++        scintillaIntentPending || scintillaPreparationInFlight || scintillaRaceResetPending ||
++            (scintillaParticipantRebindRequired && !snapshot.handoffActive)
+     }
+ 
+     private var presentationGateAllowsStart: Bool {
+--- a/host/SocialTableController/Localizable.xcstrings
++++ b/host/SocialTableController/Localizable.xcstrings
+@@ -516621,18 +516621,18 @@
+         }
+       }
+     },
+-    "Race reset. Prepare SC2 pointers before starting.": {
++    "Race reset. Prepare pointers and the selected Scintilla profile before starting.": {
+       "localizations": {
+         "en": {
+           "stringUnit": {
+             "state": "translated",
+-            "value": "Race reset. Prepare SC2 pointers before starting."
++            "value": "Race reset. Prepare pointers and the selected Scintilla profile before starting."
+           }
+         },
+         "it": {
+           "stringUnit": {
+             "state": "translated",
+-            "value": "Gara azzerata. Prepara i puntatori SC2 prima di partire."
++            "value": "Gara azzerata. Prepara i puntatori e il profilo Scintilla selezionato prima di partire."
+           }
+         }
+       }
+--- a/host/Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift
++++ b/host/Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift
+@@ -103,6 +103,40 @@
+         #expect(runtime.snapshot.lastError == "synthetic_pause_rejected")
+         #expect(runtime.snapshot.lastCommandMessage == "synthetic_pause_rejected")
+         #expect(await client.configurationCalls().isEmpty)
++    }
++
++    @Test("Operator handoff confirmation retains spatial authority on acceptance and rejection", arguments: [false, true])
++    @MainActor
++    func operatorHandoffNeverTearsDownSpatialInput(rejected: Bool) async throws {
++        // Observe the real teardown boundary; no SI5 grant or optical readiness
++        // is fabricated. This isolates confirmation from the later driver transition.
++        let state = try JSONDecoder().decode(ImmersiveSTKStateResponse.self, from: Data("""
++        {"ok":true,"session_id":"synthetic.handoff.session","state":"lap_handoff","state_version":70,
++         "player_count":3,"active_driver":"p1",
++         "arcade_session":{"session_id":"synthetic.handoff.session","state":"lap_handoff","configured":true,
++          "player_count":3,"active_driver":"p1","next_driver":"p2","handoff_active":true,
++          "input_locked":true,"waiting_for_operator_confirm":true,"handoff_countdown":0}}
++        """.utf8))
++        let client = ImmersiveSTKFakeClient(state: state,
++            rejectedConfigurationStage: rejected ? "handoff" : nil,
++            rejection: .init(ok: true, accepted: false, error: "synthetic_handoff_rejected"))
++        var invalidations = 0
++        let runtime = ImmersiveSuperTuxKartRuntimeController(client: client,
++            videoInputManager: VideoInputManager(autoConnect: false),
++            spatialInputInvalidationObserver: { invalidations += 1 })
++        await runtime.refresh()
++        runtime.stopScintillaSpatialInput()
++        #expect(invalidations > 0) // Ensure the teardown observation is wired.
++        invalidations = 0
++
++        await runtime.confirmHandoff()
++
++        #expect(await client.lifecycleCalls() == ["handoff"])
++        #expect(invalidations == 0)
++        #expect(runtime.snapshot.sessionID == "synthetic.handoff.session")
++        #expect(runtime.snapshot.handoffActive && runtime.snapshot.inputLocked)
++        #expect(runtime.snapshot.lastCommandMessage == (rejected ? "synthetic_handoff_rejected" : "handoff_confirmed"))
++        if rejected { #expect(runtime.snapshot.lastError == "synthetic_handoff_rejected") }
+     }
+ 
+     private static func pauseLifecycleState(paused: Bool, version: Int) throws -> ImmersiveSTKStateResponse {
+@@ -351,8 +385,142 @@
+         #expect(blocked.error == "scintilla_not_prepared")
+         #expect(await client.readyCalls() == 1)
+         await runtime.closeOwnedProducer()
++    }
++
++    @Test("SC3 operator reset holds logical preparation and retains physical authority across all replies", arguments: ["accepted", "rejected", "lost"])
++    @MainActor
++    func defenseResetRetainsGrantAndRequiresRepreparation(outcome: String) async throws {
++        let exchange = ReadyCombatExchange(); exchange.required = true
++        exchange.defenseSupported = true; exchange.defenseRequired = true
++        let client = ImmersiveSTKFakeClient(state: Self.scintillaReadyState(phase: "results"),
++            rejectedConfigurationStage: outcome == "rejected" ? "reset" : nil)
++        var invalidations = 0
++        let runtime = ImmersiveSuperTuxKartRuntimeController(client: client,
++            scintillaCombatHTTP: exchange.client(), producerOwnership: { true },
++            spatialInputInvalidationObserver: { invalidations += 1 })
++        runtime.apiBaseURLString = "http://127.0.0.1:8890/immersive/v1"
++        runtime.apiToken = "synthetic-ready-secret"
++        await runtime.refresh(); await runtime.refreshScintillaCombatState()
++        await client.configureSpatialReset(next: Self.scintillaReadyState(), loseReply: outcome == "lost")
++        invalidations = 0
++
++        let reset = Task { await runtime.reset() }
++        await client.waitForSpatialResetSuspension()
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(!runtime.isScintillaSpatialInputPrepared)
++        #expect(invalidations == 0) // Before the command can return.
++        await client.releaseSpatialReset()
++        #expect(await reset.value == (outcome == "accepted"))
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(invalidations == 0)
++
++        if outcome != "rejected" { exchange.raceEpoch = "2" }
++        await runtime.refresh()
++        await runtime.startSession(); await runtime.countdown(); await runtime.resume()
++        #expect(await client.lifecycleCalls().isEmpty)
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(invalidations == 0)
++        #expect(exchange.posts.isEmpty && exchange.defensePosts.isEmpty)
+     }
+ 
++    @Test("SC3 results Ready retains physical authority on acceptance rejection and a lost reply", arguments: ["accepted", "rejected", "lost"])
++    @MainActor
++    func defenseResultsReadyRetainsGrantAndHoldsNewRace(outcome: String) async throws {
++        let exchange = ReadyCombatExchange(); exchange.required = true
++        exchange.defenseSupported = true; exchange.defenseRequired = true
++        let client = ImmersiveSTKFakeClient(state: Self.scintillaReadyState(phase: "results"),
++            rejectedConfigurationStage: outcome == "rejected" ? "ready" : nil)
++        var invalidations = 0
++        let runtime = ImmersiveSuperTuxKartRuntimeController(client: client,
++            scintillaCombatHTTP: exchange.client(), producerOwnership: { true },
++            spatialInputInvalidationObserver: { invalidations += 1 })
++        runtime.apiBaseURLString = "http://127.0.0.1:8890/immersive/v1"
++        runtime.apiToken = "synthetic-ready-secret"
++        await runtime.connectAndRefresh(); await runtime.refreshScintillaCombatState()
++        let pilot = try #require(runtime.joinPhone(deviceID: "sc3-reset", nickname: nil, playerID: "p1"))
++        await client.configureReadyReset(next: Self.scintillaReadyState())
++        await client.configureSpatialReset(next: Self.scintillaReadyState(), loseReply: outcome == "lost")
++        invalidations = 0
++
++        let reset = Task { await runtime.submitPhoneAction(sessionToken: pilot.sessionToken,
++            actionID: "pilot_ready", idempotencyKey: "sc3-results", stateVersionSeen: 0) }
++        await client.waitForSpatialResetSuspension()
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(invalidations == 0)
++        await client.releaseSpatialReset()
++        let result = await reset.value
++        #expect(result.accepted == (outcome == "accepted"))
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(invalidations == 0)
++        if outcome != "rejected" {
++            exchange.raceEpoch = "2"
++            await runtime.refresh()
++            let retry = await runtime.submitPhoneAction(sessionToken: pilot.sessionToken,
++                actionID: "pilot_ready", idempotencyKey: "sc3-unprepared", stateVersionSeen: 0)
++            #expect(retry.error == "scintilla_not_prepared")
++            #expect(await client.readyCalls() == 1)
++        }
++        #expect(exchange.posts.isEmpty && exchange.defensePosts.isEmpty)
++    }
++
++    @Test("Finishing or aborting SC3 retains authority for the following race reset", arguments: ["finish", "abort"])
++    @MainActor
++    func defenseEndThenResetRetainsPhysicalAuthority(command: String) async throws {
++        let exchange = ReadyCombatExchange(); exchange.required = true
++        exchange.defenseSupported = true; exchange.defenseRequired = true
++        let client = ImmersiveSTKFakeClient(state: Self.scintillaReadyState(phase: "running"))
++        await client.configureLifecycleEnd(next: Self.scintillaReadyState(phase: command == "finish" ? "results" : "aborted"))
++        var invalidations = 0
++        let runtime = ImmersiveSuperTuxKartRuntimeController(client: client,
++            scintillaCombatHTTP: exchange.client(), producerOwnership: { true },
++            spatialInputInvalidationObserver: { invalidations += 1 })
++        runtime.apiBaseURLString = "http://127.0.0.1:8890/immersive/v1"
++        runtime.apiToken = "synthetic-ready-secret"
++        await runtime.refresh(); await runtime.refreshScintillaCombatState()
++        invalidations = 0
++        if command == "finish" { await runtime.forceFinish() }
++        else { await runtime.abort() }
++        #expect(await client.lifecycleCalls() == [command])
++        #expect(runtime.scintillaParticipantRebindRequired && invalidations == 0)
++        await client.configureSpatialReset(next: Self.scintillaReadyState(), loseReply: false)
++        let reset = Task { await runtime.reset() }
++        await client.waitForSpatialResetSuspension()
++        #expect(runtime.scintillaParticipantRebindRequired && invalidations == 0)
++        await client.releaseSpatialReset()
++        #expect(await reset.value)
++        #expect(runtime.snapshot.arcadeState == "briefing")
++        #expect(runtime.scintillaParticipantRebindRequired && invalidations == 0)
++    }
++
++    @Test("Polling a new SC3 race epoch invalidates logical preparation without closing the physical grant")
++    @MainActor
++    func externalDefenseResetIsDetectedByPolling() async {
++        let exchange = ReadyCombatExchange(); exchange.required = true
++        exchange.defenseSupported = true; exchange.defenseRequired = true
++        let client = ImmersiveSTKFakeClient(state: Self.scintillaReadyState())
++        var invalidations = 0
++        let runtime = ImmersiveSuperTuxKartRuntimeController(client: client,
++            scintillaCombatHTTP: exchange.client(), producerOwnership: { true },
++            spatialInputInvalidationObserver: { invalidations += 1 })
++        runtime.apiBaseURLString = "http://127.0.0.1:8890/immersive/v1"
++        runtime.apiToken = "synthetic-ready-secret"
++        await runtime.refresh(); await runtime.refreshScintillaCombatState()
++        #expect(runtime.scintillaDefenseState?.raceEpoch == "1")
++        invalidations = 0
++        exchange.raceEpoch = "2"
++        await runtime.refresh()
++        #expect(runtime.scintillaDefenseState?.raceEpoch == "2")
++        #expect(runtime.scintillaParticipantRebindRequired)
++        #expect(invalidations == 0)
++        // A second reset is a new authority even while the first hold remains.
++        exchange.raceEpoch = "3"
++        await runtime.refresh()
++        #expect(runtime.scintillaDefenseState?.raceEpoch == "3")
++        #expect(runtime.scintillaParticipantRebindRequired && invalidations == 0)
++        await runtime.startSession()
++        #expect(await client.lifecycleCalls().isEmpty)
++    }
++
+     @Test("An older combat API cannot offer reset-only Ready", arguments: ["required", "intentRevision"])
+     @MainActor
+     func resultsReadyRequiresTheExplicitResetGateContract(missing: String) async throws {
+@@ -1380,7 +1548,31 @@
+     private var pauseStateResponse: ImmersiveSTKStateResponse?
+     private var resumeStateResponse: ImmersiveSTKStateResponse?
+     private var pauseCommandRejection: ImmersiveSTKCommandResponse?
++    private var lifecycleEndState: ImmersiveSTKStateResponse?
++    func configureLifecycleEnd(next: ImmersiveSTKStateResponse) { lifecycleEndState = next }
++    private var spatialResetState: ImmersiveSTKStateResponse?
++    private var loseSpatialResetReply = false
++    private var suspendSpatialReset = false
++    private var spatialResetContinuation: CheckedContinuation<Void, Never>?
++    private var spatialResetObserver: CheckedContinuation<Void, Never>?
+ 
++    func configureSpatialReset(next: ImmersiveSTKStateResponse, loseReply: Bool) {
++        spatialResetState = next; loseSpatialResetReply = loseReply; suspendSpatialReset = true
++    }
++    func waitForSpatialResetSuspension() async {
++        if spatialResetContinuation != nil { return }
++        await withCheckedContinuation { spatialResetObserver = $0 }
++    }
++    func releaseSpatialReset() { spatialResetContinuation?.resume(); spatialResetContinuation = nil }
++    private func awaitSpatialResetRelease() async {
++        guard suspendSpatialReset else { return }
++        suspendSpatialReset = false
++        await withCheckedContinuation {
++            spatialResetContinuation = $0
++            spatialResetObserver?.resume(); spatialResetObserver = nil
++        }
++    }
++
+     func configurationCalls() -> [String] { configurationCallsStorage }
+     func lifecycleCalls() -> [String] { lifecycleCallsStorage }
+     func configurePauseResume(paused: ImmersiveSTKStateResponse, resumed: ImmersiveSTKStateResponse) {
+@@ -1449,8 +1641,11 @@
+     func pilotReady(_ request: ImmersiveSTKPilotReadyRequest, configuration: ImmersiveSuperTuxKartAPIConfiguration) async throws -> ImmersiveSTKCommandResponse {
+         if let error { throw error }
+         readyRequest = request; readyCallCount += 1
++        if readyResetState != nil { await awaitSpatialResetRelease() }
++        if rejectedConfigurationStage == "ready" { return rejection }
+         if let readyResetState {
+             setState(readyResetState); self.readyResetState = nil
++            if loseSpatialResetReply { throw URLError(.timedOut) }
+             return .init(ok: true, event: "scintilla_combat_reset_requires_prepare", accepted: true)
+         }
+         return .init(ok: true, accepted: true)
+@@ -1530,23 +1725,32 @@
+     }
+ 
+     func abort(configuration: ImmersiveSuperTuxKartAPIConfiguration) async throws -> ImmersiveSTKCommandResponse {
++        lifecycleCallsStorage.append("abort")
+         if let error { throw error }
++        if let lifecycleEndState { setState(lifecycleEndState); self.lifecycleEndState = nil }
+         return ImmersiveSTKCommandResponse(event: "aborted", stateVersion: stateResponse.stateVersion)
+     }
+ 
+     func reset(configuration: ImmersiveSuperTuxKartAPIConfiguration) async throws -> ImmersiveSTKCommandResponse {
+         configurationCallsStorage.append("reset")
++        await awaitSpatialResetRelease()
+         if rejectedConfigurationStage == "reset" { return rejection }
+         if let error { throw error }
++        if let spatialResetState { setState(spatialResetState); self.spatialResetState = nil }
++        if loseSpatialResetReply { throw URLError(.timedOut) }
+         return ImmersiveSTKCommandResponse(event: "reset", stateVersion: stateResponse.stateVersion)
+     }
+ 
+     func forceFinish(configuration: ImmersiveSuperTuxKartAPIConfiguration) async throws -> ImmersiveSTKCommandResponse {
++        lifecycleCallsStorage.append("finish")
+         if let error { throw error }
++        if let lifecycleEndState { setState(lifecycleEndState); self.lifecycleEndState = nil }
+         return ImmersiveSTKCommandResponse(event: "finished", stateVersion: stateResponse.stateVersion)
+     }
+ 
+     func confirmHandoff(configuration: ImmersiveSuperTuxKartAPIConfiguration) async throws -> ImmersiveSTKCommandResponse {
++        lifecycleCallsStorage.append("handoff")
++        if rejectedConfigurationStage == "handoff" { return rejection }
+         if let error { throw error }
+         return ImmersiveSTKCommandResponse(event: "handoff_confirmed", stateVersion: stateResponse.stateVersion)
+     }
+@@ -1626,6 +1830,7 @@
+ /// Models ownership and authenticated HTTP only; no fake pointer readiness or process launch.
+ @MainActor private final class ReadyCombatExchange {
+     var defenseSupported = false
++    var raceEpoch = "1"
+     var defenseRequired = false
+     var defenseActive = false
+     var rejectDefenseIntent = false
+@@ -1665,7 +1870,7 @@
+                 }
+                 let value: [String: Any] = ["ok": true, "contract": "tholus.stk-scintilla-defense/1",
+                     "profile": "sc3_sector_rear_readonly_v1", "layoutProfile": "front_rear_readonly_v1", "layoutRevision": "1",
+-                    "raceEpoch": "1", "rosterRevision": "1", "inputSessionID": "", "inputEpoch": "0", "intentRevision": String(defenseRevision),
++                    "raceEpoch": raceEpoch, "rosterRevision": "1", "inputSessionID": "", "inputEpoch": "0", "intentRevision": String(defenseRevision),
+                     "required": defenseRequired, "policyActive": defenseActive, "prepared": false, "blockedReason": defenseRequired ? "defense_not_prepared" : "",
+                     "routeRevision": "", "projectionContextId": "", "layout": ["width": 0, "height": 0, "rearRect": [0, 0, 0, 0]],
+                     "capabilities": ["rear_alert": true, "rear_visible_view": true, "rear_targetable_view": false, "projectile_interception": false],
+@@ -1690,7 +1895,7 @@
+                 posts.append(required)
+             }
+             var value: [String: Any] = ["ok": true, "contract": "tholus.stk-scintilla-combat/1",
+-                "profile": "crew_standard_sc2_v1", "raceEpoch": "1", "rosterRevision": "1",
++                "profile": "crew_standard_sc2_v1", "raceEpoch": raceEpoch, "rosterRevision": "1",
+                 "inputSessionID": "", "prepared": false, "policyActive": active,
+                 "required": required, "intentRevision": String(intentRevision), "simulationTick": 0, "targets": []]
+             if omittedField == "both" { value.removeValue(forKey: "required"); value.removeValue(forKey: "intentRevision") }
+--- a/host/docs/immersive-stk/sc3-2026-10-15/README.md
++++ b/host/docs/immersive-stk/sc3-2026-10-15/README.md
+@@ -104,3 +104,19 @@
+ or executed**. No build, configure, compiler, typecheck, app/producer launch,
+ preview or hardware validation was performed. The complete runtime path and
+ measured physical visibility remain to be qualified when authorized.
++
++## Follow-up after the SC3 audit
++
++Operator handoff confirmation now retains the SI5 grant. In-place SC3 race reset,
++including results Ready, suspends logical participation before the request and
++keeps preparation blocked on rejection or uncertain transport. The same physical
++grant is rebound to the new gameplay epoch before SC2→SC3 preparation; pending
++state clears only on a successful explicit preparation. Polling also discovers
++external raceEpoch changes. Physical route/source changes keep the existing
++isolation lifecycle. The loaded configuration is reused by next-session
++preparation when it still matches; a different configuration is not a grant reuse.
++
++Controller regressions cover accepted/rejected handoff, reset acceptance,
++rejection, lost response and externally observed reset. These are source fixtures
++with a teardown observer, not physical SI5 or projection proof. Native tests remain
++unexecuted. [Full checkpoint](</Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/README.md>).

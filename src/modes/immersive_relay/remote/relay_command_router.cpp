@@ -9,6 +9,7 @@
 #ifdef ENABLE_RELAY_LOCAL_API
 
 #include "modes/immersive_relay/remote/relay_command_router.hpp"
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
 
 #include "modes/immersive_relay/relay_session_controller.hpp"
 #include "race/race_manager.hpp"
@@ -899,6 +900,125 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     std::map<std::string, std::string> query;
     const std::string route_path = splitPathAndQuery(path, &query);
 
+    // SC1 stays in the authenticated local API and on the queued game thread.
+    // Canonical spatial records use their own closed parser, never the legacy crew parser.
+    const std::string crew_prefix="/immersive/v1/scintilla/crew/";
+    if(route_path.compare(0,crew_prefix.size(),crew_prefix)==0){
+        if(!api_active||!controller->isRuntimeEnabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
+        using namespace ImmersiveRelay;
+        if(route_path==crew_prefix+"state"&&method=="GET"){const auto r=ScintillaEngine::crewState();return RelayHttpResponse(r.status,r.json);}
+        for(const auto* operation:{"intent","bindings-confirm","prepare"})if(route_path==crew_prefix+operation&&method=="POST"){
+            const auto r=ScintillaEngine::crewCommand(operation,body);return RelayHttpResponse(r.status,r.json);
+        }
+        return RelayHttpResponse(404,"{\"ok\":false,\"error\":\"unknown_crew_route\"}");
+    }
+    const std::string mission_prefix="/immersive/v1/scintilla/mission/";
+    if(route_path.compare(0,mission_prefix.size(),mission_prefix)==0){
+        if(!api_active||!controller->isRuntimeEnabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
+        using namespace ImmersiveRelay;
+        for(const auto* op:{"begin","resume"})if(route_path==mission_prefix+"input-maintenance/"+op&&method=="POST"){
+            const auto r=ScintillaEngine::missionInputMaintenanceCommand(op,body);return RelayHttpResponse(r.status,r.json);
+        }
+        if(route_path==mission_prefix+"measurement/state"&&method=="GET")return RelayHttpResponse(200,ScintillaEngine::missionMeasurementStateJSON());
+        if(route_path==mission_prefix+"measurement/trace"&&method=="GET"){
+            if(query.size()!=1||!query.count("offset"))return RelayHttpResponse(400,"{\"ok\":false,\"error\":\"measurement_export_offset\"}");
+            const auto r=ScintillaEngine::missionMeasurementTrace(query.find("offset")->second);return RelayHttpResponse(r.status,r.json);
+        }
+        for(const auto* op:{"start","stop","preflight"})if(route_path==mission_prefix+"measurement/"+op&&method=="POST"){
+            const auto r=ScintillaEngine::missionMeasurementCommand(op,body);return RelayHttpResponse(r.status,r.json);
+        }
+        if(route_path==mission_prefix+"state"&&method=="GET")return RelayHttpResponse(200,ScintillaEngine::missionStateJSON());
+        if(route_path==mission_prefix+"intent"&&method=="POST"){const auto r=ScintillaEngine::setMissionIntent(body);return RelayHttpResponse(r.status,r.json);}
+        if(route_path==mission_prefix+"prepare"&&method=="POST"){const auto r=ScintillaEngine::prepareMission(body);return RelayHttpResponse(r.status,r.json);}
+        if(route_path==mission_prefix+"intro-complete"&&method=="POST"){const auto r=ScintillaEngine::completeMissionIntro(body);return RelayHttpResponse(r.status,r.json);}
+        return RelayHttpResponse(404,"{\"ok\":false,\"error\":\"unknown_mission_route\"}");
+    }
+    const std::string defense_prefix="/immersive/v1/scintilla/defense/";
+    if(route_path.compare(0,defense_prefix.size(),defense_prefix)==0){
+        if(!api_active||!controller->isRuntimeEnabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
+        using namespace ImmersiveRelay;
+        if(route_path==defense_prefix+"state"&&method=="GET")return RelayHttpResponse(200,ScintillaEngine::defenseStateJSON());
+        if(route_path==defense_prefix+"intent"&&method=="POST"){const auto r=ScintillaEngine::setDefenseIntent(body);return RelayHttpResponse(r.status,r.json);}
+        if(route_path==defense_prefix+"prepare"&&method=="POST"){const auto r=ScintillaEngine::prepareDefense(body);return RelayHttpResponse(r.status,r.json);}
+        return RelayHttpResponse(404,"{\"ok\":false,\"error\":\"unknown_defense_route\"}");
+    }
+    const std::string combat_prefix="/immersive/v1/scintilla/";
+    if(route_path.compare(0,combat_prefix.size(),combat_prefix)==0){
+        if(!api_active||!controller->isRuntimeEnabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
+        if(route_path==combat_prefix+"state"&&method=="GET")return RelayHttpResponse(200,ImmersiveRelay::ScintillaEngine::combatStateJSON());
+        if(route_path==combat_prefix+"prepare"&&method=="POST"){
+            const auto reply=ImmersiveRelay::ScintillaEngine::prepareCombat(body);return RelayHttpResponse(reply.status,reply.json);
+        }
+        if(route_path==combat_prefix+"intent"&&method=="POST"){
+            const auto reply=ImmersiveRelay::ScintillaEngine::setCombatIntent(body);return RelayHttpResponse(reply.status,reply.json);
+        }
+        return RelayHttpResponse(404,"{\"ok\":false,\"error\":\"unknown_combat_route\"}");
+    }
+    const std::string spatial_prefix="/immersive/v1/spatial/";
+    if(route_path.compare(0,spatial_prefix.size(),spatial_prefix)==0)
+    {
+        using namespace ImmersiveRelay;
+        if(!api_active || !controller->isRuntimeEnabled())
+            return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"relay_runtime_not_enabled\"}");
+        const std::string spatial_path="/spatial/"+route_path.substr(spatial_prefix.size());
+        if(spatial_path=="/spatial/rebind"){
+            if(method!="POST")return RelayHttpResponse(405,"{\"ok\":false,\"error\":\"method_not_allowed\"}");
+            const auto r=ScintillaEngine::rebindSpatialParticipants(body);return RelayHttpResponse(r.status,r.json);
+        }
+        if(spatial_path=="/spatial/enable" || spatial_path=="/spatial/disable") {
+            // These opt-in commands contain no configuration or data. Unknown fields fail closed.
+            std::string empty; for(char c:body)if(c!=' ' && c!='\t' && c!='\n' && c!='\r')empty+=c;
+            if(method!="POST" || empty!="{}")return RelayHttpResponse(400,"{\"ok\":false,\"error\":\"invalid_spatial_switch\"}");
+            if(spatial_path=="/spatial/disable") {
+                ScintillaEngine::setEnabled(false);
+                return RelayHttpResponse(200,"{\"ok\":true,\"accepted\":true}");
+            }
+            if(!controller->isWorldHeld() || snapshot.m_crew_mode!="disabled" || snapshot.m_player_count<2)
+                return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"spatial_requires_prepared_world_and_legacy_crew_disabled\"}");
+            ScintillaEngine::setEnabled(true);
+            const std::string uuid=ImmersiveRenderPipeline::get()->prepareScintillaOutput();
+            if(uuid.empty()) {
+                ScintillaEngine::setEnabled(false);
+                return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"spatial_requires_syphon_output\"}");
+            }
+            return RelayHttpResponse(200,"{\"ok\":true,\"accepted\":true,\"serverUUID\":\""+RelayStatePublisher::jsonEscape(uuid)+"\"}");
+        }
+        if(!ScintillaEngine::enabled())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"scintilla_input_disabled\"}");
+        if(spatial_path=="/spatial/clock" && method=="GET") {
+            const int64_t received=ScintillaEngine::nowUs();std::ostringstream out;
+            out<<"{\"ok\":true,\"serverReceivedUs\":"<<received<<",\"serverSentUs\":"<<ScintillaEngine::nowUs()<<"}";
+            return RelayHttpResponse(200,out.str());
+        }
+        if(spatial_path=="/spatial/history")
+        {
+            if(method!="GET")return RelayHttpResponse(405,"{\"ok\":false,\"error\":\"method_not_allowed\"}");
+            return RelayHttpResponse(200,ScintillaEngine::historyJSON());
+        }
+        if((spatial_path=="/spatial/state" && method!="GET") || (spatial_path!="/spatial/state" && method!="POST"))
+            return RelayHttpResponse(405,"{\"ok\":false,\"error\":\"method_not_allowed\"}");
+        if(spatial_path=="/spatial/prepare"&&ScintillaEngine::missionMeasurementActive())return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"mission_measurement_active\"}");
+        if(spatial_path=="/spatial/prepare" && (!controller->isWorldHeld() || snapshot.m_crew_mode!="disabled"))
+            return RelayHttpResponse(409,"{\"ok\":false,\"error\":\"spatial_prepare_requires_hold\"}");
+        const ImmersiveRenderConfig producer=ImmersiveRenderPipeline::get()->getConfig();
+        ScintillaSpatial::Projection projection;projection.kind=projectionKindToString(producer.m_projection_mode);
+        projection.width=producer.m_projection_width;projection.height=producer.m_projection_height;projection.domeTiltDeg=producer.m_dome_tilt_deg;
+        ScintillaEngine::input().setProducerProjection(projection);
+        ScintillaEngine::input().setParticipants(controller->getSpatialCrewIDs());
+        ScintillaEngine::refreshCombatInput();
+        const RelaySpatialGameplayState gameplay=controller->getSpatialGameplayState();
+        const int64_t received=ScintillaEngine::nowUs();
+        ScintillaEngine::input().tick(received,gameplay.m_active,gameplay.m_resume_revision,gameplay.m_resume_at_us);
+        const ScintillaSpatial::Reply reply=ScintillaEngine::input().route(spatial_path,body,received);
+        ScintillaEngine::refreshCombatInput();
+        if(spatial_path=="/spatial/prepare"&&reply.status==200)ScintillaEngine::seedPreparedHistory();
+        std::string response=reply.json;
+        if(spatial_path=="/spatial/update" && reply.status==200 && !response.empty() && response.back()=='}') {
+            std::ostringstream clock;clock<<",\"serverReceivedUs\":"<<received<<",\"serverSentUs\":"<<ScintillaEngine::nowUs()<<",\"history\":"<<ScintillaEngine::historyJSON()<<"}";
+            response.pop_back();response+=clock.str();
+        }
+        return RelayHttpResponse(reply.status,response);
+    }
+
     if (method == "GET" && route_path == "/immersive/v1/health")
     {
         return RelayHttpResponse(200,
@@ -932,9 +1052,16 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     }
     if (method == "GET" && route_path == "/immersive/v1/capabilities")
     {
-        return RelayHttpResponse(200,
-            RelayStatePublisher::capabilitiesJson(snapshot, api_active,
-                                                  api_port));
+        std::string capabilities=RelayStatePublisher::capabilitiesJson(snapshot,api_active,api_port);
+        if(!capabilities.empty() && capabilities.back()=='}') {
+            capabilities.pop_back();
+            capabilities+=",\"spatial_input_sc1\":{\"contract\":\"tholus.stk-spatial/1\",\"canonical_input\":\"tholus.spatial-input/1\",\"implemented\":true,\"physical_qualification\":\"pending\",\"enabled\":";
+            capabilities+=ImmersiveRelay::ScintillaEngine::enabled()?"true":"false";
+            capabilities+="},\"scintilla_combat_sc2\":{\"contract\":\"tholus.stk-scintilla-combat/1\",\"profile\":\"crew_standard_sc2_v1\",\"implemented\":true,\"physical_qualification\":\"pending\"}";
+            capabilities+=",\"scintilla_mission_sc4\":{\"contract\":\"tholus.stk-scintilla-mission/1\",\"schemaVersion\":1,\"profileId\":\"sc4_cargo_three_slots_v1\",\"profileRevision\":\"1\",\"implemented\":true,\"anchor_qualification\":\"required\",\"layoutProfile\":\"front_rear_cargo_v2\",\"layoutRevision\":\"2\",\"producerUUID\":\""+ImmersiveRelay::ScintillaEngine::producerUUID()+"\"}";
+            capabilities+=",\"scintilla_crew_sc5\":{\"contract\":\"tholus.stk-scintilla-crew/1\",\"schemaVersion\":1,\"implemented\":true,\"crewRoles\":true,\"crewHandoffVerification\":true,\"partyBoost\":true,\"guidanceRevision\":\"2\",\"layoutProfile\":\"front_rear_crew_v3\",\"layoutRevision\":\"3\",\"producerUUID\":\""+ImmersiveRelay::ScintillaEngine::producerUUID()+"\",\"profiles\":[\"sc5_crew_standard_v1\",\"sc5_crew_party_v1\"]}}";
+        }
+        return RelayHttpResponse(200,capabilities);
     }
     if (method == "GET" && route_path == "/immersive/v1/state")
     {
@@ -979,7 +1106,22 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                                            snapshot.m_state_version));
     }
 
-    if ((route_path == "/immersive/v1/operator/ready" ||
+    // The legacy shortcut replaces session/roster while starting immediately.
+    // SC2 must use the operator lifecycle with its prepared world and crew.
+    if(route_path=="/immersive/v1/session/start"&&ImmersiveRelay::ScintillaEngine::combatRequired())
+        return RelayHttpResponse(409,RelayStatePublisher::errorJson("scintilla_combat_requires_operator_start",snapshot.m_state_version));
+    std::string next_state;
+    if (route_path == "/immersive/v1/operator/next-state")
+        getString(root, "state", &next_state);
+    const bool next_starts_gameplay = next_state == "briefing" || next_state == "countdown" ||
+        next_state == "running" || next_state == "final_lap";
+    const bool combat_start=next_starts_gameplay||route_path=="/immersive/v1/operator/start"||route_path=="/immersive/v1/operator/countdown"||
+        route_path=="/immersive/v1/operator/resume"||route_path=="/immersive/v1/session/resume"||
+        (route_path=="/immersive/v1/operator/ready"&&snapshot.m_arcade_state!=ARCADE_STATE_LAP_HANDOFF&&snapshot.m_arcade_state!=ARCADE_STATE_RESULTS);
+    if(combat_start&&!ImmersiveRelay::ScintillaEngine::combatStartPermitted())
+        return RelayHttpResponse(409,RelayStatePublisher::errorJson("scintilla_combat_not_prepared",snapshot.m_state_version));
+
+    if ((next_starts_gameplay || route_path == "/immersive/v1/operator/ready" ||
          route_path == "/immersive/v1/operator/resume" ||
          route_path == "/immersive/v1/operator/countdown" ||
          route_path == "/immersive/v1/operator/start" ||
@@ -1044,9 +1186,6 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     }
     if (route_path == "/immersive/v1/operator/ready")
     {
-        if (!snapshot.m_presentation_ready)
-            return RelayHttpResponse(409, RelayStatePublisher::errorJson(
-                "presentation_not_ready", snapshot.m_state_version));
         std::string player_id, error;
         if (objectGet(root, "player_id") && !getPlayerId(root, "player_id", &player_id))
             return RelayHttpResponse(400, RelayStatePublisher::errorJson("invalid_player_id", snapshot.m_state_version));
@@ -1057,6 +1196,12 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
             if (!controller->operatorReset(&error))
                 return RelayHttpResponse(409, RelayStatePublisher::errorJson(error, snapshot.m_state_version));
             if (!snapshot.m_test_accelerated_progress) RelayWorldController::reset();
+            // Results Ready only resets a combat race, even with video held.
+            // SC3 retains the physical grant for explicit new-race preparation;
+            // ordinary Ready below still enforces both authoritative start gates.
+            if (ImmersiveRelay::ScintillaEngine::combatRequired())
+                return RelayHttpResponse(200, RelayStatePublisher::okJson(
+                    controller->getSnapshot(), "scintilla_combat_reset_requires_prepare"));
             player_id.clear();
         }
         if (!controller->pilotReady(player_id, &error))
@@ -1238,6 +1383,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        ImmersiveRelay::ScintillaEngine::terminateMission("operator_abort");
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_aborted"));
@@ -1270,6 +1416,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        ImmersiveRelay::ScintillaEngine::terminateMission("operator_force_finish");
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_force_finished"));
@@ -1278,7 +1425,9 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     if (route_path == "/immersive/v1/operator/next-state")
     {
         std::string requested_state;
-        getString(root, "state", &requested_state);
+        if (objectGet(root, "state") && !getString(root, "state", &requested_state))
+            return RelayHttpResponse(400, RelayStatePublisher::errorJson(
+                "invalid_state", snapshot.m_state_version));
         std::string reject_reason;
         if (!controller->operatorNextState(requested_state, &reject_reason))
         {
@@ -1287,6 +1436,10 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        if (snapshot.m_arcade_state == ARCADE_STATE_RESULTS &&
+            controller->getSnapshot().m_arcade_state == ARCADE_STATE_READY_FOR_PLAYERS &&
+            !snapshot.m_test_accelerated_progress)
+            RelayWorldController::reset();
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "operator_next_state"));
@@ -1693,6 +1846,7 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     if (route_path == "/immersive/v1/session/stop")
     {
         controller->stopSession("api_stop");
+        ImmersiveRelay::ScintillaEngine::terminateMission("api_stop");
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "session_stopped"));
@@ -1714,6 +1868,8 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
     if (route_path == "/immersive/v1/session/reset")
     {
         controller->resetSession();
+        if (!snapshot.m_test_accelerated_progress)
+            RelayWorldController::reset();
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "session_reset"));
@@ -1794,6 +1950,8 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        if(controller->getMissionResult().valid)
+            ImmersiveRelay::ScintillaEngine::terminateMission("test_accelerated_progress");
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
             RelayStatePublisher::okJson(snapshot, "test_progress_applied"));

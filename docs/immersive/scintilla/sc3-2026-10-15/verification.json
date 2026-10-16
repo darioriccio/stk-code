@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-15T16:56:42.962514+00:00",
+  "evidence": "Python source/math only; native suites not compiled or executed",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_depth.py"
+      ],
+      "exit_code": 0,
+      "output": "test_actual_rules_and_engine_shader_wiring_match (__main__.DepthVisibilityTests.test_actual_rules_and_engine_shader_wiring_match) ... ok\ntest_audit_wall_counterexample (__main__.DepthVisibilityTests.test_audit_wall_counterexample) ... ok\ntest_depth_code_edges_are_conservative (__main__.DepthVisibilityTests.test_depth_code_edges_are_conservative) ... ok\ntest_equal_ambiguous_and_clear_depth_boundaries (__main__.DepthVisibilityTests.test_equal_ambiguous_and_clear_depth_boundaries) ... ok\ntest_invalid_values_and_strict_clip_planes (__main__.DepthVisibilityTests.test_invalid_values_and_strict_clip_planes) ... ok\ntest_occluders_reject_behind_and_preserve_separated_front_markers (__main__.DepthVisibilityTests.test_occluders_reject_behind_and_preserve_separated_front_markers) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.761s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_stagger_clearance.py"
+      ],
+      "exit_code": 0,
+      "output": "test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose (__main__.StaggerClearanceChecks.test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose) ... ok\ntest_bullet_queries_use_the_actual_shape_center_and_conservative_fallback (__main__.StaggerClearanceChecks.test_bullet_queries_use_the_actual_shape_center_and_conservative_fallback) ... ok\ntest_float_center_and_extent_conversion_only_expands_the_envelope (__main__.StaggerClearanceChecks.test_float_center_and_extent_conversion_only_expands_the_envelope) ... ok\ntest_original_ceiling_counterexample_is_inside_the_checked_sweep (__main__.StaggerClearanceChecks.test_original_ceiling_counterexample_is_inside_the_checked_sweep) ... ok\ntest_pitch_displacement_cannot_enter_an_admitted_supporting_plane (__main__.StaggerClearanceChecks.test_pitch_displacement_cannot_enter_an_admitted_supporting_plane) ... ok\ntest_upward_ledges_and_invalid_contacts_are_not_support (__main__.StaggerClearanceChecks.test_upward_ledges_and_invalid_contacts_are_not_support) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.265s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_combat.py"
+      ],
+      "exit_code": 0,
+      "output": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.014s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_tool_feedback.py"
+      ],
+      "exit_code": 0,
+      "output": "test_actual_render_gate_hides_released_or_mismatched_feedback (__main__.ToolFeedbackSourceChecks.test_actual_render_gate_hides_released_or_mismatched_feedback) ... ok\ntest_authoritative_state_publishes_after_effects_and_contends_by_current_owner (__main__.ToolFeedbackSourceChecks.test_authoritative_state_publishes_after_effects_and_contends_by_current_owner) ... ok\ntest_new_regressions_are_registered_once_in_existing_native_runners (__main__.ToolFeedbackSourceChecks.test_new_regressions_are_registered_once_in_existing_native_runners) ... ok\ntest_persistent_badges_fit_both_projection_domains_and_do_not_overlap (__main__.ToolFeedbackSourceChecks.test_persistent_badges_fit_both_projection_domains_and_do_not_overlap) ... ok\ntest_status_codes_uniforms_and_both_projections_agree (__main__.ToolFeedbackSourceChecks.test_status_codes_uniforms_and_both_projections_agree) ... ok\ntest_sticky_input_loss_precedes_any_same_epoch_core_view (__main__.ToolFeedbackSourceChecks.test_sticky_input_loss_precedes_any_same_epoch_core_view) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.011s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/immersive/tests/check_scintilla_defense.py"
+      ],
+      "exit_code": 0,
+      "output": "test_additive_routes_and_all_server_start_gates (__main__.DefenseSourceAndMathChecks.test_additive_routes_and_all_server_start_gates) ... ok\ntest_asymmetric_socket_aabb_radius_contains_every_corner (__main__.DefenseSourceAndMathChecks.test_asymmetric_socket_aabb_radius_contains_every_corner) ... ok\ntest_bundled_bullet_abi_and_actual_shape_lifetime (__main__.DefenseSourceAndMathChecks.test_bundled_bullet_abi_and_actual_shape_lifetime) ... ok\ntest_compound_arc_error_and_separation_bound (__main__.DefenseSourceAndMathChecks.test_compound_arc_error_and_separation_bound) ... ok\ntest_fixed_point_rates_and_ceiling_windows (__main__.DefenseSourceAndMathChecks.test_fixed_point_rates_and_ceiling_windows) ... ok\ntest_impact_is_tangential_idempotent_and_boost_commits_cost_last (__main__.DefenseSourceAndMathChecks.test_impact_is_tangential_idempotent_and_boost_commits_cost_last) ... ok\ntest_native_fixtures_registered_once_with_actual_bullet (__main__.DefenseSourceAndMathChecks.test_native_fixtures_registered_once_with_actual_bullet) ... ok\ntest_native_physics_step_is_bracketed_and_missing_trace_cancels (__main__.DefenseSourceAndMathChecks.test_native_physics_step_is_bracketed_and_missing_trace_cancels) ... ok\ntest_native_source_delimiters_are_balanced (__main__.DefenseSourceAndMathChecks.test_native_source_delimiters_are_balanced) ... ok\ntest_optical_proof_not_a_warning_seen_boolean (__main__.DefenseSourceAndMathChecks.test_optical_proof_not_a_warning_seen_boolean) ... ok\ntest_release_and_new_epoch_precede_admission_and_deadline (__main__.DefenseSourceAndMathChecks.test_release_and_new_epoch_precede_admission_and_deadline) ... ok\ntest_same_grant_rebind_preserves_physical_authority_and_replay (__main__.DefenseSourceAndMathChecks.test_same_grant_rebind_preserves_physical_authority_and_replay) ... ok\ntest_single_rear_composite_read_only_and_opaque_hud (__main__.DefenseSourceAndMathChecks.test_single_rear_composite_read_only_and_opaque_hud) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.023s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/immersive/scintilla/sc3-plan-2026-10-15/verifica_calcoli.py"
+      ],
+      "exit_code": 0,
+      "passed_groups": 10,
+      "result_file": "calcoli-riscontro.json"
+    }
+  ],
+  "native_written": {
+    "defense_core": 21,
+    "actual_bullet": 6,
+    "spatial_input_new": 8,
+    "spatial_input_total": 74
+  },
+  "host_localization": {
+    "command": "python3 -B scripts/localization/check_mac_localization.py --base HEAD",
+    "result": "1648 Swift files; 0 new findings",
+    "native_executed": false
+  },
+  "not_performed": [
+    "build",
+    "CMake configure",
+    "compiler/typecheck",
+    "native tests",
+    "GLSL execution",
+    "app/helper/producer launch",
+    "preview",
+    "GPU/receiver qualification",
+    "hardware/venue/playtest",
+    "SC4"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "worktrees": {
+    "stk-code": {
+      "head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "matchesBaseline": true,
+      "detached": true,
+      "uniqueCommitsCreated": false
+    },
+    "host": {
+      "head": "012446900b81c2abb76b40e73b2b7294e4ef036f",
+      "matchesBaseline": true,
+      "detached": true,
+      "uniqueCommitsCreated": false
+    }
+  },
+  "processesInOwnedWorktrees": [],
+  "deliveredDocumentLinks": "passed",
+  "deliveryHashVerification": "passed before removal"
+}

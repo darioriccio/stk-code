@@ -1,0 +1,21 @@
+{
+  "step": 2,
+  "status": "source_reviewed_not_compiled",
+  "source_checks": 20,
+  "core_regression_cases_total": 32,
+  "independent_review": "passed_after_zero_tick_fix",
+  "files": {
+    "src/modes/immersive_relay/relay_race_mode.cpp": "d7a26eae541665c2055550bc6fac61ddbb7461eba18bf05ae08564b0a3f0fb0b",
+    "src/modes/immersive_relay/relay_race_mode.hpp": "784844d6d68fe37a22efdf68380597cc5353d755e452f9106411fc8a884c99a7",
+    "src/modes/immersive_relay/relay_session_controller.cpp": "1c251f3783bfb711c92307e3325b94f310f970889a20d6a878c30277c3022c5a",
+    "src/modes/immersive_relay/relay_session_controller.hpp": "cec358e073b2746d05fb0c41d213d40e5b49cbfedd6cc6f7ea224f86c333a668",
+    "src/modes/immersive_relay/remote/relay_state_publisher.cpp": "9075b93ff0cd077dafad10e377dc449a134bfe59e10a66bf75ddd385b96c4719",
+    "src/modes/immersive_relay/remote/relay_command_router.cpp": "d179ddc982ccd3121350a08cc374774a7e45e65856a783464e7756152a500f04",
+    "src/modes/immersive_relay/spatial/scintilla_engine.hpp": "26431d15ba6fccbc4384bf02abcbb3d5a4ee70c5c52591c1b2c8ee7942138519",
+    "src/modes/immersive_relay/spatial/scintilla_engine.cpp": "4b34e41a1115c693f246c130be56635228f8a3dd6b44b204d16002f54041285a",
+    "src/modes/immersive_relay/scintilla_mission_result_json.hpp": "d3d039a30432ea8572234b0a5391dc43ef34c63f9b0cb33d0c801bef14138b22",
+    "tools/immersive/tests/check_scintilla_mission_finish_source.py": "d258d7ce370ca286bbadd20b89e9d468d373c8426da34da00414d1349ba6df7c"
+  },
+  "build": false,
+  "native_runtime_verified": false
+}

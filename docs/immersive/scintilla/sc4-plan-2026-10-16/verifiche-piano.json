@@ -1,0 +1,15 @@
+{
+  "scope": "SC4 planning artifacts only",
+  "numerical_reference_checks": 146,
+  "linked_references_verified": 13,
+  "source_hashes_unchanged": 48,
+  "regression_requirements": 40,
+  "implementation_steps": 12,
+  "quad_count": 83,
+  "unqualified_anchor_candidates": 6,
+  "whitespace_checks": "passed",
+  "game_build_run": false,
+  "host_build_run": false,
+  "production_gameplay_tests_run": false,
+  "hardware_validation_run": false
+}

@@ -53,6 +53,24 @@ countdown, pause, completion and replay. It does not certify driving, venue
 hardware or a natural full-race playtest. Historical fixtures below remain
 captures of the earlier contract, not evidence of this implementation.
 
+## SC1 source extension — 2026-10-14
+
+The opt-in authenticated `/spatial/*` namespace implements `tholus.stk-spatial/1`
+with canonical `tholus.spatial-input/1` records, independent reticles, measured
+presentation correlation and historical depth picking. The host uses the common
+Spatial Input service and approved SI5 endpoint; no STK tracking driver exists.
+[SC1 implementation and API](immersive/scintilla/sc1-2026-10-14/README.md)
+documents admission, lifecycle, limits and explicit preparation. The
+[15 October source remediation](immersive/scintilla/sc1-remediation-2026-10-15/README.md)
+adds actual `/spatial/history` admission, renewable operational resource-loss
+handling, bounded replay protection and separate visual outcome feedback.
+The local HTTP worker now multiplexes bounded nonblocking clients and uses
+asynchronous game-queue tickets; strict framing/authentication, absolute deadlines
+and worker-owned socket shutdown protect the renewal/control path.
+This extension
+has source/math evidence only: builds, native regressions and physical/runtime
+qualification were not executed. SC2 gameplay effects are not implemented.
+
 ## Base URL and Auth
 
 Default base URL:
@@ -433,3 +451,22 @@ authorized, already running test producer. It checks gate rejection and invalid
 dimension preservation, restoring the previous gate value. Shader compilation,
 GL allocation/resize failure injection, live Syphon ownership/reconnection,
 physical orientation and performance remain acceptance checks for that phase.
+
+## SC4 additive source contract — 16 October 2026
+
+Missione Scintilla SC4 adds `scintilla_mission_sc4`, the authenticated
+`/immersive/v1/scintilla/mission/` namespace and host mode `missionSC4`.
+It requires the existing SC1/SC2/SC3 authorities and the exact conditional
+`front_rear_cargo_v2`/2 layout; non-SC4 sessions retain their original contracts.
+Wide mission identities remain canonical decimal strings. The official natural
+finish freezes rank and secured cargo before report publication; crew score and
+beacons do not determine mission victory.
+
+The [SC4 contract](immersive/scintilla/sc4-implementation-2026-10-16/SC4_API.md)
+specifies intent/prepare/state, correlated prerecorded intro completion,
+diagnostic capture and qualification evidence. The
+[implementation report](immersive/scintilla/sc4-implementation-2026-10-16/README.md)
+separates source/offline checks from pending executable acceptance.
+No SC4 build, native/GPU execution or real anchor qualification was run for this
+delivery. Development anchors remain unqualified and public readiness stays
+closed until matching native evidence and ordinary preparation are available.

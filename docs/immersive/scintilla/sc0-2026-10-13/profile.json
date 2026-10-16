@@ -1,0 +1,217 @@
+{
+  "document_kind": "SC0 design baseline; not a runtime configuration or wire contract",
+  "revision": 1,
+  "date": "2026-10-13",
+  "authorized_phase": "SC0",
+  "runtime_activatable": false,
+  "sc1_started": false,
+  "design_source": "../../../Tholus_STK_Missione_Scintilla_Design_v2.md",
+  "gameplay_profile_design_name": "crew_standard",
+  "party_enabled": false,
+  "first_experiment": {
+    "track_id": "snowtuxpeak",
+    "kart_id": "tux",
+    "human_karts": 1,
+    "ai_karts": 3,
+    "participants_including_driver": 3,
+    "spatial_sources": 2,
+    "difficulty": "easy",
+    "adaptive_difficulty_enabled": false,
+    "legacy_phone_crew_enabled": false,
+    "status": "selected for future implementation; not launched"
+  },
+  "participants": {
+    "minimum": 2,
+    "maximum": 6,
+    "crew_formula": "participants - 1",
+    "consumer_descriptor_source_count": {
+      "minimum": 1,
+      "maximum": 5
+    },
+    "automatic_threshold_reduction_on_source_loss": false,
+    "identity_authority": "host-approved participant-to-source binding; not hardware identity"
+  },
+  "laps_by_participants": {
+    "2": 6,
+    "3": 6,
+    "4": 8,
+    "5": 10,
+    "6": 12
+  },
+  "handoff": {
+    "policy": "lap_based_handoff",
+    "require_confirm": true,
+    "auto_confirm": false,
+    "timings": "preserve existing validated session settings",
+    "world_hold": "all karts",
+    "held_actions": "cancel and require physical release before rearm",
+    "mission_timers": "simulation clock, suspended during pause/handoff",
+    "mission_persistence": "cargo and beacon state preserved; reset clears them"
+  },
+  "render": {
+    "selection": "existing fulldome_safe baseline",
+    "projection": "fisheye_domemaster",
+    "width": 1536,
+    "height": 1536,
+    "cubemap_size": 768,
+    "output": "syphon",
+    "camera": {
+      "mode": "stabilized_chase",
+      "yaw_deg": 0,
+      "pitch_deg": 35,
+      "roll_deg": 0,
+      "horizon_stabilization": true,
+      "roll_limit_deg": 12,
+      "forward_offset": 0.25,
+      "vertical_offset": 0.4,
+      "smoothing_factor": 0.16
+    },
+    "venue_qualified": false,
+    "alternative": {
+      "projection": "equirectangular",
+      "preset": "equirectangular_safe",
+      "width": 2048,
+      "height": 1024,
+      "cubemap_size": 768,
+      "pitch_deg": 0,
+      "implemented_in_source": true,
+      "qualified_in_SC0": "source/math only",
+      "selected_for_first_experiment": false
+    },
+    "rear_alert": "not implemented for Scintilla",
+    "rear_targetable_view": "not implemented or qualified for Scintilla",
+    "frame_correlated_targeting": "missing; fail closed"
+  },
+  "spatial_input": {
+    "common_contract": "tholus.spatial-input/1",
+    "required_capabilities": [
+      "roomRay6dof",
+      "primaryAction",
+      "eventTimePose",
+      "secondaryAction"
+    ],
+    "game_mapping": {
+      "primary": "fire",
+      "secondary": "tool"
+    },
+    "bridge_current_capabilities": [
+      "roomRay6dof",
+      "primaryAction",
+      "eventTimePose"
+    ],
+    "complete_profile_preparable": false,
+    "room_basis": "room.rhs-y-up-front-minus-z/1",
+    "event_age_ceiling_us": 60000,
+    "event_uncertainty_ceiling_us": 20000,
+    "budgets_are_measured_performance": false,
+    "event_interval_policy": "entire uncertain interval must be valid; host-to-STK clock and presented-frame qualification required",
+    "release_without_ray": "accepted for cancellation/rearm only",
+    "consumer_transport_and_cpp_sdk": "not present"
+  },
+  "attack_rules": {
+    "implementation_phase": "SC2",
+    "status": "design requirements, not implemented",
+    "p2": {
+      "same_target_valid_hits": 5,
+      "distinct_shooters": 1,
+      "held_opener_required": false
+    },
+    "p3": {
+      "held_opener_required": true,
+      "distinct_shooters_excluding_opener": 1
+    },
+    "p4_to_p6": {
+      "held_opener_required": true,
+      "distinct_shooters_excluding_opener": 2
+    },
+    "same_attack_window_required": true,
+    "deduplicate": "session/race generation/target instance/window/participant/source event"
+  },
+  "initial_balance_hypotheses": {
+    "status": "unmeasured initial values from design except recovery chosen within its range",
+    "breach_acquire_s": 0.6,
+    "max_held_breach_s": 3.5,
+    "two_shooter_window_s": 1.25,
+    "max_fire_impulses_per_s": 4,
+    "solo_max_inter_hit_s": 2.5,
+    "solo_max_chain_s": 8,
+    "stagger_animation_target_s": 1,
+    "post_recovery_protection_s": 4,
+    "cargo_recovery_s": 3
+  },
+  "powerup_policy": {
+    "status": "SC0 decision only; current game still uses vanilla pool",
+    "scope": "Scintilla only, human and AI equally",
+    "allowed": [
+      "zipper"
+    ],
+    "excluded": [
+      "bubblegum",
+      "cake",
+      "bowling",
+      "plunger",
+      "switch",
+      "swatter",
+      "rubber-ball",
+      "parachute",
+      "anvil"
+    ],
+    "anvil_xml_asset_name": "anchor",
+    "native_nitro_and_track_zippers": "preserve; separate from service energy and mission cargo",
+    "banana": "retain visible obstacle; only native anvil/parachute penalties, no bomb generation in this profile",
+    "existing_excluded_inventory_on_reset": "must not survive profile/reset boundary",
+    "track_geometry_and_ai_graph": "unchanged",
+    "native_collision_fall_rescue": "preserve; not Relay combo damage and no mission cargo loss",
+    "filter_implemented": false
+  },
+  "mission": {
+    "implementation_phase": "SC4",
+    "cargo_slots": 3,
+    "max_detached_modules_per_impact": 1,
+    "beacons": "automatic persistent confirmations; do not consume modules or add a hidden victory condition",
+    "victory": "natural race finish AND official human kart position == 1 AND three valid modules at finish",
+    "forced_finish_or_abort": "not a competitive mission victory",
+    "service_energy": "separate from native nitro and mission cargo",
+    "cargo_storage": "not Attachment"
+  },
+  "parameters_requiring_later_evidence": [
+    {
+      "phase": "SC2",
+      "parameters": [
+        "lock range",
+        "visible targeting volumes",
+        "historical target retention"
+      ],
+      "basis": "actual renderer mapping, motion and time uncertainty"
+    },
+    {
+      "phase": "SC3",
+      "parameters": [
+        "service energy capacity/cost/regeneration",
+        "attack anticipation/cadence",
+        "rear layout and mapping"
+      ],
+      "basis": "defense feedback, one-supporter feasibility and projection qualification"
+    },
+    {
+      "phase": "SC4",
+      "parameters": [
+        "track anchors",
+        "capsule hold duration",
+        "replacement opportunities"
+      ],
+      "basis": "track visibility at driving speed"
+    }
+  ],
+  "gates": [
+    "G01",
+    "G02",
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08",
+    "G09"
+  ]
+}

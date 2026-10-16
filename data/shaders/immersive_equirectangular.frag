@@ -1,6 +1,7 @@
 // Native full-sphere projection. gl_FragCoord is bottom-left; the receiver's
 // top-left convention is v_top = 1-v_gl. Syphon keeps flipped:NO as before.
 #stk_include "utils/immersive_sphere_sampling.frag"
+#stk_include "utils/immersive_scintilla.frag"
 uniform vec2 resolution;
 uniform int debug_grid;
 out vec4 FragColor;
@@ -13,6 +14,10 @@ void main()
     float latitude = (uv.y - 0.5) * PI;
     vec3 dir = vec3(sin(longitude)*cos(latitude), sin(latitude),
                     cos(longitude)*cos(latitude));
+    if(scintilla_measure_mode!=0){
+        if(!scintillaMeasurementMask(dir,uv,resolution,scintilla_measure_index,scintilla_measure_mode))discard;
+        FragColor=vec4(0);return;
+    }
     vec4 color = use_multiview != 0 ? sampleMultiview(dir)
                                     : sampleEnvironment(dir);
     if (debug_grid != 0)
@@ -37,5 +42,5 @@ void main()
         grid=max(grid,vec3(1,0.9,0.05)*equator*0.65);
         color.rgb=mix(color.rgb,grid,clamp(max(max(grid.r,grid.g),grid.b),0.0,0.85));
     }
-    FragColor=vec4(color.rgb,1.0);
+    FragColor=vec4(scintillaOverlay(color.rgb,dir,uv,resolution),scintillaAlpha(gl_FragCoord.xy,resolution));
 }

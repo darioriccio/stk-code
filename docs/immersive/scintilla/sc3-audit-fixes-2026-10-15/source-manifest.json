@@ -1,0 +1,175 @@
+{
+  "schema": "sc3-audit-fixes/1",
+  "scope": "four source corrections without build/native execution",
+  "baselineManifestSHA256": "956652ec5f394c3cf18b75b466928191aec18dffd868a4a7b9331d3a8c830320",
+  "files": [
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc3-2026-10-15/API.md",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-2026-10-15/API.md",
+      "baselineSHA256": "f01a206f215e24b80ceb7217a08b411a8bef75a02f8a94d6023bf1ed5aa522c0",
+      "deliveredSHA256": "903a6ed91fcd29fc6d4b6ce87050079f3b647ddfcb9646b3b3c1f3632a238fd6"
+    },
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc3-2026-10-15/README.md",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-2026-10-15/README.md",
+      "baselineSHA256": "2c2ca370be0d4b839b42261fe8614cfb649541620b02468c90a6646b10f4152d",
+      "deliveredSHA256": "8667a93fc5e00f0f351023a95ba8472234cf96882bd0dea4ae331a57d5f3ef88"
+    },
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/README.md",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/README.md",
+      "baselineSHA256": null,
+      "deliveredSHA256": "d91b2279108eeceac4aa4be6d23e62866a7381f9e5313433884a1c362ed93b21"
+    },
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/changes.patch.txt",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/changes.patch.txt",
+      "baselineSHA256": null,
+      "deliveredSHA256": "bce789a71dcda4f28d418278b4bcb9613798b8be40f5407d445fadaeb07e0bcb"
+    },
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/verification.json",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/docs/immersive/scintilla/sc3-audit-fixes-2026-10-15/verification.json",
+      "baselineSHA256": null,
+      "deliveredSHA256": "2e7d1d38c2f48561aa91278421b12222a007df245463b204849e8d4845c0b296"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/relay_race_mode.cpp",
+      "baselineSHA256": "f2edc0f62e760c16c55ca23b88f08fe3c66360ac3c7008e16d1ee426d2dcd3a0",
+      "deliveredSHA256": "17fd5c6289335660e5cd8dff936fe19d4f0b4abd078f61bfc3482681814cb7ac"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "baselineSHA256": "4d8f71051a7b6731fd5123312b5880e71ec42e9990bad3daa06e54776ea7c9b2",
+      "deliveredSHA256": "4b24517954d65b90f70839b283db16cbae49264d05b333de011142e169b42ab2"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/scintilla_defense_collision.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/scintilla_defense_collision.cpp",
+      "baselineSHA256": "fcb0922476c57afbf8c921d58fb9d30b492691286b6b4e68abe1bec06841cf66",
+      "deliveredSHA256": "f573f0522bd869663abb89e85e52ec60f31bbfd89ee52a524643eced2b355061"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/scintilla_defense_collision.hpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/scintilla_defense_collision.hpp",
+      "baselineSHA256": "4e3b159575bd6b4bd2462b9c74e26f7f793f095be53675371b267116f59251ed",
+      "deliveredSHA256": "289efcd16edfb7752ee353c444746e085be507ab9d195e462003b94f5d1c919d"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/scintilla_defense_physics.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/scintilla_defense_physics.cpp",
+      "baselineSHA256": "e62fdff8b8763bfbae16c2ece0d0f99088633fd68b8bc0bec9cf22b1a7dca1be",
+      "deliveredSHA256": "b4b7d1bfa8bf5861c76241ffc2a9a9c7a4d17a85587a9999542dee31a74b6136"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "baselineSHA256": "d798dbab67222153b190f8ea9468abebdd937e10ee09cedc3d4046cd09b80fce",
+      "deliveredSHA256": "e7f07f41e2c8895ee16641b0486af4b484142f471220ff7a198920150f068700"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+      "baselineSHA256": "952a7d973b2495aa93880f70346f79edb413d311a02dd06678b05cdb60219a2f",
+      "deliveredSHA256": "bf4635cc350434ac2e78b99d33b601070efe39698478635038ca2294859ecb39"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "baselineSHA256": "ef3ef317dc60c5167c25e34f6db7c2ecd32feb084012431daeeb62fa1eea6f9d",
+      "deliveredSHA256": "b421dae6c1403ce137b027b59717c969b668565dab7c840a4cf48a5ddf886af1"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "baselineSHA256": "379a47cd29be0280c8a4d0a252e4cc82d3becbe9919fff873dd4eae192f721e7",
+      "deliveredSHA256": "dbf1979c97a96503d585b3cdfbd56226703568524e9c7c29779cd5fd8e09e539"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/CMakeLists.txt",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/CMakeLists.txt",
+      "baselineSHA256": "025b5744a0864fc5321181fad24ed385bb70fd3397e013603bc8c314e1bcbb88",
+      "deliveredSHA256": "493074f62963fe14483e22fcce8a45779296d6459816f9717dc9a4dc6f9e221b"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/check_scintilla_defense.py",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/check_scintilla_defense.py",
+      "baselineSHA256": "d8c4a1bfdaf75f83951646da3ea3ac7eeee51726f1f152b6f9ae3209af4257c9",
+      "deliveredSHA256": "f7f73bb43527ffc4446291a1bbad55eb638fc91596a983f6fdb32cd6a1e8835f"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/check_scintilla_tool_feedback.py",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/check_scintilla_tool_feedback.py",
+      "baselineSHA256": "b26e52efe3bbf4c62e2dde231543e83c58c3add01f0fad6fa35a1f8c62f71e49",
+      "deliveredSHA256": "6494f37bc4ed81f5a53ea1f61eb48e71ae1f766f6713f54ceccb00782527ee74"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_defense_collision_regression.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/scintilla_defense_collision_regression.cpp",
+      "baselineSHA256": "1e5831cc1212e3409268930b72b37865915628276f359e324d704221243e5224",
+      "deliveredSHA256": "2bfe10d9243d05df57bb0cb8d3acce9be07afea0f0b8d26ad825cfa1abce9c27"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_input_cases.inc",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/scintilla_input_cases.inc",
+      "baselineSHA256": "928ae2bf897f6c222eef841abe1e6f7c50ba4ad19dc3f3fd81cc3c68127e0938",
+      "deliveredSHA256": "d2ab52d34c3ee31db41a032eb0ac64094a397bb5dc900be8b3c45063264f726a"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code/tools/immersive/tests/scintilla_input_regression.cpp",
+      "baselineSHA256": "0004625b9e152e7de032ff6f95ff0adb02cf68e2788336cda7fa74c1ede959b7",
+      "deliveredSHA256": "8a3c50ce838e93f8febca8f4fb431fea2a17ee2421102256a6b76abd31a400d9"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController/Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "baselineSHA256": "58ba6646c715da30206d002883ac40accda7fe53cfb24d38bc206f9eb1bc8e92",
+      "deliveredSHA256": "e70036c48c1d138d5e03c3fcefe563fd865063c14fd8cefe805ed7b68cf1c891"
+    },
+    {
+      "repository": "host",
+      "path": "SocialTableController/Localizable.xcstrings",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController/SocialTableController/Localizable.xcstrings",
+      "baselineSHA256": "448eac9c60c9af60c3101461bf85ed1bcb99db9748a0a58858d13b99cbbc5b08",
+      "deliveredSHA256": "8f675a93c427fc6bda68b0f007cc482a589438e9a2891847487fd95875cd263d"
+    },
+    {
+      "repository": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController/Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "baselineSHA256": "53333d051244dae33c1cb16292e8276a521c6170eb2a012110a236862dbfe1d1",
+      "deliveredSHA256": "ebf07f5d93152d6ff9643817f5d3464345e6b2da0fa1b07d19efec9782f22607"
+    },
+    {
+      "repository": "host",
+      "path": "docs/immersive-stk/sc3-2026-10-15/README.md",
+      "target": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController/docs/immersive-stk/sc3-2026-10-15/README.md",
+      "baselineSHA256": "9fd0ab5cd802c4e6517c68ff94a8c2b738427adf603ecf16f114c481c0d64081",
+      "deliveredSHA256": "086c80f94d68ea7cdd6857599e2d10c74760f6b3d9b0c6fc749b7340fe3f105a"
+    }
+  ]
+}

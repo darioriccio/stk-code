@@ -17,6 +17,9 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "items/powerup.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
+#endif
 
 #include "audio/sfx_base.hpp"
 #include "audio/sfx_manager.hpp"
@@ -135,6 +138,9 @@ void Powerup::update(int ticks)
  */
 void Powerup::set(PowerupManager::PowerupType type, int n)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(ImmersiveRelay::ScintillaEngine::combatPolicyActive()&&type!=PowerupManager::POWERUP_NOTHING&&type!=PowerupManager::POWERUP_ZIPPER){reset();return;}
+#endif
     if (m_type==type)
     {
         m_number+=n;
@@ -246,6 +252,9 @@ void Powerup::adjustSound()
  */
 void Powerup::use()
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(ImmersiveRelay::ScintillaEngine::combatPolicyActive()&&m_type!=PowerupManager::POWERUP_NOTHING&&m_type!=PowerupManager::POWERUP_ZIPPER){reset();return;}
+#endif
     const int ticks = World::getWorld()->getTicksSinceStart();
     bool has_played_sound = false;
     auto it = m_played_sound_ticks.find(ticks);
@@ -507,6 +516,9 @@ void Powerup::use()
  */
 void Powerup::hitBonusBox(const ItemState &item_state)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(ImmersiveRelay::ScintillaEngine::combatPolicyActive()){set(PowerupManager::POWERUP_ZIPPER,1);return;}
+#endif
     // Position can be -1 in case of a battle mode (which doesn't have
     // positions), but this case is properly handled in getRandomPowerup.
     int position = m_kart->getPosition();

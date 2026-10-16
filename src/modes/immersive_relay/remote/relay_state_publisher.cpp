@@ -11,6 +11,8 @@
 #include "modes/immersive_relay/remote/relay_state_publisher.hpp"
 
 #include "modes/immersive_relay/render/immersive_render_pipeline.hpp"
+#include "modes/immersive_relay/scintilla_mission_result_json.hpp"
+#include "modes/immersive_relay/scintilla_crew_result_json.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -178,6 +180,12 @@ void writeArcadeReport(std::ostringstream& out,
         << (report.m_crew_actions_enabled ? "true" : "false");
     out << ",\"crew_actions_accepted\":"
         << report.m_crew_actions_accepted;
+    out << ",\"mission\":";
+    ScintillaMission::writeResultJSON(out,report.m_mission);
+    out << ",\"crew\":";
+    ScintillaCrew::writeResultJSON(out,report.m_scintilla_crew);
+    if(report.m_scintilla_crew.valid)
+        out << ",\"leaderboard_bucket\":\"" << report.m_scintilla_crew.bucket << '"';
     out << "}";
 }
 
@@ -372,6 +380,8 @@ std::string RelayStatePublisher::stateJson(
     out << ",\"arcade_ui\":" << (snapshot.m_arcade_ui ? "true" : "false");
     out << ",\"race_attached\":" << (snapshot.m_race_attached ? "true" : "false");
     out << ",\"presentation_ready\":" << (snapshot.m_presentation_ready ? "true" : "false");
+    out << ",\"mission_required\":" << (snapshot.m_mission_required ? "true" : "false");
+    out << ",\"mission_presentation_held\":" << (snapshot.m_mission_presentation_held ? "true" : "false");
     out << ",\"paused\":" << (snapshot.m_paused ? "true" : "false");
     out << ",\"state\":\"" << RelaySessionController::stateToString(snapshot.m_state) << "\"";
     out << ",\"arcade_state\":\""
@@ -744,7 +754,7 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << "{";
     out << "\"ok\":true";
     out << ",\"api_version\":1";
-    out << ",\"feature_flags\":[\"crew_presence\",\"pilot_ready\",\"continuous_crew_actions\",\"input_devices\",\"presentation_readiness_gate\"]";
+    out << ",\"feature_flags\":[\"crew_presence\",\"pilot_ready\",\"continuous_crew_actions\",\"input_devices\",\"presentation_readiness_gate\",\"scintilla_mission_sc4\"]";
     out << ",\"service\":\"immersive_supertuxkart\"";
     out << ",\"status\":\"" << (api_active ? "ready" : "starting") << "\"";
     out << ",\"relay_enabled\":"
@@ -823,6 +833,7 @@ std::string RelayStatePublisher::capabilitiesJson(
     out << "\"GET /state\"";
     out << ",\"GET /operator/state\"";
     out << ",\"GET /capabilities\"";
+    out << ",\"GET /scintilla/mission/state\",\"POST /scintilla/mission/intent\",\"POST /scintilla/mission/prepare\",\"POST /scintilla/mission/intro-complete\"";
     out << ",\"GET /tracks\"";
     out << ",\"POST /operator/configure\"";
     out << ",\"POST /operator/start\"";

@@ -9,6 +9,7 @@
 #ifdef ENABLE_IMMERSIVE_RELAY
 
 #include "modes/immersive_relay/render/projection/fisheye_domemaster_projection.hpp"
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
 
 #ifndef SERVER_ONLY
 #include "graphics/frame_buffer.hpp"
@@ -62,6 +63,8 @@ public:
         assignUniforms("resolution", "dome_tilt_rad", "debug_grid",
                        "has_skybox", "face_tan_half_fov", "use_multiview");
     }
+    void scintillaUniforms() const { ScintillaEngine::bindProjectionUniforms(m_program); }
+    unsigned measurementProgram() const { return m_program; }
     bool valid() const { GLint linked=0; glGetProgramiv(m_program, GL_LINK_STATUS, &linked); return linked == GL_TRUE; }
 };
 
@@ -81,6 +84,8 @@ public:
         assignUniforms("resolution", "debug_grid", "has_skybox",
                        "face_tan_half_fov", "use_multiview");
     }
+    void scintillaUniforms() const { ScintillaEngine::bindProjectionUniforms(m_program); }
+    unsigned measurementProgram() const { return m_program; }
     bool valid() const { GLint linked=0; glGetProgramiv(m_program, GL_LINK_STATUS, &linked); return linked == GL_TRUE; }
 };
 
@@ -413,19 +418,28 @@ bool FisheyeDomemasterProjection::project(
     const float face_tan_half_fov = tanf(half_fov);
     if (kind() == IMMERSIVE_PROJECTION_EQUIRECTANGULAR)
     {
+        EquirectangularShader::getInstance()->scintillaUniforms();
         EquirectangularShader::getInstance()->drawFullScreenEffect(
             irr::core::vector2df((float)m_width, (float)m_height),
             config.m_debug_grid ? 1 : 0, skybox_cube_texture != 0 ? 1 : 0,
             face_tan_half_fov, use_multiview ? 1 : 0);
+        ScintillaEngine::measureMissionProjection(EquirectangularShader::getInstance()->measurementProgram(),[&]{
+            EquirectangularShader::getInstance()->drawFullScreenEffect(irr::core::vector2df((float)m_width,(float)m_height),config.m_debug_grid?1:0,skybox_cube_texture?1:0,face_tan_half_fov,use_multiview?1:0);
+        });
     }
     else
     {
+        DomemasterShader::getInstance()->scintillaUniforms();
         DomemasterShader::getInstance()->drawFullScreenEffect(
             irr::core::vector2df((float)m_width, (float)m_height),
             config.m_dome_tilt_deg * DEGREE_TO_RAD, config.m_debug_grid ? 1 : 0,
             skybox_cube_texture != 0 ? 1 : 0, face_tan_half_fov, use_multiview ? 1 : 0);
+        ScintillaEngine::measureMissionProjection(DomemasterShader::getInstance()->measurementProgram(),[&]{
+            DomemasterShader::getInstance()->drawFullScreenEffect(irr::core::vector2df((float)m_width,(float)m_height),config.m_dome_tilt_deg*DEGREE_TO_RAD,config.m_debug_grid?1:0,skybox_cube_texture?1:0,face_tan_half_fov,use_multiview?1:0);
+        });
         dumpDomemasterFboOnce(m_size);
     }
+    ScintillaEngine::finishProjectionUniforms();
     if (use_multiview)
     {
         for (unsigned int i = 0; i < 6; i++)

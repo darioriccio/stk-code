@@ -1,0 +1,8 @@
+// Shared executable / CTest registry.
+HTTP_CASE(strictHeaderFramingAndEarlyAuthentication)
+HTTP_CASE(fullBodyAndIndependentHeaderBodyLimits)
+HTTP_CASE(partialClientsCannotBlockHealthyClocksOrUpdates)
+HTTP_CASE(absoluteDeadlinesDoNotRenewWithDrip)
+HTTP_CASE(partialWritesAreFairBoundedAndExpireWithoutReader)
+HTTP_CASE(asynchronousJobsStayFairAndShutdownCancels)
+HTTP_CASE(capacityWakeAndHalfClosePreserveOwnership)

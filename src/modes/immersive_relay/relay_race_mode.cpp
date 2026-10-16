@@ -9,6 +9,7 @@
 #ifdef ENABLE_IMMERSIVE_RELAY
 
 #include "modes/immersive_relay/relay_race_mode.hpp"
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
 
 #include "config/stk_config.hpp"
 #include "karts/abstract_kart.hpp"
@@ -48,12 +49,14 @@ RelayRaceMode::RelayRaceMode()
 
 RelayRaceMode::~RelayRaceMode()
 {
+    ImmersiveRelay::ScintillaEngine::retireWorld();
     RelaySessionController::get()->detachRace();
 }
 
 void RelayRaceMode::init()
 {
     StandardRace::init();
+    ImmersiveRelay::ScintillaEngine::newWorld();
     m_difficulty_director.reset();
     m_difficulty_director.setConfig(
         RelaySessionController::get()->getSnapshot()
@@ -65,6 +68,7 @@ void RelayRaceMode::init()
 
 void RelayRaceMode::reset(bool restart)
 {
+    ImmersiveRelay::ScintillaEngine::newWorld(true);
     StandardRace::reset(restart);
     m_has_previous_front = false;
     releaseHandoffFreeze();
@@ -399,6 +403,16 @@ void RelayRaceMode::updateRelayMessages(const AbstractKart* kart)
 
 void RelayRaceMode::update(int ticks)
 {
+    // Reconcile roster/input admission BEFORE advancing any native physics.
+    ImmersiveRelay::ScintillaEngine::refreshCombatInput();
+    if(ImmersiveRelay::ScintillaEngine::missionRequired() && ticks!=1)
+    {
+        // Physics::update always executes one Bullet step, even for ticks=0.
+        // A zero-step observation must therefore bypass StandardRace entirely.
+        ImmersiveRelay::ScintillaEngine::beginMissionStep(ticks);
+        ImmersiveRelay::ScintillaEngine::updateCombat(0,false);
+        return;
+    }
     AbstractKart* player_kart = RaceManager::get()->getNumPlayers() > 0
         ? getPlayerKart(0) : NULL;
 
@@ -410,6 +424,7 @@ void RelayRaceMode::update(int ticks)
             captureHandoffFreezeTransforms();
 
         enforceHandoffFreeze();
+        ImmersiveRelay::ScintillaEngine::updateCombat(0,false);
         RelaySessionController::get()->updateRace(
             stk_config->ticks2Time(ticks), getTime(), true);
 
@@ -433,13 +448,31 @@ void RelayRaceMode::update(int ticks)
     const Vec3 previous_front = m_has_previous_front && player_kart
         ? m_previous_front : Vec3(0, 0, 0);
 
+    // Expire SC4 windows before the native checkline can freeze its result.
+    if(!ImmersiveRelay::ScintillaEngine::beginMissionStep(ticks))
+    {
+        if(!m_handoff_freeze_active) captureHandoffFreezeTransforms();
+        enforceHandoffFreeze();
+        ImmersiveRelay::ScintillaEngine::updateCombat(0,false);
+        return;
+    }
     StandardRace::update(ticks);
+    ImmersiveRelay::ScintillaEngine::observeMissionMeasurementPhysics();
 
     player_kart = RaceManager::get()->getNumPlayers() > 0
         ? getPlayerKart(0) : NULL;
     if (!player_kart)
+    {
+        ImmersiveRelay::ScintillaEngine::terminateMission("human_unavailable");
+        ImmersiveRelay::ScintillaEngine::updateCombat(0,false);
         return;
+    }
 
+    if(ImmersiveRelay::ScintillaEngine::missionRequired() &&
+       !ImmersiveRelay::ScintillaEngine::missionTerminal() &&
+       (player_kart->isEliminated() || player_kart->hasFinishedRace()))
+        ImmersiveRelay::ScintillaEngine::terminateMission(
+            player_kart->isEliminated()?"human_eliminated":"non_natural_finish");
     const bool safe_for_handoff = isSafeForHandoff(player_kart);
     Track* track = Track::getCurrentTrack();
     if (track)
@@ -457,6 +490,9 @@ void RelayRaceMode::update(int ticks)
     }
     RelaySessionController::get()->updateRace(
         stk_config->ticks2Time(ticks), getTime(), safe_for_handoff);
+
+    ImmersiveRelay::ScintillaEngine::updateCombat(ticks,
+        isRacePhase() && !isFinishPhase() && !RelaySessionController::get()->isWorldHeld());
 
     std::vector<RelayCrewActionRequest> crew_actions =
         RelaySessionController::get()->drainPendingCrewActions();
@@ -508,22 +544,53 @@ void RelayRaceMode::updateTime(int ticks)
         return;
     }
     StandardRace::updateTime(ticks);
+    // The main loop advances the clock after updateRace; publish that tick
+    // before an operator command can freeze the world on the next frame.
+    RelaySessionController::get()->updateWorldClock(getTime());
 }
 
 void RelayRaceMode::newLap(unsigned int kart_index)
 {
+    AbstractKart* previous = RaceManager::get()->getNumPlayers() > 0
+        ? getPlayerKart(0) : NULL;
+    const bool human_crossing=previous && previous->getWorldKartId()==kart_index;
+    const bool eligible_crossing=human_crossing && !previous->hasFinishedRace() &&
+        !previous->isEliminated() && !previous->isGhostKart() && isRacePhase() &&
+        !isNetworkWorld() && !hasRaceEndedEarly();
     StandardRace::newLap(kart_index);
     AbstractKart* player_kart = RaceManager::get()->getNumPlayers() > 0
         ? getPlayerKart(0) : NULL;
     if (player_kart && player_kart->getWorldKartId() == kart_index)
     {
         const int completed_laps = getLapForKart(kart_index);
+        if(eligible_crossing&&player_kart==previous&&player_kart->hasFinishedRace()&&!player_kart->isEliminated()&&completed_laps>=RaceManager::get()->getNumLaps()&&!RelaySessionController::get()->getSnapshot().m_test_accelerated_progress)
+            ImmersiveRelay::ScintillaEngine::observeMissionMeasurementNaturalFinish();
+        ScintillaMission::Result mission_result;
+        if(ImmersiveRelay::ScintillaEngine::missionRequired() && eligible_crossing &&
+           player_kart==previous && player_kart->hasFinishedRace() &&
+           !player_kart->isEliminated() && completed_laps>=RaceManager::get()->getNumLaps())
+        {
+            const auto state=RelaySessionController::get()->getSnapshot();
+            if(!state.m_test_accelerated_progress &&
+               state.m_total_laps==RaceManager::get()->getNumLaps())
+                mission_result=ImmersiveRelay::ScintillaEngine::freezeMissionNaturalFinish(
+                    player_kart->getPosition(),player_kart->getFinishTime());
+            else ImmersiveRelay::ScintillaEngine::terminateMission("incompatible_native_finish");
+        }
         if (completed_laps > 0)
         {
             RelaySessionController::get()->notifyLap(
-                completed_laps, getTime(), isSafeForHandoff(player_kart));
+                completed_laps, getTime(), isSafeForHandoff(player_kart),
+                mission_result.valid?&mission_result:NULL);
         }
     }
+}
+
+void RelayRaceMode::endRaceEarly()
+{
+    // StandardRace assigns estimated times here; never a natural SC4 arrival.
+    ImmersiveRelay::ScintillaEngine::terminateMission("early_finish");
+    StandardRace::endRaceEarly();
 }
 
 const std::string& RelayRaceMode::getIdent() const

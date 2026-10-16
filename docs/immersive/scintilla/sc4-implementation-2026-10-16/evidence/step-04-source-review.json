@@ -1,0 +1,25 @@
+{
+  "step": 4,
+  "source_integration_order": "SC3, crossing/expiry/confirmations, SC4 input commit",
+  "runtime_anchor_qualification": false,
+  "native_compilation_or_execution": false,
+  "authoring": "6 groups,12 disjoint spheres,3 stations",
+  "native_regressions_written_reviewed": [
+    "loaderAcceptsBoundedDevelopmentDataWithoutClaimingQualification",
+    "loaderRejectsDuplicateUnknownAndInexactFieldsAtomically",
+    "loaderRejectsInvalidGeometryAndUnsafeAssetReferences",
+    "loaderRejectsOverlappingWindowsAndInvalidLapAllowlists",
+    "nativeValidationRequiresExactTrackIdentityAndNodeContainment",
+    "nativeFloatBoundaryToleranceDoesNotAdmitAnUnrelatedNode",
+    "beforeNativeStartAndFirstObservationNeverRetroactivelyReward",
+    "backwardAndRepeatedCrossingsCannotFarm",
+    "discontinuousForwardSegmentsConsumeSkippedOccurrences",
+    "multipleCrossingsAreOrderedAndExpiryPrecedesNewActivation",
+    "onlyOfficialLapTransitionsCreateNewOccurrences",
+    "singleSupporterGetsOneCapsuleAndTheOtherOccurrenceIsSkipped",
+    "exactRepreparePreservesReceiptsButSemanticChangesConflict",
+    "invalidSamplesPreserveReceiptsAndTheLastValidOrigin",
+    "maximumManifestSessionKeepsAllReceiptsBounded",
+    "scheduleMustContainThreeObtainableOccurrences"
+  ]
+}

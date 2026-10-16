@@ -1,0 +1,63 @@
+{
+  "phase": "SC4 step10",
+  "evidence": "source_static_only",
+  "result": "passed",
+  "lexicalFiles": [
+    "src/modes/immersive_relay/scintilla_mission_measurement.hpp",
+    "src/modes/immersive_relay/spatial/scintilla_measurement_native.hpp",
+    "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+    "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+    "src/modes/immersive_relay/relay_race_mode.cpp",
+    "src/modes/immersive_relay/render/projection/fisheye_domemaster_projection.cpp",
+    "data/shaders/utils/immersive_scintilla.frag",
+    "data/shaders/immersive_fisheye_domemaster.frag",
+    "data/shaders/immersive_equirectangular.frag",
+    "tools/immersive/tests/scintilla_mission_measurement_regression.cpp"
+  ],
+  "registeredCppCases": [
+    "capsuleWindowRequiresStrictlyMoreThanTwoSeconds",
+    "tetherWindowAcceptsExactThreeSeconds",
+    "shortFastSpikeCannotRaiseASustainedEnvelope",
+    "laterSustainedSpeedCanRaiseItsOwnBound",
+    "gapsAndClockNonAdvancementCannotAccumulateTime",
+    "clockAndIdentityDomainsStaySeparate",
+    "fullFootprintExcludesReservedHUDAndProjectionEdges",
+    "resetDoesNotFabricateANewQualifiedWindow"
+  ],
+  "cppCasesExecuted": false,
+  "pythonOwnerSuitesRerun": false,
+  "build": false,
+  "compilerOrTypecheck": false,
+  "CMakeConfigure": false,
+  "gameOrAppLaunch": false,
+  "gpuExecution": false,
+  "qualificationReportProduced": false,
+  "sourceInvariants": [
+    "runtime fingerprint mismatch retires all pending/current proofs and closes preparation",
+    "absolute 30Hz diagnostic sampling deadline with 2ms quantization slack",
+    "inactive continuity latch precedes absent combat early return",
+    "MRT blend state saved/restored independently",
+    "GL4.1 query availability polling only",
+    "two actual projection postdraw hooks",
+    "authoritative physics and natural-finish callers",
+    "8 source-written C++ cases and 2 offline Python suites registered"
+  ],
+  "qualificationCacheAuditFix": {
+    "result": "passed_source_only",
+    "invalidates": [
+      "world retire",
+      "newWorld(false)",
+      "renderer shutdown",
+      "full STK texture/content cache teardown"
+    ],
+    "preserves": [
+      "newWorld(true) same resources",
+      "logical atlas unbind/reprepare",
+      "individual font/dynamic texture removal"
+    ],
+    "callbackGLCalls": false,
+    "cargoReset": false,
+    "consumerGrantReset": false,
+    "compiledOrRuntimeEvidence": false
+  }
+}

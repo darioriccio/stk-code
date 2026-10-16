@@ -27,6 +27,14 @@ private:
     std::string m_server_name;
     unsigned int m_width;
     unsigned int m_height;
+    bool m_lease_enabled;
+    int m_lease_directory, m_lease_gate, m_lease_data;
+    bool m_writer_gate, m_writer_data;
+    void* m_publish_fence;
+    std::string m_server_uuid;
+    bool prepareLease();
+    bool acquireWriter();
+    void closeLease();
 
 public:
     SyphonOutputAdapterMac();
@@ -43,7 +51,9 @@ public:
                            unsigned int width, unsigned int height,
                            float* publish_time_ms);
     void shutdown();
+    void pollPublishedLease();
     bool isActive() const { return m_initialized; }
+    const std::string& serverUUID() const { return m_server_uuid; }
     const char* name() const { return "syphon"; }
 };
 

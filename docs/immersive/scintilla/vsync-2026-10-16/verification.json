@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-16",
+  "scope": "SC0-SC3; no SC4",
+  "status": "active-display-local-pass; original-inactive-display-hang-not-reproduced; no-production-patch",
+  "productionCodeModified": false,
+  "builds": [
+    {
+      "kind": "relay",
+      "path": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/build/relay/bin/supertuxkart.app/Contents/MacOS/supertuxkart",
+      "sha256": "7857ea3943640ebb6f4443ec94dc2e1d35933829977778cdb3c72a5f5862c181",
+      "bytes": 15008816
+    },
+    {
+      "kind": "vanilla",
+      "path": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/build/vanilla/bin/supertuxkart.app/Contents/MacOS/supertuxkart",
+      "sha256": "8dc7d5c74df47c764e6af482ea718e02e5a53e9e87dc899c1cc371d6b9cfbde1",
+      "bytes": 13993168
+    }
+  ],
+  "baselinePreviousBinary": {
+    "command": [
+      "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/build/vanilla/bin/supertuxkart.app/Contents/MacOS/supertuxkart",
+      "--render-driver=opengl",
+      "--windowed",
+      "--screensize=800x600",
+      "--profile-time=5",
+      "--track=olivermath",
+      "--numkarts=4",
+      "--difficulty=0",
+      "--no-sound",
+      "--seed=303",
+      "--unlock-all",
+      "--log=0"
+    ],
+    "previousExecutableSHA256": "8dc7d5c74df47c764e6af482ea718e02e5a53e9e87dc899c1cc371d6b9cfbde1",
+    "swapIntervalConfigured": 1,
+    "timeout": false,
+    "exitCode": 0,
+    "wallSeconds": 13.699072707997402,
+    "sampled": true,
+    "config": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/vsync-2026-10-16/runtime/baseline-vanilla/config-0.10/config.xml",
+    "completedProfile": true,
+    "profileMetrics": "Number of frames: 1205 time 10.334001"
+  },
+  "observedPreviousBinary": {
+    "command": [
+      "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/build/vanilla/bin/supertuxkart.app/Contents/MacOS/supertuxkart",
+      "--render-driver=opengl",
+      "--windowed",
+      "--screensize=800x600",
+      "--profile-time=5",
+      "--track=olivermath",
+      "--numkarts=4",
+      "--difficulty=0",
+      "--no-sound",
+      "--seed=303",
+      "--unlock-all",
+      "--log=0"
+    ],
+    "previousExecutableSHA256": "8dc7d5c74df47c764e6af482ea718e02e5a53e9e87dc899c1cc371d6b9cfbde1",
+    "swapIntervalConfigured": 1,
+    "timeout": false,
+    "exitCode": 0,
+    "wallSeconds": 13.8400548750069,
+    "sampled": true,
+    "config": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/vsync-2026-10-16/runtime/observed02-vanilla/config-0.10/config.xml",
+    "completedProfile": true,
+    "profileMetrics": "Number of frames: 1205 time 10.367001"
+  },
+  "nativeTests": {
+    "passed": 152,
+    "failed": 0
+  },
+  "sdlProbe": {
+    "summary": {
+      "displays": 3,
+      "cases": 60,
+      "failures": 0
+    },
+    "swaps": 1500,
+    "timings": [
+      {
+        "display": 0,
+        "refreshHz": 60,
+        "offMedianMs": 0.3065,
+        "strictMedianMs": 16.607999999999997,
+        "adaptiveMedianMs": 16.792
+      },
+      {
+        "display": 1,
+        "refreshHz": 120,
+        "offMedianMs": 0.28900000000000003,
+        "strictMedianMs": 8.413,
+        "adaptiveMedianMs": 8.239
+      },
+      {
+        "display": 2,
+        "refreshHz": 60,
+        "offMedianMs": 0.3915,
+        "strictMedianMs": 16.584,
+        "adaptiveMedianMs": 16.695
+      }
+    ]
+  },
+  "relaySmoke": {
+    "equirectangular": "PASS; effective interval -1",
+    "fisheye_domemaster": "PASS; effective interval -1",
+    "opticalPresentationQualified": false
+  },
+  "evidenceRoot": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/vsync-2026-10-16/evidence",
+  "originalHangEvidence": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/vsync-2026-10-16/evidence/original-hang-unified.log",
+  "taskToolFailures": [
+    "Observation dylib first used RTLD_NEXT, causing observer recursion on CVDisplayLinkStart; corrected using dyld native interpose original calls. Failed observer runs are not production regressions.",
+    "First native probe timer arguments reversed; corrected and repeated; final run also checks minimized/restored flags."
+  ],
+  "unverified": [
+    "original display-inactive startup and display sleep/wake recovery",
+    "optical/venue/hardware spatial input qualification"
+  ]
+}

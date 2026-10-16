@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "profileId": "sc4_cargo_three_slots_v1",
+  "profileRevision": 1,
+  "trackId": "snowtuxpeak",
+  "direction": "forward",
+  "trackHash": "8f05689ecf910cc595d57aa08b43b15a35e87fbf3bd79e892f9370464dec27e5",
+  "authoringStatus": "development_unqualified",
+  "author": "Immersive Relay contributors, SC4 authored geometry 2026-10-16",
+  "license": "GPL-3.0-or-later",
+  "groups": [
+    {
+      "id": "snow_supply_1",
+      "activationNode": 2,
+      "expiryNode": 6,
+      "activationFraction": 0.015880273363783306,
+      "expiryFraction": 0.07364560064735394,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -266.88437211,
+            7.26156831,
+            66.48969721
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -266.81798299,
+            7.24267221,
+            73.08933624
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    },
+    {
+      "id": "snow_supply_2",
+      "activationNode": 12,
+      "expiryNode": 16,
+      "activationFraction": 0.15028114640971113,
+      "expiryFraction": 0.2062128433940647,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -340.70495381,
+            14.59298819,
+            -3.06456298
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -347.30436471,
+            14.59178952,
+            -3.1527352
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    },
+    {
+      "id": "snow_supply_3",
+      "activationNode": 21,
+      "expiryNode": 25,
+      "activationFraction": 0.290939697217365,
+      "expiryFraction": 0.3496787330584685,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -281.84916536,
+            25.35985382,
+            -95.49522651
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -282.43814833,
+            25.36712809,
+            -102.06888958
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    },
+    {
+      "id": "snow_supply_4",
+      "activationNode": 40,
+      "expiryNode": 44,
+      "activationFraction": 0.5564512254936417,
+      "expiryFraction": 0.6181097262092057,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -261.41309511,
+            31.23996961,
+            34.17863853
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -260.91089063,
+            31.36300282,
+            27.59892322
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    },
+    {
+      "id": "snow_supply_5",
+      "activationNode": 50,
+      "expiryNode": 58,
+      "activationFraction": 0.6970468215570632,
+      "expiryFraction": 0.7640201538787165,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -174.84640399,
+            11.98691328,
+            -25.62165444
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -175.26416796,
+            12.08475347,
+            -32.20769274
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    },
+    {
+      "id": "snow_supply_6",
+      "activationNode": 62,
+      "expiryNode": 70,
+      "activationFraction": 0.8104893179227799,
+      "expiryFraction": 0.8716500505054263,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "capsules": [
+        {
+          "center": [
+            -163.27663097,
+            4.37833909,
+            -55.60325121
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        },
+        {
+          "center": [
+            -161.44334033,
+            4.40914287,
+            -49.26305433
+          ],
+          "radius": 2,
+          "asset": "relay_capsule_sphere_v1"
+        }
+      ]
+    }
+  ],
+  "confirmations": [
+    {
+      "slot": 0,
+      "node": 31,
+      "fraction": 0.4228238518857462,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "slot": 1,
+      "node": 63,
+      "fraction": 0.8223837887599565,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "slot": 2,
+      "node": 80,
+      "fraction": 0.9663819661479217,
+      "laps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    }
+  ]
+}

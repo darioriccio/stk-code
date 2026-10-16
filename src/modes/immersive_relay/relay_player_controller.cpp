@@ -15,6 +15,7 @@
 #include "modes/immersive_relay/relay_session_controller.hpp"
 
 #include <cmath>
+#include <algorithm>
 
 RelayPlayerController::RelayPlayerController(AbstractKart* kart,
                                              const int local_player_id,
@@ -46,6 +47,15 @@ bool RelayPlayerController::isDrivingAction(PlayerAction action) const
 bool RelayPlayerController::action(PlayerAction action, int value,
                                    bool dry_run)
 {
+    // LocalPlayerController::action currently ignores its dry_run argument
+    // and can also issue a startup boost. Query the pure PlayerController
+    // branch instead; pause's native branch likewise ignores dry_run.
+    if(dry_run) {
+        if(RelaySessionController::get()->isHumanInputLocked()&&isDrivingAction(action))return true;
+        if(action==PA_PAUSE_RACE)return value!=0;
+        return PlayerController::action(action,value,true);
+    }
+    if(action==PA_BRAKE)m_party_raw_brake=value;
     if (RelaySessionController::get()->isHumanInputLocked() &&
         isDrivingAction(action))
     {
@@ -54,7 +64,25 @@ bool RelayPlayerController::action(PlayerAction action, int value,
         return true;
     }
 
-    return LocalPlayerController::action(action, value, dry_run);
+    const bool changed=LocalPlayerController::action(action, value, false);
+    enforcePartyBrake();return changed;
+}
+
+void RelayPlayerController::beginPartyBrakeLease(int ticks)
+{
+    // The caller installs this only after a successful Party physical commit.
+    if(ticks>0&&ticks<=750)m_party_brake_ticks=std::max(m_party_brake_ticks,ticks);
+}
+
+void RelayPlayerController::enforcePartyBrake()
+{
+    if(m_party_brake_ticks<=0||!partyDriverVeto())return;
+    m_controls->setAccel(0.0f);m_controls->setBrake(true);m_controls->setNitro(false);
+}
+
+void RelayPlayerController::reset()
+{
+    LocalPlayerController::reset();m_party_raw_brake=0;m_party_brake_ticks=0;
 }
 
 void RelayPlayerController::update(int ticks)
@@ -62,7 +90,11 @@ void RelayPlayerController::update(int ticks)
     LocalPlayerController::update(ticks);
 
     if (!RelaySessionController::get()->isHumanInputLocked())
+    {
+        enforcePartyBrake();
+        if(ticks>0)m_party_brake_ticks-=std::min(m_party_brake_ticks,ticks);
         return;
+    }
 
     const float speed = std::fabs(m_kart->getSpeed());
     m_controls->setSteer(0.0f);

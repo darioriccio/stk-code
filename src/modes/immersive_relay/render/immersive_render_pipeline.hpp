@@ -45,6 +45,7 @@ public:
     void rejectRenderConfiguration(const std::string& reason);
     void renderFrame(float dt);
     void shutdown();
+    std::string prepareScintillaOutput();
 };
 
 } // namespace ImmersiveRelay

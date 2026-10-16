@@ -1,0 +1,373 @@
+{
+  "scope": "pure_math_only_not_native_or_hardware_validation",
+  "ticks": {
+    "60": {
+      "3000000": {
+        "min": 180,
+        "max": 180
+      },
+      "2500000": {
+        "min": 150,
+        "max": 150
+      },
+      "600000": {
+        "min": 36,
+        "max": 36
+      },
+      "250000": {
+        "min": 15,
+        "max": 15
+      },
+      "8000000": {
+        "min": 480,
+        "max": 480
+      },
+      "12000000": {
+        "min": 720,
+        "max": 720
+      },
+      "5000000": {
+        "min": 300,
+        "max": 300
+      },
+      "500000": {
+        "min": 30,
+        "max": 30
+      },
+      "900000": {
+        "min": 54,
+        "max": 54
+      }
+    },
+    "120": {
+      "3000000": {
+        "min": 360,
+        "max": 360
+      },
+      "2500000": {
+        "min": 300,
+        "max": 300
+      },
+      "600000": {
+        "min": 72,
+        "max": 72
+      },
+      "250000": {
+        "min": 30,
+        "max": 30
+      },
+      "8000000": {
+        "min": 960,
+        "max": 960
+      },
+      "12000000": {
+        "min": 1440,
+        "max": 1440
+      },
+      "5000000": {
+        "min": 600,
+        "max": 600
+      },
+      "500000": {
+        "min": 60,
+        "max": 60
+      },
+      "900000": {
+        "min": 108,
+        "max": 108
+      }
+    },
+    "144": {
+      "3000000": {
+        "min": 432,
+        "max": 432
+      },
+      "2500000": {
+        "min": 360,
+        "max": 360
+      },
+      "600000": {
+        "min": 87,
+        "max": 86
+      },
+      "250000": {
+        "min": 36,
+        "max": 36
+      },
+      "8000000": {
+        "min": 1152,
+        "max": 1152
+      },
+      "12000000": {
+        "min": 1728,
+        "max": 1728
+      },
+      "5000000": {
+        "min": 720,
+        "max": 720
+      },
+      "500000": {
+        "min": 72,
+        "max": 72
+      },
+      "900000": {
+        "min": 130,
+        "max": 129
+      }
+    }
+  },
+  "budgets": [
+    {
+      "frequency": 60,
+      "crew": 1,
+      "reserve": 70.0,
+      "max_initial_heat": 18.75,
+      "full_defense_cost": 65.0,
+      "minimum_defense_cost": 17.0,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 13.0,
+      "heat_recovery_seconds": 3.75
+    },
+    {
+      "frequency": 60,
+      "crew": 2,
+      "reserve": 60.0,
+      "max_initial_heat": 31.25,
+      "full_defense_cost": 55.0,
+      "minimum_defense_cost": 17.0,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 11.0,
+      "heat_recovery_seconds": 3.125
+    },
+    {
+      "frequency": 120,
+      "crew": 1,
+      "reserve": 70.0,
+      "max_initial_heat": 18.75,
+      "full_defense_cost": 65.0,
+      "minimum_defense_cost": 17.0,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 13.0,
+      "heat_recovery_seconds": 3.75
+    },
+    {
+      "frequency": 120,
+      "crew": 2,
+      "reserve": 60.0,
+      "max_initial_heat": 31.25,
+      "full_defense_cost": 55.0,
+      "minimum_defense_cost": 17.0,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 11.0,
+      "heat_recovery_seconds": 3.125
+    },
+    {
+      "frequency": 144,
+      "crew": 1,
+      "reserve": 70.0,
+      "max_initial_heat": 18.75,
+      "full_defense_cost": 65.0,
+      "minimum_defense_cost": 17.083333333333332,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 13.0,
+      "heat_recovery_seconds": 3.75
+    },
+    {
+      "frequency": 144,
+      "crew": 2,
+      "reserve": 60.0,
+      "max_initial_heat": 31.25,
+      "full_defense_cost": 55.0,
+      "minimum_defense_cost": 17.083333333333332,
+      "energy_after": 5.0,
+      "heat_after": 93.75,
+      "energy_recovery_seconds": 11.0,
+      "heat_recovery_seconds": 3.125
+    }
+  ],
+  "rear_projection": {
+    "horizontal_tan": 1.1917535925942098,
+    "vertical_fov_degrees_aspect2": 61.5794660576643,
+    "upper_right_direction": [
+      -0.7153653819586878,
+      0.3576826909793439,
+      -0.6002628281585292
+    ],
+    "rotation_determinant": 1
+  },
+  "layout": {
+    "mirror_radius_bound": 0.7871467461661771,
+    "node_radius_bound": 0.9327861844049197,
+    "boost_radius_bound": 0.9099999999999999,
+    "rectangles": [
+      {
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "rectangle_pixels": [
+          327.68,
+          153.60000000000002,
+          696.3199999999999,
+          337.91999999999996
+        ],
+        "pixel_area_fraction": 0.0648
+      },
+      {
+        "dimensions": [
+          2048,
+          1024
+        ],
+        "rectangle_pixels": [
+          839.6800000000001,
+          153.60000000000002,
+          1208.32,
+          337.91999999999996
+        ],
+        "pixel_area_fraction": 0.0324
+      },
+      {
+        "dimensions": [
+          2048,
+          2048
+        ],
+        "rectangle_pixels": [
+          655.36,
+          307.20000000000005,
+          1392.6399999999999,
+          675.8399999999999
+        ],
+        "pixel_area_fraction": 0.0648
+      }
+    ]
+  },
+  "ballistics": [
+    {
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "solution": {
+        "time_seconds": 0.5,
+        "direction": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "profile_admitted": true
+      }
+    },
+    {
+      "velocity": [
+        0,
+        0,
+        10
+      ],
+      "solution": {
+        "time_seconds": 0.6666666666666666,
+        "direction": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "profile_admitted": true
+      }
+    },
+    {
+      "velocity": [
+        10,
+        0,
+        0
+      ],
+      "solution": {
+        "time_seconds": 0.5163977794943222,
+        "direction": [
+          0.25,
+          0.0,
+          0.9682458365518544
+        ],
+        "profile_admitted": true
+      }
+    },
+    {
+      "velocity": [
+        0,
+        0,
+        -10
+      ],
+      "solution": {
+        "time_seconds": 0.4,
+        "direction": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "profile_admitted": true
+      }
+    },
+    {
+      "velocity": [
+        0,
+        0,
+        40
+      ],
+      "solution": null
+    },
+    {
+      "velocity": [
+        0,
+        0,
+        -40
+      ],
+      "solution": {
+        "time_seconds": 0.25,
+        "direction": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "profile_admitted": false
+      }
+    }
+  ],
+  "sphere_ccd_oracle_only": {
+    "static_fraction": 0.3999999999999999,
+    "moving_fraction": 0.44999999999999996
+  },
+  "child_offset_subdivision": {
+    "steps": 6,
+    "error_m": 0.0009517784181422018
+  },
+  "impact": {
+    "before": [
+      10,
+      -2,
+      20
+    ],
+    "after": [
+      8.5,
+      -2.0,
+      17.0
+    ],
+    "tangential_kinetic_energy_fraction": 0.7224999999999999
+  },
+  "checks": [
+    "ceil_minimum_floor_maximum_three_frequencies",
+    "fixed_point_budgets_match_exact_integrals_and_stepwise_consumption",
+    "sector_admission_retention_and_wrap",
+    "rear_round_trip_unmirrored_basis_and_rounded_rectangle_aspects",
+    "layout_inside_disc_and_declared_regions_separated_not_optical_stamp_validation",
+    "stable_ballistic_roots_and_profile_rejections",
+    "continuous_sphere_cases_that_endpoint_tests_miss",
+    "compound_child_arc_sagitta_bound",
+    "impact_preserves_normal_velocity_and_has_stated_energy_ratio",
+    "warning_minimum_after_interval_upper_bound"
+  ],
+  "passed": 10
+}

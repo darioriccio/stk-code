@@ -1,0 +1,30 @@
+{
+  "step": 8,
+  "status": "source_gate_passed",
+  "native": "Atomic mission/combat/defense intent, full identity, producer UUID, bounded receipts, actual held-frame freshness, terminal resource reload, unqualified anchor gate",
+  "host": "Strict package DTO and manifest/reducer, raw duplicate-key decoding, missionSC4 mode and complete user/phone/API lifecycle gates, localized UI and result, retained grant upgrade",
+  "fixes": [
+    "same-value intent reload after reset",
+    "prepared plus world-held DTO",
+    "terminal tether slot validation",
+    "no-grant first upgrade cannot require rebind",
+    "only a real prepared adapter may retain a grant"
+  ],
+  "checks": {
+    "api_source": 13,
+    "lifecycle_source": 16,
+    "finish_source": 20,
+    "localization_new_findings": 0,
+    "native_protocol_cases_written": 6,
+    "input_cases_written": 103
+  },
+  "independent_review": "native and host source walkthrough passed after fixes",
+  "not_run": [
+    "build",
+    "compiler",
+    "typecheck",
+    "native/Swift test execution",
+    "GPU",
+    "actual input/route reset"
+  ]
+}

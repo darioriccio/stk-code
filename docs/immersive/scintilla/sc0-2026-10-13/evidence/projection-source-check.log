@@ -1,0 +1,11 @@
+
+test_actual_shared_face_sampler_has_full_sphere_coverage (__main__.ProjectionSourceTests.test_actual_shared_face_sampler_has_full_sphere_coverage) ... ok
+test_cardinal_contract_and_vertical_publication (__main__.ProjectionSourceTests.test_cardinal_contract_and_vertical_publication) ... ok
+test_independent_receiver_round_trip (__main__.ProjectionSourceTests.test_independent_receiver_round_trip) ... ok
+test_render_thread_and_presentation_gate_wiring (__main__.ProjectionSourceTests.test_render_thread_and_presentation_gate_wiring) ... ok
+test_seam_continuity_and_poles (__main__.ProjectionSourceTests.test_seam_continuity_and_poles) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.115s
+
+OK

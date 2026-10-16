@@ -28,6 +28,9 @@
 #include "tracks/track_manager.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/log.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
+#endif
 
 #include <algorithm>
 #ifndef SERVER_ONLY
@@ -153,6 +156,11 @@ video::ITexture* STKTexManager::addTexture(video::ITexture* texture)
 // ----------------------------------------------------------------------------
 bool STKTexManager::removeTexture(video::ITexture* texture, bool remove_all)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // A full scene/content reload invalidates its measured depth evidence.
+    // Individual removals also serve dynamic font atlases and are unrelated.
+    if(remove_all)ImmersiveRelay::ScintillaEngine::invalidateMissionContent();
+#endif
     bool ret = false;
 #ifdef DEBUG
     std::vector<std::string> undeleted_texture;
@@ -170,6 +178,9 @@ bool STKTexManager::removeTexture(video::ITexture* texture, bool remove_all)
 #ifdef DEBUG
             if (remove_all && p->second->getReferenceCount() != 1)
                 undeleted_texture.push_back(p->second->getName().getPtr());
+#endif
+#ifdef ENABLE_IMMERSIVE_RELAY
+            ImmersiveRelay::ScintillaEngine::releaseMissionPresentationAssets(p->second);
 #endif
             p->second->drop();
             p = m_all_textures.erase(p);

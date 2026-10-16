@@ -1,0 +1,36 @@
+{
+  "mainCheckout": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+  "qualifiedWorktree": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/host",
+  "files": [
+    {
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialHistory.swift",
+      "beforeSHA256": "670dff28a344fa219b394cfd4907176ae442fdabebb880771a744befab1311ba",
+      "qualifiedSHA256": "391aafb557cbd354b29a537ad6e97d6454a58c6deb450510726fbe1020f96728"
+    },
+    {
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHistoryTests.swift",
+      "beforeSHA256": "cd04519289d55359bce85302ab03379e60f906845dc835f31f711531d92e8a5b",
+      "qualifiedSHA256": "dc3acbfe23137c1d8c1ed42cd5c09e0d8c2ea90fcddfb25ec583332d9aed746c"
+    },
+    {
+      "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "beforeSHA256": "21d93969e64faf44683d4601561e6718424ff441173b358f66f7b994b875210f",
+      "qualifiedSHA256": "5116cefe447172f4a821c771d0c45c2d3ad92039bbfd71a59239b8cf40587cd9"
+    },
+    {
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "beforeSHA256": "73fee57015c36a3a57670f7915ccb61237bb855cccd5fa47642af2abf5e27ef6",
+      "qualifiedSHA256": "38515bb39d5bfb54c24ff328d69f5dac6d3529fa17f112706484c575827ef57c"
+    },
+    {
+      "path": "scripts/ci/test_app_isolated.py",
+      "beforeSHA256": "e16a033b332b92e930583d74ea693333cf83bb90a6beb7d43db0b56dcb258b70",
+      "qualifiedSHA256": "c555fa5d37d3340fc19a0bf61b9837b2ad1a62b2656d6a3ad731568dc25ba53a"
+    },
+    {
+      "path": "scripts/ci/tests/test_app_isolated_runner.py",
+      "beforeSHA256": "d48360f23fcde68cc3b65acb70844d9abad93a3875b8952128f79222967e9abb",
+      "qualifiedSHA256": "36e7cb7cb62e8b17475cdd293edb1b738a2f25c9d0635d5d920c1023999deb5b"
+    }
+  ]
+}

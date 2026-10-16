@@ -1,0 +1,31 @@
+{
+  "phase": 6,
+  "kind": "mathematical_software_evidence",
+  "seed": 604,
+  "samples": 2000,
+  "hits": 1108,
+  "misses": 892,
+  "maxAbsoluteContactErrorMetres": 4.263256414560601e-14,
+  "absoluteAcceptanceToleranceMetres": 0.000001,
+  "arithmetic": "Python double precision; no binary32 or GPU equivalence claim",
+  "analyticModel": "finite cylinder front contact by closest approach plus spherical end caps; eye-inside rejection",
+  "independentOracle": "point-to-finite-segment squared distance along normalized ray; 90 ternary minimization steps and 90 bisection entry steps",
+  "ranges": {
+    "startXYMetres": [-10, 10],
+    "startZMetres": [1, 100],
+    "endDeltaXYZMetres": [-6, 6],
+    "radiusMetres": [0.025, 0.5],
+    "rayAim": "uniform point on segment plus independent XY offsets in [-2*radius,2*radius], then normalized"
+  },
+  "sourceRegression": "check_scintilla_depth.py: 8 source/math checks passed",
+  "gpuRegressionWrittenOnly": {
+    "depthCases": 64,
+    "missionStyleCases": 87,
+    "cableCases": 13
+  },
+  "compilerRun": false,
+  "shaderRun": false,
+  "gpuRun": false,
+  "physicalOrVenueQualification": false,
+  "script": "sc6-cable-math.py"
+}

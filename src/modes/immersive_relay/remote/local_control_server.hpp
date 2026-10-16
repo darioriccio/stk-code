@@ -27,14 +27,10 @@ private:
     std::string m_bind_host;
     int m_port;
     std::string m_token;
-    int m_listen_fd;
+    int m_wake_write_fd;
 
     LocalControlServer();
-    void runLoop();
-    void handleClient(int client_fd);
-    bool requestHasValidToken(const std::string& request) const;
-    void sendResponse(int client_fd, int status_code,
-                      const std::string& body) const;
+    void runLoop(int wake_read_fd);
 
 public:
     ~LocalControlServer();

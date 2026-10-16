@@ -310,6 +310,8 @@ public:
      *  category.
      *  \param category Which category to report on. */
     virtual int getSpeedIncreaseTicksLeft(unsigned int category) const = 0;
+    /** Includes the fade-out interval, unlike the duration-only tick accessor. */
+    virtual bool isSpeedIncreaseActive(unsigned int category) const = 0;
     
     // ------------------------------------------------------------------------
     /** Sets the kart AI boost state.

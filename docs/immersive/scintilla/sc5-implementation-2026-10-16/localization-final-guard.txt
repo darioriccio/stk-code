@@ -1,0 +1,1 @@
+Localization guard: 1671 Swift files, 0 new findings.

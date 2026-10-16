@@ -65,6 +65,7 @@ public:
     virtual void update(int ticks) OVERRIDE;
     virtual void updateTime(int ticks) OVERRIDE;
     virtual void newLap(unsigned int kart_index) OVERRIDE;
+    virtual void endRaceEarly() OVERRIDE;
     virtual const std::string& getIdent() const OVERRIDE;
 };
 

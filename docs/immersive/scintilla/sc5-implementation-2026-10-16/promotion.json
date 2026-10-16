@@ -1,0 +1,1323 @@
+{
+  "schemaVersion": 1,
+  "buildsRun": false,
+  "nativeTestsRun": false,
+  "SC6Started": false,
+  "method": "guarded SHA256 transfer; catalog exact-key insertion preserves original bytes",
+  "files": [
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "edd394fdbf588294ad74245d03e150278602cbe6f7cee7fb8a9afeafbc0cdee1",
+      "installedSHA256": "edd394fdbf588294ad74245d03e150278602cbe6f7cee7fb8a9afeafbc0cdee1"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "829db3bfcfdd191c142f09386c24fafa23cdf5845d799b78cfe32bc9df89e586",
+      "installedSHA256": "829db3bfcfdd191c142f09386c24fafa23cdf5845d799b78cfe32bc9df89e586"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "926ed4d0b74c935cc2619beac63b27ec164472816af1c4f690fb6a613ff88aad",
+      "installedSHA256": "926ed4d0b74c935cc2619beac63b27ec164472816af1c4f690fb6a613ff88aad"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "4121bb72805cd81d0afd3500313f475ed755d55840aee51c5c213c919c0869e9",
+      "installedSHA256": "4121bb72805cd81d0afd3500313f475ed755d55840aee51c5c213c919c0869e9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "ae9580afd7c45f4655ca390ed135853e8ad9921ef94ccdb6a92e7dcd3aeed9dd",
+      "installedSHA256": "ae9580afd7c45f4655ca390ed135853e8ad9921ef94ccdb6a92e7dcd3aeed9dd"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e9e1d7fd9d790f313bda4cc89734a18e359d5685bcfb426bf5d37e1279d9d57a",
+      "installedSHA256": "e9e1d7fd9d790f313bda4cc89734a18e359d5685bcfb426bf5d37e1279d9d57a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "3db64c12d718c74ba2d46ee30d8b2228c485c3dc60bedd319e1368f2bcfc2362",
+      "installedSHA256": "3db64c12d718c74ba2d46ee30d8b2228c485c3dc60bedd319e1368f2bcfc2362"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C1/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "01deca6d01f52fd8d0aeed5555cd07d43652169c710024bcf12d09d30ead3dba",
+      "installedSHA256": "01deca6d01f52fd8d0aeed5555cd07d43652169c710024bcf12d09d30ead3dba"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "20a8d967fee579acf99a03440db90f31f3b696caf94f20aff6a439019fbf1524",
+      "installedSHA256": "20a8d967fee579acf99a03440db90f31f3b696caf94f20aff6a439019fbf1524"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "1cb95ade908d79c12c10a50714d23f7204364938132cd4f1e2df52d4f0bc55a6",
+      "installedSHA256": "1cb95ade908d79c12c10a50714d23f7204364938132cd4f1e2df52d4f0bc55a6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "8836f8756dc6f9215ece0dee186401f4bb9dbf9df042f6f6a29cb58a3c0b37b0",
+      "installedSHA256": "8836f8756dc6f9215ece0dee186401f4bb9dbf9df042f6f6a29cb58a3c0b37b0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "190dfcfad8d134577bc91f00145542ebf3da25c2d15a1dc62dee29c4b4141062",
+      "installedSHA256": "190dfcfad8d134577bc91f00145542ebf3da25c2d15a1dc62dee29c4b4141062"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "0b8c0bbce8dd6bc9de988735b0db5bd15816c6073f6c2dfbcec2999287b3f9ac",
+      "installedSHA256": "0b8c0bbce8dd6bc9de988735b0db5bd15816c6073f6c2dfbcec2999287b3f9ac"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "ef93a8d751ce7bb76b201d213e7e1dffd81bc42a796d5ca377350a9f647ef6f9",
+      "installedSHA256": "ef93a8d751ce7bb76b201d213e7e1dffd81bc42a796d5ca377350a9f647ef6f9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e5bed0f87aabeec3856f6b47bb18f6f8ad1aac4e229b7ae2480abc71cd1f00ee",
+      "installedSHA256": "e5bed0f87aabeec3856f6b47bb18f6f8ad1aac4e229b7ae2480abc71cd1f00ee"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C2/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "6c82b2b2a3299e7f596b54e343bbf05576e1e5f0b2fe9846efd9e105d769ee05",
+      "installedSHA256": "6c82b2b2a3299e7f596b54e343bbf05576e1e5f0b2fe9846efd9e105d769ee05"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "1f0330eccd0c33c19c45ea7193d6685be29e193ab0f854fe3b3d4654ab92f16a",
+      "installedSHA256": "1f0330eccd0c33c19c45ea7193d6685be29e193ab0f854fe3b3d4654ab92f16a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "34e3fab6b0981a7a4e5a3248803917b7f66210c30a37caa2a481e94278a0d6ea",
+      "installedSHA256": "34e3fab6b0981a7a4e5a3248803917b7f66210c30a37caa2a481e94278a0d6ea"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "642ec15b53991bc00a56d5411928e772fa3df094db0b96b1dddebaf3b84a136a",
+      "installedSHA256": "642ec15b53991bc00a56d5411928e772fa3df094db0b96b1dddebaf3b84a136a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "1e4c7a63b10de73f5ab7eeb038bfb8e05b8971075eed6744bc2920b633f4c430",
+      "installedSHA256": "1e4c7a63b10de73f5ab7eeb038bfb8e05b8971075eed6744bc2920b633f4c430"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "d90113a548dd695461b47317b027d00ec97308c955c00383028787344a192d61",
+      "installedSHA256": "d90113a548dd695461b47317b027d00ec97308c955c00383028787344a192d61"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "f69e2b47c365190ee2fce5c7e25163eb7480436440d10af13363e5f05eec932f",
+      "installedSHA256": "f69e2b47c365190ee2fce5c7e25163eb7480436440d10af13363e5f05eec932f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e6cc0029269fd4db7f5aaed78e939aada6004d4b8e41b9f66fb4d766b9dd1309",
+      "installedSHA256": "e6cc0029269fd4db7f5aaed78e939aada6004d4b8e41b9f66fb4d766b9dd1309"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/C3plus/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "ce0559e2a0b67ce381abb46568117ffef41b754bd986a1ec625c3348a67e09a2",
+      "installedSHA256": "ce0559e2a0b67ce381abb46568117ffef41b754bd986a1ec625c3348a67e09a2"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_party_it_v1/manifest.json",
+      "beforeSHA256": null,
+      "taskSHA256": "c657990f1a990174e6fb4b57a412fa48a6a861685d95cdce0eb48baf4d0d525d",
+      "installedSHA256": "c657990f1a990174e6fb4b57a412fa48a6a861685d95cdce0eb48baf4d0d525d"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "42e1b2ea08644b34f5c30bcc76cff5c2a05ae34bf0fc85778ef9c8c0c5192717",
+      "installedSHA256": "42e1b2ea08644b34f5c30bcc76cff5c2a05ae34bf0fc85778ef9c8c0c5192717"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "ef0ddf5695de71bcf81f2ec03f989eae8cea49616689fa8cf26683ac99d60b75",
+      "installedSHA256": "ef0ddf5695de71bcf81f2ec03f989eae8cea49616689fa8cf26683ac99d60b75"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "926ed4d0b74c935cc2619beac63b27ec164472816af1c4f690fb6a613ff88aad",
+      "installedSHA256": "926ed4d0b74c935cc2619beac63b27ec164472816af1c4f690fb6a613ff88aad"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "4121bb72805cd81d0afd3500313f475ed755d55840aee51c5c213c919c0869e9",
+      "installedSHA256": "4121bb72805cd81d0afd3500313f475ed755d55840aee51c5c213c919c0869e9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "ae9580afd7c45f4655ca390ed135853e8ad9921ef94ccdb6a92e7dcd3aeed9dd",
+      "installedSHA256": "ae9580afd7c45f4655ca390ed135853e8ad9921ef94ccdb6a92e7dcd3aeed9dd"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e9e1d7fd9d790f313bda4cc89734a18e359d5685bcfb426bf5d37e1279d9d57a",
+      "installedSHA256": "e9e1d7fd9d790f313bda4cc89734a18e359d5685bcfb426bf5d37e1279d9d57a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "3db64c12d718c74ba2d46ee30d8b2228c485c3dc60bedd319e1368f2bcfc2362",
+      "installedSHA256": "3db64c12d718c74ba2d46ee30d8b2228c485c3dc60bedd319e1368f2bcfc2362"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C1/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "5732c53fc82921b9e8a130ce3ca085cf7b79047424cbf872f68d611d82f64c02",
+      "installedSHA256": "5732c53fc82921b9e8a130ce3ca085cf7b79047424cbf872f68d611d82f64c02"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "6a6975aa584241737a864fb5105ef755e989381d43ea744c212b623c5812463d",
+      "installedSHA256": "6a6975aa584241737a864fb5105ef755e989381d43ea744c212b623c5812463d"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "ef0ddf5695de71bcf81f2ec03f989eae8cea49616689fa8cf26683ac99d60b75",
+      "installedSHA256": "ef0ddf5695de71bcf81f2ec03f989eae8cea49616689fa8cf26683ac99d60b75"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "8836f8756dc6f9215ece0dee186401f4bb9dbf9df042f6f6a29cb58a3c0b37b0",
+      "installedSHA256": "8836f8756dc6f9215ece0dee186401f4bb9dbf9df042f6f6a29cb58a3c0b37b0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "190dfcfad8d134577bc91f00145542ebf3da25c2d15a1dc62dee29c4b4141062",
+      "installedSHA256": "190dfcfad8d134577bc91f00145542ebf3da25c2d15a1dc62dee29c4b4141062"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "0b8c0bbce8dd6bc9de988735b0db5bd15816c6073f6c2dfbcec2999287b3f9ac",
+      "installedSHA256": "0b8c0bbce8dd6bc9de988735b0db5bd15816c6073f6c2dfbcec2999287b3f9ac"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "ef93a8d751ce7bb76b201d213e7e1dffd81bc42a796d5ca377350a9f647ef6f9",
+      "installedSHA256": "ef93a8d751ce7bb76b201d213e7e1dffd81bc42a796d5ca377350a9f647ef6f9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e5bed0f87aabeec3856f6b47bb18f6f8ad1aac4e229b7ae2480abc71cd1f00ee",
+      "installedSHA256": "e5bed0f87aabeec3856f6b47bb18f6f8ad1aac4e229b7ae2480abc71cd1f00ee"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C2/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "d6827597b30a89ea3c11dffa2992d10126a00a46da6fb2215cb8eeb83c013491",
+      "installedSHA256": "d6827597b30a89ea3c11dffa2992d10126a00a46da6fb2215cb8eeb83c013491"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/intro_it.mp4",
+      "beforeSHA256": null,
+      "taskSHA256": "c4a138c8aec4ba4810a3979b19c45632d7754830c1ebf683d76675c0b1807940",
+      "installedSHA256": "c4a138c8aec4ba4810a3979b19c45632d7754830c1ebf683d76675c0b1807940"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/intro_it.vtt",
+      "beforeSHA256": null,
+      "taskSHA256": "7c31674c10943e2059fa4159818b4fd42e63b2448926d097351ab1d733bbc07f",
+      "installedSHA256": "7c31674c10943e2059fa4159818b4fd42e63b2448926d097351ab1d733bbc07f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_01.png",
+      "beforeSHA256": null,
+      "taskSHA256": "642ec15b53991bc00a56d5411928e772fa3df094db0b96b1dddebaf3b84a136a",
+      "installedSHA256": "642ec15b53991bc00a56d5411928e772fa3df094db0b96b1dddebaf3b84a136a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_02.png",
+      "beforeSHA256": null,
+      "taskSHA256": "1e4c7a63b10de73f5ab7eeb038bfb8e05b8971075eed6744bc2920b633f4c430",
+      "installedSHA256": "1e4c7a63b10de73f5ab7eeb038bfb8e05b8971075eed6744bc2920b633f4c430"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_03.png",
+      "beforeSHA256": null,
+      "taskSHA256": "d90113a548dd695461b47317b027d00ec97308c955c00383028787344a192d61",
+      "installedSHA256": "d90113a548dd695461b47317b027d00ec97308c955c00383028787344a192d61"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_04.png",
+      "beforeSHA256": null,
+      "taskSHA256": "f69e2b47c365190ee2fce5c7e25163eb7480436440d10af13363e5f05eec932f",
+      "installedSHA256": "f69e2b47c365190ee2fce5c7e25163eb7480436440d10af13363e5f05eec932f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_05.png",
+      "beforeSHA256": null,
+      "taskSHA256": "e6cc0029269fd4db7f5aaed78e939aada6004d4b8e41b9f66fb4d766b9dd1309",
+      "installedSHA256": "e6cc0029269fd4db7f5aaed78e939aada6004d4b8e41b9f66fb4d766b9dd1309"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/C3plus/panel_06.png",
+      "beforeSHA256": null,
+      "taskSHA256": "4407893b30c4ab8b1152b9ce67698dad4a0592c23190cbf13d67cb59d7d29397",
+      "installedSHA256": "4407893b30c4ab8b1152b9ce67698dad4a0592c23190cbf13d67cb59d7d29397"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/intro_crew_standard_it_v1/manifest.json",
+      "beforeSHA256": null,
+      "taskSHA256": "35c1c5c45288c06ace693378c2f35ab51be8e52d69ded70c082881e3e7eab633",
+      "installedSHA256": "35c1c5c45288c06ace693378c2f35ab51be8e52d69ded70c082881e3e7eab633"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/immersive_relay/scintilla/snowtuxpeak_party_zones_v1.json",
+      "beforeSHA256": null,
+      "taskSHA256": "b97695c4eb816bca88ae87f5fb2eb344cfce2f74d0edbc1583c832a67aa7b022",
+      "installedSHA256": "b97695c4eb816bca88ae87f5fb2eb344cfce2f74d0edbc1583c832a67aa7b022"
+    },
+    {
+      "repo": "stk-code",
+      "path": "data/shaders/utils/immersive_scintilla.frag",
+      "beforeSHA256": "b484a1e3d25f738ef5a6414f7515737fe076ef921ae1be2410fa6aa7af2c937a",
+      "taskSHA256": "90a707ade42d4425da524c368de36f8cef5474332d3f8a106ed707bdf9a8b9a7",
+      "installedSHA256": "90a707ade42d4425da524c368de36f8cef5474332d3f8a106ed707bdf9a8b9a7"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/relay_player_controller.cpp",
+      "beforeSHA256": "620538ad56a9c42fc715993e436e0ed823ec60aaedeaf434c79c3c648a2019b6",
+      "taskSHA256": "d1e577cbed57393687a7b443b97e332442dcd90a686dd592d140e065986bfc57",
+      "installedSHA256": "d1e577cbed57393687a7b443b97e332442dcd90a686dd592d140e065986bfc57"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/relay_player_controller.hpp",
+      "beforeSHA256": "000a366cba0345336b579ab7fb3473b0596c6462c15f7f65695bc07582f04fdf",
+      "taskSHA256": "0b9793bfc28da7f816828d717fa08591ef077e9a79df0c6c0676f3a9aaf54fe4",
+      "installedSHA256": "0b9793bfc28da7f816828d717fa08591ef077e9a79df0c6c0676f3a9aaf54fe4"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+      "beforeSHA256": "cc1ee6b1cadd1c9d83d86bf2f142d9fff2202a20a61604093e9805e066b69411",
+      "taskSHA256": "70b4168ff7dacc243c7f280a91d7e4645b97d45eb767970dfc502ee910c8836b",
+      "installedSHA256": "70b4168ff7dacc243c7f280a91d7e4645b97d45eb767970dfc502ee910c8836b"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+      "beforeSHA256": "c0c6bde101f1cea523eaeeb52d3ff33511887ff69f93dd93bcd2a7fd48013d7b",
+      "taskSHA256": "590b1ac1187990fa1b5aacd0baaff0995bfcd233b675238bfc590fac423382e1",
+      "installedSHA256": "590b1ac1187990fa1b5aacd0baaff0995bfcd233b675238bfc590fac423382e1"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "beforeSHA256": "f8fa7e0c50786d727a5c265ad80e1a41be6f18075a51f4a10793345959581c49",
+      "taskSHA256": "8d51a4633c26f4ca5c47d1b3aa6921eca4554adf7442ae0df4b593c34b37c02e",
+      "installedSHA256": "8d51a4633c26f4ca5c47d1b3aa6921eca4554adf7442ae0df4b593c34b37c02e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/remote/relay_state_publisher.cpp",
+      "beforeSHA256": "cbf5758f13008b9caf9521ad5d956e373469b7eb73907436296fe0eddc78e20e",
+      "taskSHA256": "23214fae12e967974d3d4229425ab237b564c4b3dfd2bf3450a6ab77855d136a",
+      "installedSHA256": "23214fae12e967974d3d4229425ab237b564c4b3dfd2bf3450a6ab77855d136a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "96d6be1d6f6d28d2bf5464a596e81306d300ea0b591e9e69b126f4e6a3ff9800",
+      "installedSHA256": "96d6be1d6f6d28d2bf5464a596e81306d300ea0b591e9e69b126f4e6a3ff9800"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "12616a2692c46c09feea7a9737ebf5e449ad05c613728793034592dce24c5d8d",
+      "installedSHA256": "12616a2692c46c09feea7a9737ebf5e449ad05c613728793034592dce24c5d8d"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_boost_math.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "053996f78ea995b9b278402fd4c7615cf9fe64ff8d68906eb430f409941482d6",
+      "installedSHA256": "053996f78ea995b9b278402fd4c7615cf9fe64ff8d68906eb430f409941482d6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_physics.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "2075ee6146b8b43f6e6eb697f44132f9a4d16b51a3f4a7be2805b9924c673d4a",
+      "installedSHA256": "2075ee6146b8b43f6e6eb697f44132f9a4d16b51a3f4a7be2805b9924c673d4a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_physics.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "5307329ddd52f650699788ae2914540cf79b3d5e13707883ed5a11a5293869a8",
+      "installedSHA256": "5307329ddd52f650699788ae2914540cf79b3d5e13707883ed5a11a5293869a8"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_protocol.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "4b6e5c83b34d5f39c72fa7a6f87aca8c27237e0d126243607500c6dd283914f6",
+      "installedSHA256": "4b6e5c83b34d5f39c72fa7a6f87aca8c27237e0d126243607500c6dd283914f6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_report_file.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "545d1b4f675b27b4107ac3c2335a5232271caeade07d12368ff0e13ff73a7a88",
+      "installedSHA256": "545d1b4f675b27b4107ac3c2335a5232271caeade07d12368ff0e13ff73a7a88"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_result.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "1ea918a6d4299d79bfff19a312caa33c047fd780d7193980ee20572837bbb57f",
+      "installedSHA256": "1ea918a6d4299d79bfff19a312caa33c047fd780d7193980ee20572837bbb57f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_result_json.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "3f7868dc5029c856bac047493cfed8d123b82cb5ede3333d808f27085a6ed8d9",
+      "installedSHA256": "3f7868dc5029c856bac047493cfed8d123b82cb5ede3333d808f27085a6ed8d9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_zones.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "7754f006a3045706edcf1dac70985506039fd3fce95dddbc1947e3823aef24e7",
+      "installedSHA256": "7754f006a3045706edcf1dac70985506039fd3fce95dddbc1947e3823aef24e7"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_crew_zones.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "ab39a5b06a8dbf0a7a486bdbc3035dcdec416122369fb9b7a86058528f44738b",
+      "installedSHA256": "ab39a5b06a8dbf0a7a486bdbc3035dcdec416122369fb9b7a86058528f44738b"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_defense.cpp",
+      "beforeSHA256": "496068ab8336d5f886787ec03c0aa84eb0277f1b33ded9f26c0b7b3960cc0557",
+      "taskSHA256": "ddfdb25bb24d271c2228312a2250e71555027eb67e36a58c239bb0581398e56b",
+      "installedSHA256": "ddfdb25bb24d271c2228312a2250e71555027eb67e36a58c239bb0581398e56b"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_defense.hpp",
+      "beforeSHA256": "68e4342a1411b96a778aad9331494a906cb6d1bed729bc96f2a80b8f34b579e9",
+      "taskSHA256": "27882a9a76346a3c80f21bbd6729538d7f8ec54e5a77deba6fdc119ba5bc04b7",
+      "installedSHA256": "27882a9a76346a3c80f21bbd6729538d7f8ec54e5a77deba6fdc119ba5bc04b7"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_layout.hpp",
+      "beforeSHA256": "e2f2cd312055dcd38638d8f60c7799d018fbbb25f9dc3def725c480017ea3e2e",
+      "taskSHA256": "038c54d653063ed1966af4dbd7f4e0a8575121b6416703bf0b65e7352c3cd9ce",
+      "installedSHA256": "038c54d653063ed1966af4dbd7f4e0a8575121b6416703bf0b65e7352c3cd9ce"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_mission_measurement.hpp",
+      "beforeSHA256": "61096804fcc5ed30a90c472cefab8ba0d096718584363df4ab2baa768f75852a",
+      "taskSHA256": "89a80726ef80bc1165968a47ab8ed475c2bb6788874ee68e1ba9639bdf31a703",
+      "installedSHA256": "89a80726ef80bc1165968a47ab8ed475c2bb6788874ee68e1ba9639bdf31a703"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/scintilla_mission_protocol.hpp",
+      "beforeSHA256": "e3a9dd67b179aa25aba32377d77ae21d71ece351d5cd9d5442b1ec70602a28d5",
+      "taskSHA256": "c5fa5bc986d04a86875bbf60d70b80bdec1d4c062d51525fb4599e7cc954e7dd",
+      "installedSHA256": "c5fa5bc986d04a86875bbf60d70b80bdec1d4c062d51525fb4599e7cc954e7dd"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_adapter.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "829f68e05996d55111afd629eab390729a777dc5a8f052073167f62d8a1a6ff0",
+      "installedSHA256": "829f68e05996d55111afd629eab390729a777dc5a8f052073167f62d8a1a6ff0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_services.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "20399756415371c31d0f6a8eb83b82dd3c2935dad277c17db54cf6cd78d7db9e",
+      "installedSHA256": "20399756415371c31d0f6a8eb83b82dd3c2935dad277c17db54cf6cd78d7db9e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_text_native.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "488e314eceedaca00eac63538955cb6d54e1b061663805fcf2fd14c4d23145f7",
+      "installedSHA256": "488e314eceedaca00eac63538955cb6d54e1b061663805fcf2fd14c4d23145f7"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_wire.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "aab5e60d148bb164c3f4fb320700768abf7ba4f7f0840f5b6b9625aba48b6019",
+      "installedSHA256": "aab5e60d148bb164c3f4fb320700768abf7ba4f7f0840f5b6b9625aba48b6019"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_zones_native.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "d54bcc8c4bf58380e60aa7c55b7681a93cdd8a26aa11b585e93f251eea7c958c",
+      "installedSHA256": "d54bcc8c4bf58380e60aa7c55b7681a93cdd8a26aa11b585e93f251eea7c958c"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "beforeSHA256": "b37b683d9e00b8a929bf8540d0deff0df13ac998a8994664c38decb52395a6dd",
+      "taskSHA256": "b46b9c5afa2c4ba4fbd8cf3dd9a989ccac31424d8a02406a4ebd74871f580354",
+      "installedSHA256": "b46b9c5afa2c4ba4fbd8cf3dd9a989ccac31424d8a02406a4ebd74871f580354"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+      "beforeSHA256": "403f894c109e22a1ec440afbd1eb925ba90c0d39ec674795ab20feed266cee5c",
+      "taskSHA256": "7b95422f54c77e93ae8447785381df8f43f45747cc3f1de0234ee16c019ba0da",
+      "installedSHA256": "7b95422f54c77e93ae8447785381df8f43f45747cc3f1de0234ee16c019ba0da"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "beforeSHA256": "34e82f732516d7afc5e00980bc79cba8adc58c745b6a925860ada0c9085eac31",
+      "taskSHA256": "b4c4dba6e8d11a3c9d62c8578a06fdf91e56fb7e2f135031c233d42b77024df6",
+      "installedSHA256": "b4c4dba6e8d11a3c9d62c8578a06fdf91e56fb7e2f135031c233d42b77024df6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "beforeSHA256": "bd55035eed1763414f06cf4a532417453e26955bd84b984522c027736f5a2564",
+      "taskSHA256": "a1ed305be15db7baa4ceb4da77c4886d99befd2dc826070eee198a1f2ff694f6",
+      "installedSHA256": "a1ed305be15db7baa4ceb4da77c4886d99befd2dc826070eee198a1f2ff694f6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "src/modes/immersive_relay/spatial/scintilla_measurement_native.hpp",
+      "beforeSHA256": "78b55e39c131850e91dd253aae2ab648e3ab6f0a242708d634f659df6c6603df",
+      "taskSHA256": "c1459612d72ea3ad9dc0af3adbc1dc8255062d110d63536c2e50eba46237c4cb",
+      "installedSHA256": "c1459612d72ea3ad9dc0af3adbc1dc8255062d110d63536c2e50eba46237c4cb"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/QUALIFICA_SC5.md",
+      "beforeSHA256": null,
+      "taskSHA256": "97bf7251ef140872845961ea5eaffb525a39a8022207d5ed4a7543871c41c144",
+      "installedSHA256": "97bf7251ef140872845961ea5eaffb525a39a8022207d5ed4a7543871c41c144"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/QUALIFICA_ZONE_PARTY_SC5.md",
+      "beforeSHA256": null,
+      "taskSHA256": "a1247466fd2d13d002867ed1f646f7f0a183c1908ca2899b1fa8b9c59d34979a",
+      "installedSHA256": "a1247466fd2d13d002867ed1f646f7f0a183c1908ca2899b1fa8b9c59d34979a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/check_mission_intro_assets.py",
+      "beforeSHA256": "8277896e84918b94d2229610ba606b9edc96fde072532ea49256e2b621cd5f7d",
+      "taskSHA256": "208e61e6ea4d529b3b2e2583f2ca3ed05792d6dece185aca0f56efc5b13ddda8",
+      "installedSHA256": "208e61e6ea4d529b3b2e2583f2ca3ed05792d6dece185aca0f56efc5b13ddda8"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/collect_mission_measurement.py",
+      "beforeSHA256": "d4b316fcc894197a808ca9f393b8eb3eaf3e1717d638067bd974a28b3f33949f",
+      "taskSHA256": "3af25c60e3a73d3f57623b1e0ab43fedfee12c905063cdb0a05477a21e87b20e",
+      "installedSHA256": "3af25c60e3a73d3f57623b1e0ab43fedfee12c905063cdb0a05477a21e87b20e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/create_mission_intro.py",
+      "beforeSHA256": "deceab78d3899c2fdfab48eac6940f33a29e093719977c1792fe92b7c42c1918",
+      "taskSHA256": "2ff6fcf759a27565fb4a9b5e950e27eed24d519b50e9443a055bc91f0e86987c",
+      "installedSHA256": "2ff6fcf759a27565fb4a9b5e950e27eed24d519b50e9443a055bc91f0e86987c"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/test_crew_intro.py",
+      "beforeSHA256": null,
+      "taskSHA256": "e76ae6c461275918517483422180665fc6450aded97d290516fd24117896db1e",
+      "installedSHA256": "e76ae6c461275918517483422180665fc6450aded97d290516fd24117896db1e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/test_mission_qualification.py",
+      "beforeSHA256": "a709d0efbb0ae58df500a4da7196116b784749958005662724dc40bdc25bdd12",
+      "taskSHA256": "2e7eab37ddb6a9a66924e0a47aed3403325a70f90a021ac69b9f35e638517aee",
+      "installedSHA256": "2e7eab37ddb6a9a66924e0a47aed3403325a70f90a021ac69b9f35e638517aee"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/test_party_zones.py",
+      "beforeSHA256": null,
+      "taskSHA256": "6b746ce2f51a01629e41c7764b695d57b5a1f772ce117ae8f56e311dd14a7783",
+      "installedSHA256": "6b746ce2f51a01629e41c7764b695d57b5a1f772ce117ae8f56e311dd14a7783"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/validate_mission_qualification.py",
+      "beforeSHA256": "f1ace33eb42732fe004c607b8dd78e39a16f8dba94cfb60895bd6a9e7b2a4a16",
+      "taskSHA256": "275feb02022d5a34fc05709f6fdce08a110d2f305a8f53cb1db811c024868d34",
+      "installedSHA256": "275feb02022d5a34fc05709f6fdce08a110d2f305a8f53cb1db811c024868d34"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/scintilla/validate_party_zones.py",
+      "beforeSHA256": null,
+      "taskSHA256": "c9e4d8ba900249e23eced96632af831d6248ba0bca6a053b6d5d4ba1c958eff4",
+      "installedSHA256": "c9e4d8ba900249e23eced96632af831d6248ba0bca6a053b6d5d4ba1c958eff4"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/CMakeLists.txt",
+      "beforeSHA256": "4ca2e84c4b5d21c2c405a007296f9d6efc0051053b6f3e6e24437b9e526313ba",
+      "taskSHA256": "15a5e501112e1f6b5594fe21e5c62432f3e9788c07cb4c74b98cf61f823a2ff9",
+      "installedSHA256": "15a5e501112e1f6b5594fe21e5c62432f3e9788c07cb4c74b98cf61f823a2ff9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/check_scintilla_crew_physics_source.py",
+      "beforeSHA256": null,
+      "taskSHA256": "4c0d0160a33d73a34ed8effa69b00d83028f22833c6b9eefae9b8231865d5508",
+      "installedSHA256": "4c0d0160a33d73a34ed8effa69b00d83028f22833c6b9eefae9b8231865d5508"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/check_scintilla_crew_render_source.py",
+      "beforeSHA256": null,
+      "taskSHA256": "80c6739572ed99dc1f71bc54293edfe8be78a15a7f764d9e4e22abb2cf7527bb",
+      "installedSHA256": "80c6739572ed99dc1f71bc54293edfe8be78a15a7f764d9e4e22abb2cf7527bb"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/check_scintilla_crew_report_source.py",
+      "beforeSHA256": null,
+      "taskSHA256": "7e8bb98e5c689d2472dcbf1b8d6529e7a9540115da65396ac82971ea0e132689",
+      "installedSHA256": "7e8bb98e5c689d2472dcbf1b8d6529e7a9540115da65396ac82971ea0e132689"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/check_scintilla_crew_wire_source.py",
+      "beforeSHA256": null,
+      "taskSHA256": "e71b9ca7328d8dc9359a71ccddfd3187427cef0c974c26a2f48f75b346256349",
+      "installedSHA256": "e71b9ca7328d8dc9359a71ccddfd3187427cef0c974c26a2f48f75b346256349"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/crew_controller_stubs/io/file_manager.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "8858fb1151ac6e3ea965d0ffc498c7883479cad2cc479292d4cc54fb298bd643",
+      "installedSHA256": "8858fb1151ac6e3ea965d0ffc498c7883479cad2cc479292d4cc54fb298bd643"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/crew_controller_stubs/modes/immersive_relay/render/immersive_render_pipeline.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "1d11011fa8e9feef602d4da1e939ede4f17e97306a9b464524880f48eafa5568",
+      "installedSHA256": "1d11011fa8e9feef602d4da1e939ede4f17e97306a9b464524880f48eafa5568"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/crew_controller_stubs/race/race_manager.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "2b607b8d721b0def67039ed6993f0399582c3758bbdd12c68a9c3edb89b3a65d",
+      "installedSHA256": "2b607b8d721b0def67039ed6993f0399582c3758bbdd12c68a9c3edb89b3a65d"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/crew_controller_stubs/utils/log.hpp",
+      "beforeSHA256": null,
+      "taskSHA256": "b115b83840175e6718aadb541b45490a275fa291be86451ffa3d78f13b4951a2",
+      "installedSHA256": "b115b83840175e6718aadb541b45490a275fa291be86451ffa3d78f13b4951a2"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_boost_math_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "909790d9e7cb6dd23a9ba274666177006f329f6e89a32b68ea2aed3e2a2ff9ee",
+      "installedSHA256": "909790d9e7cb6dd23a9ba274666177006f329f6e89a32b68ea2aed3e2a2ff9ee"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_controller_boundaries.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "af76a26256a99afc8be15ea3f02c46d01973f6894dca6f311ae6018a098b4d16",
+      "installedSHA256": "af76a26256a99afc8be15ea3f02c46d01973f6894dca6f311ae6018a098b4d16"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_controller_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "2a82d32a1e9aa1ce714d7755cd3a39b8daecfe7af5117fdfbcea904824c5ce0e",
+      "installedSHA256": "2a82d32a1e9aa1ce714d7755cd3a39b8daecfe7af5117fdfbcea904824c5ce0e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_protocol_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "f65c675643d25ae0610200d7b16d33636ae8fb90d151c4a65239438a971d5060",
+      "installedSHA256": "f65c675643d25ae0610200d7b16d33636ae8fb90d151c4a65239438a971d5060"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "c24e8eb602abb3fccc3677f7dcb12da79083ae09a2b0c9b5d87d503a05de6de4",
+      "installedSHA256": "c24e8eb602abb3fccc3677f7dcb12da79083ae09a2b0c9b5d87d503a05de6de4"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_result_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "61eccaa782ccda5114947aab6af8b52a28bf110513a3af74cd638ea8b4acfc1a",
+      "installedSHA256": "61eccaa782ccda5114947aab6af8b52a28bf110513a3af74cd638ea8b4acfc1a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_services_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "8c381b60acdb294383cf80e373c338889308d9a53319c5860b07ff15b99a669a",
+      "installedSHA256": "8c381b60acdb294383cf80e373c338889308d9a53319c5860b07ff15b99a669a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_crew_zones_regression.cpp",
+      "beforeSHA256": null,
+      "taskSHA256": "4f803ed4440589e7248e72d54755ea3d63f276ac925454a34ee30bbb94cb21ef",
+      "installedSHA256": "4f803ed4440589e7248e72d54755ea3d63f276ac925454a34ee30bbb94cb21ef"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_defense_cases.inc",
+      "beforeSHA256": "5e9c9a9610a9369ae05d6e036953090728a2cb299161c29d9a349a3681bc36b2",
+      "taskSHA256": "3201e9cbfcd471ccf7c1398231faf0759b6151073b0ade4e20e4dd1443212a00",
+      "installedSHA256": "3201e9cbfcd471ccf7c1398231faf0759b6151073b0ade4e20e4dd1443212a00"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_defense_regression.cpp",
+      "beforeSHA256": "a4c073cfd4b50f8990c03136a6c471f094876515d78a5529c0911b77efa6010a",
+      "taskSHA256": "4c229387b10faf5e55297b4f013773d70e726e25ca0de85fa507c600f9a1d988",
+      "installedSHA256": "4c229387b10faf5e55297b4f013773d70e726e25ca0de85fa507c600f9a1d988"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_input_cases.inc",
+      "beforeSHA256": "5925c489e805a826d0e649ee0636ad9f71aef998e57fdfafb20214739f44a94a",
+      "taskSHA256": "b39e459b0fa58958099ddecbfbe4cd52771d50d1d8a49dd044d830877b3d2fdb",
+      "installedSHA256": "b39e459b0fa58958099ddecbfbe4cd52771d50d1d8a49dd044d830877b3d2fdb"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+      "beforeSHA256": "e2f9fc607d479cb05e76ea44ef6f48c1ac8cd9f12c22d72746f66628e0e446c2",
+      "taskSHA256": "d140c1048393e3ea6cfa1166d69cdf4c0804065113dab1954e7ff5b75a607683",
+      "installedSHA256": "d140c1048393e3ea6cfa1166d69cdf4c0804065113dab1954e7ff5b75a607683"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_mission_measurement_regression.cpp",
+      "beforeSHA256": "7a8c3070144b8d0410332409802fae7bd2bb39eaad4f93f8f0ba585078d9a538",
+      "taskSHA256": "56ec44568e02e81298d5aaa08470778c2d6f0268a13a3d82c49338865475a6a0",
+      "installedSHA256": "56ec44568e02e81298d5aaa08470778c2d6f0268a13a3d82c49338865475a6a0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "tools/immersive/tests/scintilla_mission_protocol_regression.cpp",
+      "beforeSHA256": "d26135a6810e250ccac3c2c1e70ef11dc051a24a6972050f4e0c93cb8e3aa84b",
+      "taskSHA256": "a9d24f501732371e67ef15879fc11df84b97d3c2f71ca08feed4997f2f839144",
+      "installedSHA256": "a9d24f501732371e67ef15879fc11df84b97d3c2f71ca08feed4997f2f839144"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/MATRICE_VERIFICHE.md",
+      "beforeSHA256": null,
+      "taskSHA256": "dcdcf4ab8ac6673d7fcede2c6e8c3380c6bd02958ef48c0e8c02c44987448ea1",
+      "installedSHA256": "dcdcf4ab8ac6673d7fcede2c6e8c3380c6bd02958ef48c0e8c02c44987448ea1"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/README.md",
+      "beforeSHA256": null,
+      "taskSHA256": "fab5103a02d5caa7e8385323583abc7f56b16971fcd73c17700117e371360f35",
+      "installedSHA256": "fab5103a02d5caa7e8385323583abc7f56b16971fcd73c17700117e371360f35"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/collector-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "006ac55040db8bd82eeb2e5abab682d80dc719e313b23af3bbac2921bafb69a1",
+      "installedSHA256": "006ac55040db8bd82eeb2e5abab682d80dc719e313b23af3bbac2921bafb69a1"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/crew_physics-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "baf49b59538192f3e136ca0404cac516ecb8dd2fe5ba1416604056f3080fa49c",
+      "installedSHA256": "baf49b59538192f3e136ca0404cac516ecb8dd2fe5ba1416604056f3080fa49c"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/crew_render-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "b95b5805bef96b568b1b2424b637003cd6f306e6312d682e4f2e4e23f635b26a",
+      "installedSHA256": "b95b5805bef96b568b1b2424b637003cd6f306e6312d682e4f2e4e23f635b26a"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/crew_report-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "0c9b6d67c9ca2e2e2d8094f87d907337fcade2e52b38a7d2864d80f7391677aa",
+      "installedSHA256": "0c9b6d67c9ca2e2e2d8094f87d907337fcade2e52b38a7d2864d80f7391677aa"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/crew_wire-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "65378dcad145da2497120819bebfc3c46534dce9714ce064b3d809a56654aca2",
+      "installedSHA256": "65378dcad145da2497120819bebfc3c46534dce9714ce064b3d809a56654aca2"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/host-phase8-9-new-test-methods.json",
+      "beforeSHA256": null,
+      "taskSHA256": "0e9d3afc3c2e7129fed8f54800f5546422146917545398a4055fdc0339bff79f",
+      "installedSHA256": "0e9d3afc3c2e7129fed8f54800f5546422146917545398a4055fdc0339bff79f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/host-phase9-source-review.json",
+      "beforeSHA256": null,
+      "taskSHA256": "3141ae577e6cd7ea56912ba2c0fb7c2d8c1f7381411034eeb02a84726c7de654",
+      "installedSHA256": "3141ae577e6cd7ea56912ba2c0fb7c2d8c1f7381411034eeb02a84726c7de654"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/host-test-registration.json",
+      "beforeSHA256": null,
+      "taskSHA256": "a1c6c86057c28ca6e0d49195c52eef3aade3d8bf1e0542e5ef44d8397faddfa3",
+      "installedSHA256": "a1c6c86057c28ca6e0d49195c52eef3aade3d8bf1e0542e5ef44d8397faddfa3"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/intro-party-assets.json",
+      "beforeSHA256": null,
+      "taskSHA256": "d20200c6b4bb933855aa78fc606c362d414dcccb092f15cc13232e717314d775",
+      "installedSHA256": "d20200c6b4bb933855aa78fc606c362d414dcccb092f15cc13232e717314d775"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/intro-schema-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "017368f6db5a1472f9df28d0711729485e5fcd709cacfdf66e9e0548bcd2b76e",
+      "installedSHA256": "017368f6db5a1472f9df28d0711729485e5fcd709cacfdf66e9e0548bcd2b76e"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/intro-standard-assets.json",
+      "beforeSHA256": null,
+      "taskSHA256": "ae751c458ae231de862b3051be6b69e4d83b93f0db89ddc8f80e2c8c08748a39",
+      "installedSHA256": "ae751c458ae231de862b3051be6b69e4d83b93f0db89ddc8f80e2c8c08748a39"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/localization-final-guard.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "afad43d0dfc70d31e75678bf70b3db63d4ca183b0302a368085b299442f889c0",
+      "installedSHA256": "afad43d0dfc70d31e75678bf70b3db63d4ca183b0302a368085b299442f889c0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/mission_api-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "d0730c06a1344b6afdc593442aae37960c149018746ed218345ba2cc95a540e9",
+      "installedSHA256": "d0730c06a1344b6afdc593442aae37960c149018746ed218345ba2cc95a540e9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/mission_finish-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "789e5f3c3cf42946693ff99cdd39d44443cbc58a7ad5d3eb379cfb57f0a3a18f",
+      "installedSHA256": "789e5f3c3cf42946693ff99cdd39d44443cbc58a7ad5d3eb379cfb57f0a3a18f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/mission_hud-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "3066ef31ae5391e45f39a501f268afd2100b83b583167f0f1fb19c66bfb998e6",
+      "installedSHA256": "3066ef31ae5391e45f39a501f268afd2100b83b583167f0f1fb19c66bfb998e6"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/mission_lifecycle-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "28ad248882a104fe950725ac55105f435de0070a07d10aee489bdc43c05b0e91",
+      "installedSHA256": "28ad248882a104fe950725ac55105f435de0070a07d10aee489bdc43c05b0e91"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/mission_presentation-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "6a8b94ebd5b10d7956ce07c324611d186150936c9402c623ca070392a736666f",
+      "installedSHA256": "6a8b94ebd5b10d7956ce07c324611d186150936c9402c623ca070392a736666f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/party-zones-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "44da5ff3d8732677572559b618a09686fa21efd87af4d2b415dc65f98118d47f",
+      "installedSHA256": "44da5ff3d8732677572559b618a09686fa21efd87af4d2b415dc65f98118d47f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/phase7-software-verification.md",
+      "beforeSHA256": null,
+      "taskSHA256": "60dcf4de6008cbe08548ea1abd4c2b3476d87bea402705f7f6e338a253c97b83",
+      "installedSHA256": "60dcf4de6008cbe08548ea1abd4c2b3476d87bea402705f7f6e338a253c97b83"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/phase9-review.json",
+      "beforeSHA256": null,
+      "taskSHA256": "156989a68c507218d48aa2d94ed43e6326b7766b8c579f9038596d8ecd167ee9",
+      "installedSHA256": "156989a68c507218d48aa2d94ed43e6326b7766b8c579f9038596d8ecd167ee9"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/plan-math-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "8ebdf05054f4c55918cdb5a494ae560b4af6446c0896785cba87b4119e4589eb",
+      "installedSHA256": "8ebdf05054f4c55918cdb5a494ae560b4af6446c0896785cba87b4119e4589eb"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/projection-source-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "26dec29e4de2d2e85f9755ae6caf62fae77e6bdeab5f3588db8df2687f7f7767",
+      "installedSHA256": "26dec29e4de2d2e85f9755ae6caf62fae77e6bdeab5f3588db8df2687f7f7767"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/qualification-final.txt",
+      "beforeSHA256": null,
+      "taskSHA256": "6a23b2caf5958e9182ee2d8697043da37ab752edc6b0be534e820160d49c9a62",
+      "installedSHA256": "6a23b2caf5958e9182ee2d8697043da37ab752edc6b0be534e820160d49c9a62"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/registration-final.json",
+      "beforeSHA256": null,
+      "taskSHA256": "b5da0ea4de31b2d880b05f896529dcb3a6c9e040c0396c0172ff9d5cf6d7da0c",
+      "installedSHA256": "b5da0ea4de31b2d880b05f896529dcb3a6c9e040c0396c0172ff9d5cf6d7da0c"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/software-checks-final.json",
+      "beforeSHA256": null,
+      "taskSHA256": "d06f3ecfbf71412c84e83a7e6a86d8b64f59c0e76f015533f7a48d778cd121b0",
+      "installedSHA256": "d06f3ecfbf71412c84e83a7e6a86d8b64f59c0e76f015533f7a48d778cd121b0"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/source-hygiene-final.json",
+      "beforeSHA256": null,
+      "taskSHA256": "86159cb0cf49e54f8e39857b7d3d4d1a3033587590e8dd5b1525e7f3d2574ebb",
+      "installedSHA256": "86159cb0cf49e54f8e39857b7d3d4d1a3033587590e8dd5b1525e7f3d2574ebb"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/task-catalog-keys.json",
+      "beforeSHA256": null,
+      "taskSHA256": "033b0d505c918164a399d41a4d66b9eabbbb7844714ee8e9c123c2dfb957fbb3",
+      "installedSHA256": "033b0d505c918164a399d41a4d66b9eabbbb7844714ee8e9c123c2dfb957fbb3"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKCrewHTTP.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "65629e434715db0d950ff6a050dfb31d20cad9c62e92ac52d05250b7edd4bc0b",
+      "installedSHA256": "65629e434715db0d950ff6a050dfb31d20cad9c62e92ac52d05250b7edd4bc0b"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKCrewPreparationFlow.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "70088de738c1b3e4e5e6c0388ae1a82fba574e23280804fb6e086436e5624d7e",
+      "installedSHA256": "70088de738c1b3e4e5e6c0388ae1a82fba574e23280804fb6e086436e5624d7e"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKIntroMedia.swift",
+      "beforeSHA256": "a9f65e71147186ae49f9b36cc03b64803f0b3b1e6dacee8b687154d846d0afb4",
+      "taskSHA256": "6a96577d6be7e012d187ca90c6c33f681c800b96e22a69ff53267c09b1399138",
+      "installedSHA256": "6a96577d6be7e012d187ca90c6c33f681c800b96e22a69ff53267c09b1399138"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialCommissioning.swift",
+      "beforeSHA256": "66b983272abc2ea9d9a35d35b565796ada135bfaba57b1c36f6098bfb76d5a2b",
+      "taskSHA256": "671abedc562c82bda1e626ed3eab437b5c9fb25e7f8f0daf0addedce83feb679",
+      "installedSHA256": "671abedc562c82bda1e626ed3eab437b5c9fb25e7f8f0daf0addedce83feb679"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+      "beforeSHA256": "bc0be7b73db3d774d7708fdb85c0327fa2afb9dc38907f809897b05cdcd98f31",
+      "taskSHA256": "398fb9b7c075827d4ca134309bce2f02b505bb9c680a9e1141c05041f3ff3421",
+      "installedSHA256": "398fb9b7c075827d4ca134309bce2f02b505bb9c680a9e1141c05041f3ff3421"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+      "beforeSHA256": "f3574a9381835eced237fe4fa0fd90e5d2744af509dc1a861ccb42da2a914aa8",
+      "taskSHA256": "33f6b985969634cef81078fec0cfeb8e3d28d35465ecc9f65a03f2284661de7d",
+      "installedSHA256": "33f6b985969634cef81078fec0cfeb8e3d28d35465ecc9f65a03f2284661de7d"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialInputSession.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "50a62bdc78f04fbcf8fbe964f33fb4a3f64bc3dd43673d0b70b26e995310b87c",
+      "installedSHA256": "50a62bdc78f04fbcf8fbe964f33fb4a3f64bc3dd43673d0b70b26e995310b87c"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+      "beforeSHA256": "eb0c782f6687c8a3f04d47d8b7a89ba2610c3d2b9d6e102c8166f59130d49b8f",
+      "taskSHA256": "461a1368cb2c560536bd28715f8672ad4105b9ddbb60d84d499280cf9824cc63",
+      "installedSHA256": "461a1368cb2c560536bd28715f8672ad4105b9ddbb60d84d499280cf9824cc63"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIModels.swift",
+      "beforeSHA256": "e562e4d09be1d5e36079768e55a851cdb8372bffc39449729b97048fa2713062",
+      "taskSHA256": "948d505e9a99379d7867dc485922ba7aaf5f741deab789b3fb98840b210c4165",
+      "installedSHA256": "948d505e9a99379d7867dc485922ba7aaf5f741deab789b3fb98840b210c4165"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "beforeSHA256": "3a3aada138ea686d0167601c4fd0b563651531507687c0f696efc7af895a47f5",
+      "taskSHA256": "35361bfa4c3b6345e394ef1476a9759c9ac9bd62844a1e2769d4d2db73e33812",
+      "installedSHA256": "35361bfa4c3b6345e394ef1476a9759c9ac9bd62844a1e2769d4d2db73e33812"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/Workspace/GamesSTKCrewResultView.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "abc54794ea948f8dac878d0b153626eda10b9a26dab4e963eca41b06022574cd",
+      "installedSHA256": "abc54794ea948f8dac878d0b153626eda10b9a26dab4e963eca41b06022574cd"
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/Workspace/GamesSTKSpatialInputView.swift",
+      "beforeSHA256": "6badaf838590d028295e1817ea6b2ed6e37537f7db222ef4284648b191fbb720",
+      "taskSHA256": "6f94aebfc51b3786f457283abe11b0564d3f0cd6d47fb6947ea338834bc636ef",
+      "installedSHA256": "6f94aebfc51b3786f457283abe11b0564d3f0cd6d47fb6947ea338834bc636ef"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewCapability.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "8fdb66267f4b9c4942f7dda1fa42df9e307ce9119268a7ffebc95a3b18e0ce74",
+      "installedSHA256": "8fdb66267f4b9c4942f7dda1fa42df9e307ce9119268a7ffebc95a3b18e0ce74"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewContract.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "ded12372647c5d924559cc2f051df797c9a011f4144ca6624f5fecac17d0c5cf",
+      "installedSHA256": "ded12372647c5d924559cc2f051df797c9a011f4144ca6624f5fecac17d0c5cf"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewIdentity.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "368837b62bd50e4ddec801c9ae9dab80b8390465135dfccfc7d53f4241bad3ed",
+      "installedSHA256": "368837b62bd50e4ddec801c9ae9dab80b8390465135dfccfc7d53f4241bad3ed"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewParticipant.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "18ecac1e2dde90df7fca79f1a8d26eac9f47642b9359f6e251e3285716dc952b",
+      "installedSHA256": "18ecac1e2dde90df7fca79f1a8d26eac9f47642b9359f6e251e3285716dc952b"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewPossession.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "6e32ebdb3b1a32ba6034c4ee82ceb2c0f01f7c2b32befa4a2ee9504ded292d5d",
+      "installedSHA256": "6e32ebdb3b1a32ba6034c4ee82ceb2c0f01f7c2b32befa4a2ee9504ded292d5d"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewRequest.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "fd05d656a550b493d358c601c1a3e54267f3a08ec56698a510c6c4f1694b515e",
+      "installedSHA256": "fd05d656a550b493d358c601c1a3e54267f3a08ec56698a510c6c4f1694b515e"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewResult.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "eaec35edc0e83be43f3b154fb9554bf2d1c1bc7dba2d93b8577489dd8f0fb62d",
+      "installedSHA256": "eaec35edc0e83be43f3b154fb9554bf2d1c1bc7dba2d93b8577489dd8f0fb62d"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewResultParameters.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "de382e298f56a40272a93a0b623f454a7d4c5b726a9605a6e11fdaa0344f99c7",
+      "installedSHA256": "de382e298f56a40272a93a0b623f454a7d4c5b726a9605a6e11fdaa0344f99c7"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewState.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "db18bf356e963422932eabe09fd8fa9b79ff239ec0551c715464a4b010255533",
+      "installedSHA256": "db18bf356e963422932eabe09fd8fa9b79ff239ec0551c715464a4b010255533"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionIntroManifest.swift",
+      "beforeSHA256": "be2e416588c50909efc6bdfdbd91604038f045ddddb2ac33f5ed75a7a16facd5",
+      "taskSHA256": "b751413ae4eff51f30980d368feb930e6ef908d1ab056b6687e35e3542259873",
+      "installedSHA256": "b751413ae4eff51f30980d368feb930e6ef908d1ab056b6687e35e3542259873"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionIntroState.swift",
+      "beforeSHA256": "c49277bc24683ab557770d3a6cc3b866463bd1d24eb134f24ffc3c94035df644",
+      "taskSHA256": "fdc10f82c12c248e05f00811eb9dcb832bdcd15321a55f8e1219189fb94cb8a3",
+      "installedSHA256": "fdc10f82c12c248e05f00811eb9dcb832bdcd15321a55f8e1219189fb94cb8a3"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionState.swift",
+      "beforeSHA256": "5095d6d9dd97d9a6d0ee6490007de204dbbf3319bb823f066585d73cb29854ac",
+      "taskSHA256": "6b636ed8e877d1bbc0f5746ea3b630676ffdb88b63ac3bd7b6dd12f8b58376b3",
+      "installedSHA256": "6b636ed8e877d1bbc0f5746ea3b630676ffdb88b63ac3bd7b6dd12f8b58376b3"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewCapabilityTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "4c4f86818c00267e05f4623636bc71e6a858444d02e9c24bd49d2858346d7845",
+      "installedSHA256": "4c4f86818c00267e05f4623636bc71e6a858444d02e9c24bd49d2858346d7845"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewFixture.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "b60e0105f7811cda14ad04138211833d6cafaba041811fc396d200db4e9b2a0e",
+      "installedSHA256": "b60e0105f7811cda14ad04138211833d6cafaba041811fc396d200db4e9b2a0e"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewIntroTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "00481f8c99e23633d4bc255f38629608d8f90ddfda6309f55c838f0b216a9d19",
+      "installedSHA256": "00481f8c99e23633d4bc255f38629608d8f90ddfda6309f55c838f0b216a9d19"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewPossessionTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "fddff87a30bc645a86fa81c347685d40984fa641b94e846775ca6dd17cd5f8bb",
+      "installedSHA256": "fddff87a30bc645a86fa81c347685d40984fa641b94e846775ca6dd17cd5f8bb"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewResultTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "3a5740d16579f21480f409b7ecb250339bf5550834a6afaf0aaa48b29df6d433",
+      "installedSHA256": "3a5740d16579f21480f409b7ecb250339bf5550834a6afaf0aaa48b29df6d433"
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "f64b6eb750ce038053a3aa4372f291af15d8e95c78a00dbe57bfd7a4dbbe617c",
+      "installedSHA256": "f64b6eb750ce038053a3aa4372f291af15d8e95c78a00dbe57bfd7a4dbbe617c"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKCrewHTTPTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "c0ec2478556adafdeffa08aee81693ad118ff5987d1cf68467d9ddfe3f51dbc5",
+      "installedSHA256": "c0ec2478556adafdeffa08aee81693ad118ff5987d1cf68467d9ddfe3f51dbc5"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKCrewPreparationFlowTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "9e5810fc72a0daf911296660c7f370eb72d566780ed195dcb5fb582efcac2bcf",
+      "installedSHA256": "9e5810fc72a0daf911296660c7f370eb72d566780ed195dcb5fb582efcac2bcf"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKCrewReportTests.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "0f26cb8ba7e6282e737155abf3dcc1c096587475e9dbda6efe3ce10c5feb8490",
+      "installedSHA256": "0f26cb8ba7e6282e737155abf3dcc1c096587475e9dbda6efe3ce10c5feb8490"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKIntroMediaTests.swift",
+      "beforeSHA256": "62dc6df2f5ee1d8908ab825ee8eca6f16df17ad8b12564eb95a05352b651cdb4",
+      "taskSHA256": "701fb49536e1e6446cfa540a00ef3c6734ce21eedc1cd31d228797a6eb5e109a",
+      "installedSHA256": "701fb49536e1e6446cfa540a00ef3c6734ce21eedc1cd31d228797a6eb5e109a"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialActivationTests.swift",
+      "beforeSHA256": "cc602b0341b7d331e9c8400fbbd79fd7e9cf334ef8bbecb1a98b30a2960f0261",
+      "taskSHA256": "c40addaf9850a3759bf4ce91162b1599b9ecbce0d14afc18a8b879f7520795af",
+      "installedSHA256": "c40addaf9850a3759bf4ce91162b1599b9ecbce0d14afc18a8b879f7520795af"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "beforeSHA256": "f80eb0647cc81f77b186886005d2f55fc7050524885a449c9e038f9dbdfa1c29",
+      "taskSHA256": "41dcf3473949f97f0ed03d98baa6b8741c401fde1f1b7ecf0e3fb324656fac4b",
+      "installedSHA256": "41dcf3473949f97f0ed03d98baa6b8741c401fde1f1b7ecf0e3fb324656fac4b"
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ScintillaCrewReportFixture.swift",
+      "beforeSHA256": null,
+      "taskSHA256": "89454725caf53745daee453d471f8094908d16044b0c8e8367f39f1bc296fa3e",
+      "installedSHA256": "89454725caf53745daee453d471f8094908d16044b0c8e8367f39f1bc296fa3e"
+    },
+    {
+      "repo": "host",
+      "path": "scripts/ci/test_app_isolated.py",
+      "beforeSHA256": "1acd42df420161b21f18a1be2414109accf677267c9a53c8d87c3e2304c51f1e",
+      "taskSHA256": "bf08f5e7319f4bf631fc77797cd0400583ed65a19ec3ac0eb7cfa0036836ce29",
+      "installedSHA256": "bf08f5e7319f4bf631fc77797cd0400583ed65a19ec3ac0eb7cfa0036836ce29"
+    },
+    {
+      "repo": "host",
+      "path": "SocialTableController/Localizable.xcstrings",
+      "beforeSHA256": "77d0549b50d4259117096215246f557cad2533f7e9393aa8f41af9a9585af244",
+      "concurrentBeforeSHA256": "13a43e315ab58c673f282c66172fe0c902ebf218af3cf592eba8859b94dac4c4",
+      "taskSHA256": "895cbc992918068871382c5ac39360abb60140a61e55f08fd5590745b2edda8d",
+      "installedSHA256": "6ee4f403acd4afcb063283ceb97f0b4af757ebdad71a0205724fb85e4c73fdb8",
+      "merge": "exact_new_keys_only",
+      "addedTaskKeys": 51,
+      "preservedExistingKeys": 22864,
+      "concurrentOriginalOnlyKeysPreserved": 55
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/CONTRATTO_IMPLEMENTATO.md",
+      "beforeSHA256": null,
+      "taskSHA256": "e4523ef84bab072c3d74aebca8c05f29cbd1ffd9addf1f22b81a81b38074605f",
+      "installedSHA256": "e4523ef84bab072c3d74aebca8c05f29cbd1ffd9addf1f22b81a81b38074605f"
+    },
+    {
+      "repo": "stk-code",
+      "path": "docs/immersive/scintilla/sc5-implementation-2026-10-16/source-inclusion-final.json",
+      "beforeSHA256": null,
+      "taskSHA256": "f74e4fab31c27d0c36e5129bc7254d7ead2c28705bfbcd42d619b13bd21d4bf5",
+      "installedSHA256": "f74e4fab31c27d0c36e5129bc7254d7ead2c28705bfbcd42d619b13bd21d4bf5"
+    }
+  ]
+}

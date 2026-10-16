@@ -1,0 +1,54 @@
+{
+  "baselineHEAD": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+  "files": {
+    "data/shaders/utils/immersive_scintilla.frag": {
+      "baselineSHA256": "58c2878056942156474bab0d93099833131926bbb9e59b98612e4e05fbf4bcef",
+      "deliveredSHA256": "05efa6c96c69afa83076d13cd8e761f75be0cc82af74dfcb390bcbd09ce4c3a0"
+    },
+    "docs/immersive/scintilla/sc3-2026-10-15/API.md": {
+      "baselineSHA256": "903a6ed91fcd29fc6d4b6ce87050079f3b647ddfcb9646b3b3c1f3632a238fd6",
+      "deliveredSHA256": "15e8bfd25d2c44773adf99d7bd595b268a085fea065787a9c495c616b67fef32"
+    },
+    "docs/immersive/scintilla/sc3-2026-10-15/README.md": {
+      "baselineSHA256": "8667a93fc5e00f0f351023a95ba8472234cf96882bd0dea4ae331a57d5f3ef88",
+      "deliveredSHA256": "44ffc1a793ffe0384fb6d904dfe5d06073e6258990e703c087e62a091838dfeb"
+    },
+    "src/modes/immersive_relay/scintilla_defense.cpp": {
+      "baselineSHA256": "27a94a46dfdca41dc2181d55661d8a744e215c1f80ca8d5c5af1d78ebdb1b193",
+      "deliveredSHA256": "496068ab8336d5f886787ec03c0aa84eb0277f1b33ded9f26c0b7b3960cc0557"
+    },
+    "src/modes/immersive_relay/scintilla_defense.hpp": {
+      "baselineSHA256": "f0c6b23c7704fbc02bd8d10f40eeb811bc5f9723015156929b9253d1bca11b29",
+      "deliveredSHA256": "68e4342a1411b96a778aad9331494a906cb6d1bed729bc96f2a80b8f34b579e9"
+    },
+    "src/modes/immersive_relay/scintilla_defense_physics.cpp": {
+      "baselineSHA256": "b4b7d1bfa8bf5861c76241ffc2a9a9c7a4d17a85587a9999542dee31a74b6136",
+      "deliveredSHA256": "d89ac7a32e42b52c2524d36e5fc69c3893de017f5177ad1a86a935341dfbacb1"
+    },
+    "src/modes/immersive_relay/spatial/scintilla_engine.cpp": {
+      "baselineSHA256": "e7f07f41e2c8895ee16641b0486af4b484142f471220ff7a198920150f068700",
+      "deliveredSHA256": "3824f03a43186e6fd6b69b53e1edd2efd90ee0b7aa846b0f6e858c976140b1ad"
+    },
+    "tools/immersive/tests/check_scintilla_defense.py": {
+      "baselineSHA256": "f7f73bb43527ffc4446291a1bbad55eb638fc91596a983f6fdb32cd6a1e8835f",
+      "deliveredSHA256": "5db228280b685d5cff381162feb978a4973dbbc236aa3eed06466872d4372223"
+    },
+    "tools/immersive/tests/scintilla_defense_cases.inc": {
+      "baselineSHA256": "dcc5a85cffc7a93f4baa62a30a59a9e86eb7c6f887707eae9649e7aaa580f519",
+      "deliveredSHA256": "5e9c9a9610a9369ae05d6e036953090728a2cb299161c29d9a349a3681bc36b2"
+    },
+    "tools/immersive/tests/scintilla_defense_regression.cpp": {
+      "baselineSHA256": "3e639ee46f2d08de7c08ceeb2ccd9451ae5ab50922308bb6e4d6458c19c3e238",
+      "deliveredSHA256": "a4c073cfd4b50f8990c03136a6c471f094876515d78a5529c0911b77efa6010a"
+    },
+    "docs/immersive/scintilla/sc3-final-three-fixes-2026-10-15/README.md": {
+      "baselineSHA256": null,
+      "deliveredSHA256": "251423e4b8e2e7b1ad312043ca8e0d2204c0939ed9f1e0b18438c04e2fff7957"
+    },
+    "docs/immersive/scintilla/sc3-final-three-fixes-2026-10-15/verification.json": {
+      "baselineSHA256": null,
+      "deliveredSHA256": "f03555384c767b8b3d5736b921d6e3dbd61b6b208cf9d0f58ce6199cb6b553b7"
+    }
+  },
+  "manifestSelfHashExcluded": true
+}

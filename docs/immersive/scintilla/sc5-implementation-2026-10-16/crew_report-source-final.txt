@@ -1,0 +1,12 @@
+test_artificial_report_freezes_and_publishing_preserves_original_record (__main__.CrewReportSource.test_artificial_report_freezes_and_publishing_preserves_original_record) ... ok
+test_held_atlas_copy_and_shader_uv_share_bounded_nonoverlapping_regions (__main__.CrewReportSource.test_held_atlas_copy_and_shader_uv_share_bounded_nonoverlapping_regions) ... ok
+test_natural_freeze_precedes_admission_close_and_result_publication (__main__.CrewReportSource.test_natural_freeze_precedes_admission_close_and_result_publication) ... ok
+test_one_serializer_connects_state_http_report_and_persisted_report (__main__.CrewReportSource.test_one_serializer_connects_state_http_report_and_persisted_report) ... ok
+test_party_bucket_depends_on_profile_even_with_no_activations (__main__.CrewReportSource.test_party_bucket_depends_on_profile_even_with_no_activations) ... ok
+test_terminal_hud_uses_frozen_identity_and_reuses_existing_uniforms (__main__.CrewReportSource.test_terminal_hud_uses_frozen_identity_and_reuses_existing_uniforms) ... ok
+test_terminal_participants_are_the_same_frozen_copy_as_the_envelope (__main__.CrewReportSource.test_terminal_participants_are_the_same_frozen_copy_as_the_envelope) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.015s
+
+OK

@@ -16,7 +16,10 @@
 #include "modes/immersive_relay/arcade_session_state_machine.hpp"
 #include "modes/immersive_relay/relay_difficulty_director.hpp"
 #include "modes/immersive_relay/relay_pilot_rotation.hpp"
+#include "modes/immersive_relay/scintilla_mission.hpp"
+#include "modes/immersive_relay/scintilla_crew_result.hpp"
 
+#include <cstdint>
 #include <map>
 #include <mutex>
 #include <string>
@@ -112,6 +115,10 @@ struct RelaySessionReport
     bool m_crew_actions_enabled;
     int m_crew_actions_accepted;
 
+    // Additive authoritative mission result; legacy rank/score keep their meaning.
+    ScintillaMission::Result m_mission;
+    ScintillaCrew::Result m_scintilla_crew;
+
     RelaySessionReport();
 };
 
@@ -134,6 +141,8 @@ struct RelaySessionSnapshot
     int m_world_elapsed_ms;
     bool m_paused;
     bool m_presentation_ready;
+    bool m_mission_required;
+    bool m_mission_presentation_held;
     RelaySessionState m_state;
     unsigned int m_state_version;
     std::string m_session_id;
@@ -222,6 +231,15 @@ struct RelaySessionSnapshot
     std::vector<RelayCrewPhoneState> m_phone_states;
 };
 
+// Immutable lifecycle evidence, read on the game thread without calling a
+// spatial consumer while the controller mutex is held.
+struct RelaySpatialGameplayState
+{
+    bool m_active;
+    uint64_t m_resume_revision;
+    int64_t m_resume_at_us;
+};
+
 class RelaySessionController
 {
 private:
@@ -237,6 +255,22 @@ private:
     int m_world_elapsed_ms;
     bool m_paused;
     bool m_presentation_ready;
+    bool m_scintilla_start_permitted;
+    bool m_crew_required;
+    bool m_crew_start_permitted;
+    bool m_crew_handoff_ready_required;
+    bool m_crew_pending_administrative_handoff;
+    int m_crew_observed_completed_handoffs;
+    uint64_t m_crew_administrative_handoffs;
+    bool m_mission_required;
+    bool m_mission_presentation_held;
+    ScintillaMission::Result m_mission_observation;
+    ScintillaMission::Result m_mission_result;
+    ScintillaCrew::Observation m_crew_report_observation;
+    ScintillaCrew::Result m_crew_result;
+    bool m_spatial_world_held;
+    uint64_t m_spatial_resume_revision;
+    int64_t m_spatial_resume_at_us;
     RelaySessionState m_state;
     RelaySessionState m_state_before_handoff;
     unsigned int m_state_version;
@@ -286,6 +320,11 @@ private:
     float m_rotation_time;
     bool m_last_safe_for_handoff;
 
+    bool isWorldHeldLocked() const;
+    bool missionBlocksGameplayLocked() const;
+    bool crewBlocksGameplayLocked() const;
+    void resetCrewAdmissionLocked();
+    bool acknowledgeCrewHandoffReadyLocked(const std::string& player_id,std::string* reject_reason);
     void bumpVersionLocked();
     bool transitionArcadeLocked(ArcadeSessionState state,
                                 const std::string& reason,
@@ -296,6 +335,8 @@ private:
     void resetArcadeRuntimeLocked(bool keep_configuration);
     RelaySessionReport buildReportLocked(const std::string& final_result) const;
     void publishReportLocked(const std::string& final_result);
+    void finalizeMissionArtificialLocked(const std::string& reason);
+    ScintillaCrew::Observation crewReportObservationLocked() const;
     void configureCrewRolesLocked();
     void recordPilotTurnForLapLocked(int lap);
     CrewEncounterTriggerContext buildTriggerContextLocked() const;
@@ -354,12 +395,15 @@ public:
     ~RelaySessionController();
 
     static RelaySessionController* get();
+    // Cleanup/resource invalidation must not create a new controller at exit.
+    static RelaySessionController* getExisting() { return m_instance; }
     static void destroy();
 
     void setRuntimeEnabled(bool enabled);
     bool isRuntimeEnabled() const;
     void setOperatorControlled(bool enabled);
     bool isWorldHeld() const;
+    RelaySpatialGameplayState getSpatialGameplayState() const;
     void worldLoadFailed(const std::string& reason);
     void setDefaultPreset(const std::string& preset);
     void setDefaultPlayerCount(int player_count);
@@ -385,6 +429,22 @@ public:
                                 const std::vector<RelayPlayer>& players,
                                 std::string* reject_reason);
     void setPresentationReady(bool ready);
+    // Published by the game-thread Scintilla adapter; never calls it under this mutex.
+    void setScintillaStartPermitted(bool permitted);
+    // Independent SC5 stage B gate. Stage A can advance only while the native
+    // rotation still owns a held handoff; its driver commit closes this gate.
+    void setCrewStartState(bool required,bool permitted);
+    uint64_t getCrewAdministrativeHandoffs() const;
+    bool crewHandoffReadyRequired() const;
+    // Game-thread snapshots enter by value. No consumer/core calls under m_mutex.
+    void beginMissionRace(bool required,const ScintillaMission::Result& observation,
+        const ScintillaCrew::Observation& crew=ScintillaCrew::Observation());
+    void observeMission(bool required,const ScintillaMission::Result& observation,
+        const ScintillaCrew::Observation& crew=ScintillaCrew::Observation());
+    void setMissionPresentationHeld(bool held);
+    ScintillaMission::Result getMissionResult() const;
+    ScintillaCrew::Result getCrewResult() const;
+    void finishMissionArtificial(const std::string& reason);
     bool operatorStart(std::string* reject_reason);
     bool pilotReady(const std::string& player_id, std::string* reject_reason);
     bool setCrewPresence(const std::string& session_id,
@@ -415,12 +475,14 @@ public:
     void updateTrackProgress(int current_lap, float lap_progress,
                              int checkpoint_id, float distance);
     void updateRace(float dt, float race_time, bool safe_for_handoff);
+    void updateWorldClock(float race_time);
     void updateAdaptiveDifficulty(
         const RelayDifficultySnapshot& difficulty);
     void notifyCheckpoint(int checkpoint_id, float distance, float race_time,
                           bool safe_for_handoff);
     void notifyLap(int completed_laps, float race_time,
-                   bool safe_for_handoff);
+                   bool safe_for_handoff,
+                   const ScintillaMission::Result* mission_result=NULL);
     bool forceHandoff(const std::string& player_id, std::string* reject_reason);
     bool skipHandoff();
     bool submitCrewAction(const RelayCrewActionRequest& request,
@@ -430,6 +492,10 @@ public:
     std::string consumeCrewDomeCallout();
 
     bool isHumanInputLocked() const;
+    // Full approved crew, independent of tracking/phone presence.
+    std::vector<std::string> getSpatialCrewIDs() const;
+    // Stable participant order includes the driver; independent of legacy phone roles.
+    std::vector<RelayPlayer> getSpatialParticipants() const;
     RelaySessionSnapshot getSnapshot() const;
 };
 

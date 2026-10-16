@@ -1,0 +1,15 @@
+{
+  "kind": "source_inspection_only",
+  "CMakeConfigured": false,
+  "XcodeProjectLoadedOrBuilt": false,
+  "native": [
+    "sources.cmake GLOB_RECURSE src/*.cpp and src/*.hpp includes new crew sources",
+    "CMake crew targets/cases checked without configure"
+  ],
+  "host": [
+    "PBXFileSystemSynchronizedRootGroup Modules is attached to SocialTableController, only Scheduler/README.md excluded",
+    "Tests/SocialTableControllerTests synchronized root attached to test target; new Crew tests not excluded",
+    "TholusScintillaMission Package.swift uses conventional source/test target discovery; no explicit source exclusions"
+  ],
+  "legacy": "No project-wide Swift mode, deployment target or global isolation change"
+}

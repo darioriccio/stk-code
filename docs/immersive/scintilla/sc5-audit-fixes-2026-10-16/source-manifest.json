@@ -1,0 +1,197 @@
+{
+  "scope": "Exact allowlist; before is current WIP baseline, not Git HEAD",
+  "files": [
+    {
+      "repo": "stk",
+      "path": "data/shaders/utils/immersive_scintilla.frag",
+      "beforeSHA256": "90a707ade42d4425da524c368de36f8cef5474332d3f8a106ed707bdf9a8b9a7",
+      "afterSHA256": "604603b4ef9f3d8698ab046bd2fb4aa743b9f5c4f5a0273e2453788ce205df0f",
+      "added": 11,
+      "removed": 1
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "beforeSHA256": "8d51a4633c26f4ca5c47d1b3aa6921eca4554adf7442ae0df4b593c34b37c02e",
+      "afterSHA256": "1fd210112bde64cfed24940a104d3ef68844ff93faacaf757cd66de08661f603",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/scintilla_crew.cpp",
+      "beforeSHA256": "96d6be1d6f6d28d2bf5464a596e81306d300ea0b591e9e69b126f4e6a3ff9800",
+      "afterSHA256": "2ba5ac185efaac906be42c6356dcdccecea30c505bcc865a6dd9fb1ae772309c",
+      "added": 45,
+      "removed": 2
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/scintilla_crew.hpp",
+      "beforeSHA256": "12616a2692c46c09feea7a9737ebf5e449ad05c613728793034592dce24c5d8d",
+      "afterSHA256": "0eba9d9a5b7fc8b00e7c9e3acc6d61c22b7eb88986ccbd7adaa99795dec2e436",
+      "added": 15,
+      "removed": 3
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_adapter.hpp",
+      "beforeSHA256": "829f68e05996d55111afd629eab390729a777dc5a8f052073167f62d8a1a6ff0",
+      "afterSHA256": "25e48633996183d753bbc4ceafbdf49874618fc326ce7572315602462992e643",
+      "added": 11,
+      "removed": 1
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_text_native.hpp",
+      "beforeSHA256": "488e314eceedaca00eac63538955cb6d54e1b061663805fcf2fd14c4d23145f7",
+      "afterSHA256": "5d8af70556dce6f9d5764146aca396e1606b437766334a82b80934e8024f1fbe",
+      "added": 3,
+      "removed": 0
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_crew_wire.hpp",
+      "beforeSHA256": "aab5e60d148bb164c3f4fb320700768abf7ba4f7f0840f5b6b9625aba48b6019",
+      "afterSHA256": "5e9790adc359cfa2da362204087d44fb8a3be14b0bf451e8cf126c2fe100e401",
+      "added": 6,
+      "removed": 0
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "beforeSHA256": "b46b9c5afa2c4ba4fbd8cf3dd9a989ccac31424d8a02406a4ebd74871f580354",
+      "afterSHA256": "62caf138eda722dc2a8ba4724d3b156388f2523d76c715f5081d5220cf811b7a",
+      "added": 21,
+      "removed": 1
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "beforeSHA256": "b4c4dba6e8d11a3c9d62c8578a06fdf91e56fb7e2f135031c233d42b77024df6",
+      "afterSHA256": "dc85d8b90d4b5706d704c6e1af88c70cc749135744f44611a9cdffcbd5c7a6ec",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "repo": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "beforeSHA256": "a1ed305be15db7baa4ceb4da77c4886d99befd2dc826070eee198a1f2ff694f6",
+      "afterSHA256": "1d64eece2e25618132e6fe9a16bbd3b154551dfa54fb3b5a0566c5251819c173",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "repo": "stk",
+      "path": "tools/immersive/tests/CMakeLists.txt",
+      "beforeSHA256": "15a5e501112e1f6b5594fe21e5c62432f3e9788c07cb4c74b98cf61f823a2ff9",
+      "afterSHA256": "31d42b9d96e3bbbc425caebde58f387cb29fcb8a5cb75e906ce31dc54231ad07",
+      "added": 4,
+      "removed": 2
+    },
+    {
+      "repo": "stk",
+      "path": "tools/immersive/tests/check_scintilla_crew_render_source.py",
+      "beforeSHA256": "80c6739572ed99dc1f71bc54293edfe8be78a15a7f764d9e4e22abb2cf7527bb",
+      "afterSHA256": "3f7e4d726750991dd98edb4d68eaf1ccadfc45ee78ba7a4e2bfaad794800881e",
+      "added": 59,
+      "removed": 0
+    },
+    {
+      "repo": "stk",
+      "path": "tools/immersive/tests/scintilla_crew_regression.cpp",
+      "beforeSHA256": "c24e8eb602abb3fccc3677f7dcb12da79083ae09a2b0c9b5d87d503a05de6de4",
+      "afterSHA256": "ee9771ff04d09c7a9f5c997d24af2e75b9f51396c8d6d4745313d231a3f43f22",
+      "added": 71,
+      "removed": 1
+    },
+    {
+      "repo": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "beforeSHA256": "35361bfa4c3b6345e394ef1476a9759c9ac9bd62844a1e2769d4d2db73e33812",
+      "afterSHA256": "1023d4ea15ecc0baa8627ace5b0e62ff2e212977f7fce0afa4326be47f40a585",
+      "added": 16,
+      "removed": 6
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewCapability.swift",
+      "beforeSHA256": "8fdb66267f4b9c4942f7dda1fa42df9e307ce9119268a7ffebc95a3b18e0ce74",
+      "afterSHA256": "d83c074e99ce0c2edca225091c16cc5452b004c454f49bed15628f46b1d46c02",
+      "added": 5,
+      "removed": 2
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewParticipant.swift",
+      "beforeSHA256": "18ecac1e2dde90df7fca79f1a8d26eac9f47642b9359f6e251e3285716dc952b",
+      "afterSHA256": "0e0b254c8a6aee87db6cd83778313056f8d89284bc36cdd6aa86587587dd82b7",
+      "added": 25,
+      "removed": 2
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/CrewState.swift",
+      "beforeSHA256": "db18bf356e963422932eabe09fd8fa9b79ff239ec0551c715464a4b010255533",
+      "afterSHA256": "d7ec82a410080e4f11c46c395d7237c4b5c255524b5aa51ebdd6c470673edb96",
+      "added": 8,
+      "removed": 2
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewCapabilityTests.swift",
+      "beforeSHA256": "4c4f86818c00267e05f4623636bc71e6a858444d02e9c24bd49d2858346d7845",
+      "afterSHA256": "11711cda7e4f9993c07950272e36df207dd78aceb4763c41054b41048d023bf0",
+      "added": 5,
+      "removed": 2
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewFixture.swift",
+      "beforeSHA256": "b60e0105f7811cda14ad04138211833d6cafaba041811fc396d200db4e9b2a0e",
+      "afterSHA256": "86362be0e944c15a66b45066646709d666aa943904d37970adbb1d996751797b",
+      "added": 3,
+      "removed": 2
+    },
+    {
+      "repo": "host",
+      "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/CrewTests.swift",
+      "beforeSHA256": "f64b6eb750ce038053a3aa4372f291af15d8e95c78a00dbe57bfd7a4dbbe617c",
+      "afterSHA256": "bc24ec39ebcc0c1c57b555fda5848ed8fefbbc9be52d217a6482ced397db6d20",
+      "added": 33,
+      "removed": 0
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKCrewHTTPTests.swift",
+      "beforeSHA256": "c0ec2478556adafdeffa08aee81693ad118ff5987d1cf68467d9ddfe3f51dbc5",
+      "afterSHA256": "7d16b2e9e4a1474e6b71b555adc9a560d218a8d5cdae0eb3cb9480b3ad7ec7cd",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKCrewPreparationFlowTests.swift",
+      "beforeSHA256": "9e5810fc72a0daf911296660c7f370eb72d566780ed195dcb5fb582efcac2bcf",
+      "afterSHA256": "760f73ef2b439bc4564477dbb1644afc50c6a7a77506932b57f378c50eafa2a6",
+      "added": 2,
+      "removed": 1
+    },
+    {
+      "repo": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "beforeSHA256": "41dcf3473949f97f0ed03d98baa6b8741c401fde1f1b7ecf0e3fb324656fac4b",
+      "afterSHA256": "906fa615b2d5dceccac318813941ca2b9e5c7a99ca45bdb0d0db7ddefa9f348a",
+      "added": 58,
+      "removed": 3
+    },
+    {
+      "repo": "host",
+      "path": "scripts/ci/test_app_isolated.py",
+      "beforeSHA256": "bf08f5e7319f4bf631fc77797cd0400583ed65a19ec3ac0eb7cfa0036836ce29",
+      "afterSHA256": "16122a1a34372e0fa3369031eec2ffe271ddd9b7b07c739655677497316136ee",
+      "added": 4,
+      "removed": 0
+    }
+  ]
+}

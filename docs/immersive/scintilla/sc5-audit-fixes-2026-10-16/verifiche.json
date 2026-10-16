@@ -1,0 +1,111 @@
+{
+  "scope": "SC5 five audit fixes only",
+  "sourceChecks": [
+    {
+      "path": "tools/immersive/CheckRelayProjectionSource.py",
+      "exit": 0,
+      "output": "test_actual_shared_face_sampler_has_full_sphere_coverage (__main__.ProjectionSourceTests.test_actual_shared_face_sampler_has_full_sphere_coverage) ... ok\ntest_cardinal_contract_and_vertical_publication (__main__.ProjectionSourceTests.test_cardinal_contract_and_vertical_publication) ... ok\ntest_independent_receiver_round_trip (__main__.ProjectionSourceTests.test_independent_receiver_round_trip) ... ok\ntest_render_thread_and_presentation_gate_wiring (__main__.ProjectionSourceTests.test_render_thread_and_presentation_gate_wiring) ... ok\ntest_seam_continuity_and_poles (__main__.ProjectionSourceTests.test_seam_continuity_and_poles) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 1.094s\n\nOK\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 5
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_crew_physics_source.py",
+      "exit": 0,
+      "output": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.004s\n\nOK\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 5
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_crew_wire_source.py",
+      "exit": 0,
+      "output": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.004s\n\nOK\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 6
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_crew_render_source.py",
+      "exit": 0,
+      "output": ".........\n----------------------------------------------------------------------\nRan 9 tests in 0.005s\n\nOK\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 9
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_crew_report_source.py",
+      "exit": 0,
+      "output": "test_artificial_report_freezes_and_publishing_preserves_original_record (__main__.CrewReportSource.test_artificial_report_freezes_and_publishing_preserves_original_record) ... ok\ntest_held_atlas_copy_and_shader_uv_share_bounded_nonoverlapping_regions (__main__.CrewReportSource.test_held_atlas_copy_and_shader_uv_share_bounded_nonoverlapping_regions) ... ok\ntest_natural_freeze_precedes_admission_close_and_result_publication (__main__.CrewReportSource.test_natural_freeze_precedes_admission_close_and_result_publication) ... ok\ntest_one_serializer_connects_state_http_report_and_persisted_report (__main__.CrewReportSource.test_one_serializer_connects_state_http_report_and_persisted_report) ... ok\ntest_party_bucket_depends_on_profile_even_with_no_activations (__main__.CrewReportSource.test_party_bucket_depends_on_profile_even_with_no_activations) ... ok\ntest_terminal_hud_uses_frozen_identity_and_reuses_existing_uniforms (__main__.CrewReportSource.test_terminal_hud_uses_frozen_identity_and_reuses_existing_uniforms) ... ok\ntest_terminal_participants_are_the_same_frozen_copy_as_the_envelope (__main__.CrewReportSource.test_terminal_participants_are_the_same_frozen_copy_as_the_envelope) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.015s\n\nOK\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 7
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_mission_hud_source.py",
+      "exit": 0,
+      "output": "SC4 HUD: 18 source/asset contracts passed; native rendering remains unexecuted.\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 18
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_mission_api_source.py",
+      "exit": 0,
+      "output": "SC4 API: 28 source checks passed; HTTP/runtime remains unexecuted.\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 28
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_mission_finish_source.py",
+      "exit": 0,
+      "output": "SC4 finish integration: 20 source checks passed; no build/runtime executed.\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 20
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_mission_lifecycle_source.py",
+      "exit": 0,
+      "output": "SC4 lifecycle: 16 source checks passed; native lifecycle remains unexecuted.\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 16
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_mission_presentation_source.py",
+      "exit": 0,
+      "output": "SC4 presentation: 12 source contracts passed; no build/GPU/runtime executed.\n",
+      "evidence": "source/asset/numeric only; no compiler/native/GPU",
+      "checks": 12
+    }
+  ],
+  "sourceChecksPassed": 126,
+  "nativeRegressionCasesAdded": 3,
+  "appRegressionInvocationsAdded": 4,
+  "packageRegressionInvocationsAdded": 9,
+  "nativeTestsRun": false,
+  "buildRun": false,
+  "gpuRun": false,
+  "hardwareRun": false,
+  "SC6Started": false,
+  "reviewOrder": [
+    {
+      "step": 1,
+      "sourceReview": "completed before next step; independent review included"
+    },
+    {
+      "step": 2,
+      "sourceReview": "completed before next step; independent review included"
+    },
+    {
+      "step": 3,
+      "sourceReview": "completed before next step; independent review included"
+    },
+    {
+      "step": 4,
+      "sourceReview": "completed before next step; independent review included"
+    },
+    {
+      "step": 5,
+      "sourceReview": "completed before next step; independent review included"
+    }
+  ],
+  "counterexample": "New shader composition regression fails on the original shader and passes on the corrected source",
+  "limits": [
+    "Swift and C++ regressions written/registered, not compiled or executed",
+    "Actual runtime, GPU, Bullet, pointer hardware and native layout/Party-zone qualification remain pending"
+  ]
+}

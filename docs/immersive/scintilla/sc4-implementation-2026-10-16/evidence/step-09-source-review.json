@@ -1,0 +1,36 @@
+{
+  "step": 9,
+  "status": "source_and_asset_gate_passed",
+  "manifestSHA256": "775512c3405743981237e5b7cc1a5fb00acc31c732ca43fe299ae42f4bfc4c61",
+  "assets": {
+    "variants": 3,
+    "panels": 18,
+    "framesPerClip": 1200,
+    "fps": "30/1",
+    "durationSeconds": 40,
+    "size": [
+      1920,
+      1080
+    ],
+    "fullOfflineDecode": "passed"
+  },
+  "host": "Existing SurfaceComposition/AVPlayer, true STK published/livePlayback license, exact completion IDs, explicit skip/cancel/error, retained SI5 suspend/renew and exact route restore with fresh proof",
+  "fixesReviewed": [
+    "transient return must retain operation/lease",
+    "presentationCycle rejects pre-intro in-flight proof",
+    "another composition owner is never restored over",
+    "license/owner loss reports an identified failure"
+  ],
+  "sourceChecks": {
+    "localizationSwiftFiles": 1657,
+    "newLocalizationFindings": 0,
+    "independentReview": "passed"
+  },
+  "notRun": [
+    "host/native build",
+    "Swift/C++ compiled tests",
+    "AVFoundation runtime",
+    "physical playback/projection",
+    "SI5 hardware"
+  ]
+}

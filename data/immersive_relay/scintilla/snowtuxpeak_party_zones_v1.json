@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "profileId": "sc5_crew_party_v1",
+  "crewRulesRevision": "1",
+  "trackId": "snowtuxpeak",
+  "trackHash": "8f05689ecf910cc595d57aa08b43b15a35e87fbf3bd79e892f9370464dec27e5",
+  "reverse": false,
+  "authoringStatus": "development_unqualified",
+  "author": "Immersive Relay contributors, SC5 candidate analysis 2026-10-16",
+  "license": "GPL-3.0-or-later",
+  "speedBoundMetersPerSecond": 30,
+  "marginSeconds": 0.5,
+  "positionErrorMeters": 0.5,
+  "finalExclusionMeters": 60,
+  "candidateNodes": [6, 17, 26, 45, 59, 71],
+  "zones": []
+}

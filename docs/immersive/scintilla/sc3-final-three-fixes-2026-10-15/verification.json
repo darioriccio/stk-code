@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-15",
+  "scope": "SC3 source-only fixes 1,2,3; no SC4",
+  "pythonChecks": [
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_depth.py",
+      "passed": 6,
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_stagger_clearance.py",
+      "passed": 6,
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_combat.py",
+      "passed": 10,
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_tool_feedback.py",
+      "passed": 6,
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_defense.py",
+      "passed": 19,
+      "exitCode": 0
+    }
+  ],
+  "totalPythonPassed": 47,
+  "mathOracle": {
+    "command": "python3 -B docs/immersive/scintilla/sc3-plan-2026-10-15/verifica_calcoli.py",
+    "groupsPassed": 10,
+    "exitCode": 0
+  },
+  "nativeRegressions": {
+    "defenseRegistered": 24,
+    "newCandidateSelectionCases": 3,
+    "consumerRegistered": 80,
+    "bulletRegistered": 10,
+    "compiled": false,
+    "executed": false
+  },
+  "review": [
+    "native boost post-physics commit before core debit; native body normal/angular handling",
+    "priority sorting precedes visibility; Pending stops lower priority; bounded single GPU query",
+    "shared BoostCost in fixed-point admission/debit, additive API, uniform and numeric glyph",
+    "complete glyph smoothing footprint inside unchanged node/acquisition ring; both projections share shader; THB1 unchanged",
+    "existing four SC3 fixes retained"
+  ],
+  "qualification": {
+    "build": false,
+    "configure": false,
+    "typecheck": false,
+    "nativeExecution": false,
+    "shaderCompilation": false,
+    "appLaunch": false,
+    "preview": false,
+    "hardware": false,
+    "gpuReceiverTest": false
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "initialCostFootprintCheck": "failed; glyph size corrected; rerun passes with unchanged radius limit"
+}

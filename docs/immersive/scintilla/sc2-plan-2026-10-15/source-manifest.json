@@ -1,0 +1,114 @@
+{
+  "kind": "read-only source snapshot for implementation plan; uncommitted files included",
+  "stk_root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+  "host_root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+  "stk_head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+  "host_head": "cd162f393207c914cbced79cd1273e7b4f081630",
+  "files": [
+    {
+      "repository": "stk",
+      "path": "docs/Tholus_STK_Missione_Scintilla_Design_v2.md",
+      "sha256": "97ba07260f6cb176042b11863537fdca9a6a9e3012efe3339d9c52195854317f"
+    },
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc0-2026-10-13/profile.json",
+      "sha256": "fd2599b3a3983d052cb88da80aa32467313694887bb5325cf5a47460d269fcc6"
+    },
+    {
+      "repository": "stk",
+      "path": "src/config/stk_config.hpp",
+      "sha256": "cedb072f2a9614e3641d5f810b56572f2bdce82dbfbb1e68ae3e3e10bce6b528"
+    },
+    {
+      "repository": "stk",
+      "path": "data/stk_config.xml",
+      "sha256": "c2d1afea1b38925fcd7a3db9a766b8878d16a1ac4d03a00481c591c08359ee62"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "sha256": "50c1a6c0a55774eb6e0f68a0bf4762c148ccc5544400fbbfc89b8443d2d895be"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "sha256": "fcbe8924da98b9a7a23b811e2fd818f3d75b47e6d284b3d5ddc358ddbf533366"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "sha256": "a5c831497c7dcc15d999f140cefe6987ea15e09775d67e5322c959d71ef59efd"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_target_lifetime.hpp",
+      "sha256": "7bad0f7b3f4de5aa5e33dd42abeb716747315c4edfc7c86a5a4e4ec5f5d7e9ce"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+      "sha256": "15f685a348d6924ad9e16dcdb1003d4fb09bc6ff4d89dc70092a39b092c228e2"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "sha256": "057ea7256d14314e3ac4fb16a92d047456c9f68a64959d1041a54d96648a46a0"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+      "sha256": "c388221111baec008135ee84c42b5f5d5d6a060ebeb0858654959e74b69735dd"
+    },
+    {
+      "repository": "stk",
+      "path": "src/karts/explosion_animation.cpp",
+      "sha256": "d0fb926a7c23519619b6364126426a1267901dd7a283ed48ea693aeb30a91d82"
+    },
+    {
+      "repository": "stk",
+      "path": "src/karts/abstract_kart_animation.cpp",
+      "sha256": "6ddc0d628d528c8b21dd9987f80424de625a36a336f85b6983d73df7c06ae304"
+    },
+    {
+      "repository": "stk",
+      "path": "src/karts/kart_rewinder.cpp",
+      "sha256": "05d41b0558ed0c0e4023860c1f9e1965410ce3da919ad2de35aa7290f2e338be"
+    },
+    {
+      "repository": "stk",
+      "path": "src/items/powerup.cpp",
+      "sha256": "13a18d9716bacb97f9f6f2f75825526d5f3ea3222db50e8d60f84f3c83b42a44"
+    },
+    {
+      "repository": "stk",
+      "path": "src/items/attachment.cpp",
+      "sha256": "aaf554588c11ae3fd73ad54080d977fc07d0d69445fe995882f116d7905bc872"
+    },
+    {
+      "repository": "stk",
+      "path": "data/shaders/utils/immersive_scintilla.frag",
+      "sha256": "12835af48110c459e27180782d6ae4133daf70a51f0e4d56a87dfcdf97c95e02"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/CMakeLists.txt",
+      "sha256": "d652a4817ee754d30139a6a50003cff4844abcdbe65343f41b55d4326dd06e29"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "sha256": "d052a347a15afa49e50bc99390eb721f10972c3f226387b2641efda3e5dea83c"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+      "sha256": "f315b9783989671bc24f4a32bdd9d82797024940c790b5adab1cc954f4ac0806"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+      "sha256": "63eeef96939478f5fc932c75b928074cd959f042e1b3974a595877ed64f290a9"
+    }
+  ]
+}

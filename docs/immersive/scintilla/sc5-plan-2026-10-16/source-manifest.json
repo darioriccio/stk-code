@@ -1,0 +1,299 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "scope": "Source snapshot for SC5 planning, including concurrent uncommitted baseline; not build evidence",
+  "repositories": {
+    "stk": {
+      "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "fa36035bc57d16b2575ec979bfc14a335029f32e77edab533d40724fe810c8f9",
+          "bytes": 3918
+        },
+        {
+          "path": "docs/AGENTS.md",
+          "sha256": "d271b32d260a0ad8f38e7ef91bf4b9f1a9292b359493ef86d90911983e2d3371",
+          "bytes": 456
+        },
+        {
+          "path": "docs/Tholus_STK_Missione_Scintilla_Design_v2.md",
+          "sha256": "97ba07260f6cb176042b11863537fdca9a6a9e3012efe3339d9c52195854317f",
+          "bytes": 61154
+        },
+        {
+          "path": "docs/immersive/scintilla/sc3-plan-2026-10-15/PIANO_SC3.md",
+          "sha256": "2dcaf5e00d3e57d651761f8bff92da0394a745da2fed0d1a226d6b3a67b6e6ba",
+          "bytes": 51461
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-plan-2026-10-16/PIANO_SC4.md",
+          "sha256": "f2519bdac50953f366548cabbee46bd3d8c47d784813fed63f84f5a33e0609c8",
+          "bytes": 59347
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-plan-2026-10-16/analizza_driveline.py",
+          "sha256": "eb06abe71c78c25c1c6726ace72cf52e42adb4f1ce7300ae447b0bc90e8a71c6",
+          "bytes": 4516
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-audit-fixes-2026-10-16/README.md",
+          "sha256": "2fd10669b4bf3f421f61b200d563932b51d66bcdf3da490f527dfecde3ba178c",
+          "bytes": 4540
+        },
+        {
+          "path": "src/modes/immersive_relay/crew_role_manager.cpp",
+          "sha256": "e4bf79575e664f66c1c2a88be01067c7614e5ff5483a909e89ae332c38101095",
+          "bytes": 15755
+        },
+        {
+          "path": "src/modes/immersive_relay/crew_role_manager.hpp",
+          "sha256": "0c0285629e504fcf37f402cd040a219503e427a58103e4eb4877d0502666c685",
+          "bytes": 4838
+        },
+        {
+          "path": "src/modes/immersive_relay/crew_event_director.cpp",
+          "sha256": "ad10e3c1b1637ee0b7813fab0fd4672df005e22a8141f0c7d24c9967c5f057f3",
+          "bytes": 52048
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_pilot_rotation.hpp",
+          "sha256": "0d65e970b2b1e38f8459a999e3a8399be6aa5b28c07b8f59927cb2ec3f8035b5",
+          "bytes": 4159
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_pilot_rotation.cpp",
+          "sha256": "096dd3219eb2132239a03326cb48b01fabe24525aa022912e810924bec5865ce",
+          "bytes": 13011
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+          "sha256": "c0c6bde101f1cea523eaeeb52d3ff33511887ff69f93dd93bcd2a7fd48013d7b",
+          "bytes": 18594
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+          "sha256": "cc1ee6b1cadd1c9d83d86bf2f142d9fff2202a20a61604093e9805e066b69411",
+          "bytes": 126630
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+          "sha256": "0c7fe0191f5178d2db6221de61e2a37a55309d46d5a3f1ef67a421e0baa76b81",
+          "bytes": 22227
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_combat.hpp",
+          "sha256": "25335ebd7a05d584dfa551ee3dbb284ac5f40b9a1298b57ff404d01148b5f523",
+          "bytes": 4582
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_defense.hpp",
+          "sha256": "68e4342a1411b96a778aad9331494a906cb6d1bed729bc96f2a80b8f34b579e9",
+          "bytes": 6157
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_defense.cpp",
+          "sha256": "496068ab8336d5f886787ec03c0aa84eb0277f1b33ded9f26c0b7b3960cc0557",
+          "bytes": 16624
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_defense_physics.cpp",
+          "sha256": "d89ac7a32e42b52c2524d36e5fc69c3893de017f5177ad1a86a935341dfbacb1",
+          "bytes": 12762
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission.hpp",
+          "sha256": "c327094d1f9eccf4c164e487429af9fe882002da98a3e1d45adf384ef2f1e852",
+          "bytes": 8847
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_layout.hpp",
+          "sha256": "e2f2cd312055dcd38638d8f60c7799d018fbbb25f9dc3def725c480017ea3e2e",
+          "bytes": 6265
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_protocol.hpp",
+          "sha256": "e3a9dd67b179aa25aba32377d77ae21d71ece351d5cd9d5442b1ec70602a28d5",
+          "bytes": 8642
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_measurement.hpp",
+          "sha256": "61096804fcc5ed30a90c472cefab8ba0d096718584363df4ab2baa768f75852a",
+          "bytes": 20374
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+          "sha256": "b37b683d9e00b8a929bf8540d0deff0df13ac998a8994664c38decb52395a6dd",
+          "bytes": 147761
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+          "sha256": "bd55035eed1763414f06cf4a532417453e26955bd84b984522c027736f5a2564",
+          "bytes": 10145
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+          "sha256": "34e82f732516d7afc5e00980bc79cba8adc58c745b6a925860ada0c9085eac31",
+          "bytes": 97806
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_measurement_native.hpp",
+          "sha256": "78b55e39c131850e91dd253aae2ab648e3ab6f0a242708d634f659df6c6603df",
+          "bytes": 27828
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+          "sha256": "f8fa7e0c50786d727a5c265ad80e1a41be6f18075a51f4a10793345959581c49",
+          "bytes": 85788
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_game_dispatcher.cpp",
+          "sha256": "0fc977317f6e1690e0dfc73bc230b9279a427a82169a127f80c08be654a48c0a",
+          "bytes": 5441
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_state_publisher.cpp",
+          "sha256": "cbf5758f13008b9caf9521ad5d956e373469b7eb73907436296fe0eddc78e20e",
+          "bytes": 39034
+        },
+        {
+          "path": "src/karts/kart.cpp",
+          "sha256": "9f778a7c9695fb653de87374022248b17f9fbba113492862ba181471308745bf",
+          "bytes": 134382
+        },
+        {
+          "path": "src/karts/kart.hpp",
+          "sha256": "c6c58b64f8b2760561fe6deeeac712944c2e3c904ff9debee0632fcd0cd3c94a",
+          "bytes": 29698
+        },
+        {
+          "path": "src/karts/max_speed.cpp",
+          "sha256": "60e9e21334d2e10f117d4c0863d6e21f324a23322ef0e3faa4f91559ffaebd2e",
+          "bytes": 19590
+        },
+        {
+          "path": "src/karts/max_speed.hpp",
+          "sha256": "104ac4befd8f04bd71d4a96d4bff891b9c2074d3ca257d2024d3ee672dfaee66",
+          "bytes": 9409
+        },
+        {
+          "path": "src/karts/abstract_kart.hpp",
+          "sha256": "e9c35c29d186a05a6b0935ba7e5613117d5b401c585010caa7d84d7d38d05e3b",
+          "bytes": 30579
+        },
+        {
+          "path": "src/karts/controller/player_controller.cpp",
+          "sha256": "f113af5bd5957f41e5dbd32d3dd913474de78236b924f20ba2593da867a58eb2",
+          "bytes": 15633
+        },
+        {
+          "path": "src/physics/btKart.cpp",
+          "sha256": "981da5ea1a653e887bae558aae7fad4f6eeb8dc39f0232607f1fd2e9b528037c",
+          "bytes": 40024
+        },
+        {
+          "path": "src/physics/btKart.hpp",
+          "sha256": "b20b86f8f2c1f2c2f98e71a02dd3553e4b952edf4e07373efa706f4954886e7a",
+          "bytes": 13365
+        },
+        {
+          "path": "data/shaders/utils/immersive_scintilla.frag",
+          "sha256": "b484a1e3d25f738ef5a6414f7515737fe076ef921ae1be2410fa6aa7af2c937a",
+          "bytes": 51469
+        },
+        {
+          "path": "tools/immersive/tests/CMakeLists.txt",
+          "sha256": "4ca2e84c4b5d21c2c405a007296f9d6efc0051053b6f3e6e24437b9e526313ba",
+          "bytes": 13856
+        },
+        {
+          "path": "tools/immersive/tests/README.md",
+          "sha256": "eda6b0d9e0ede8c8c5ecd9003f9283b76d7263ad8c11aa2fadad247e0bbf80dd",
+          "bytes": 17366
+        },
+        {
+          "path": "tools/immersive/scintilla/validate_mission_qualification.py",
+          "sha256": "f1ace33eb42732fe004c607b8dd78e39a16f8dba94cfb60895bd6a9e7b2a4a16",
+          "bytes": 32174
+        }
+      ]
+    },
+    "host": {
+      "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "head": "012446900b81c2abb76b40e73b2b7294e4ef036f",
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "672af555c8976b3fadca9c828a1fa3a14f75494ece42db946e3a43b36944141e",
+          "bytes": 14156
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+          "sha256": "3a3aada138ea686d0167601c4fd0b563651531507687c0f696efc7af895a47f5",
+          "bytes": 158209
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+          "sha256": "f3574a9381835eced237fe4fa0fd90e5d2744af509dc1a861ccb42da2a914aa8",
+          "bytes": 47449
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+          "sha256": "eb0c782f6687c8a3f04d47d8b7a89ba2610c3d2b9d6e102c8166f59130d49b8f",
+          "bytes": 25622
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKMissionHTTP.swift",
+          "sha256": "daaf9fcdbaff4069eae70f32b012db78544400ced4151cb6e20adb6e06296005",
+          "bytes": 8722
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+          "sha256": "bc0be7b73db3d774d7708fdb85c0327fa2afb9dc38907f809897b05cdcd98f31",
+          "bytes": 31506
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIModels.swift",
+          "sha256": "e562e4d09be1d5e36079768e55a851cdb8372bffc39449729b97048fa2713062",
+          "bytes": 62591
+        },
+        {
+          "path": "Modules/GameShowControl/Workspace/GamesSTKSpatialInputView.swift",
+          "sha256": "6badaf838590d028295e1817ea6b2ed6e37537f7db222ef4284648b191fbb720",
+          "bytes": 10854
+        },
+        {
+          "path": "Modules/GameShowControl/Workspace/GamesWorkspaceStore.swift",
+          "sha256": "6e188a8a32215c71bd893b5671ee44cc72189e9835339fad1a0ff33e31f1cbe1",
+          "bytes": 51860
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Package.swift",
+          "sha256": "980a92c1c4db4c96ad7d76cc5f694f2c86e6d8b1c6eb4fd137786a1d2fd61c60",
+          "bytes": 442
+        },
+        {
+          "path": "SocialTableController.xcodeproj/project.pbxproj",
+          "sha256": "be3dfad149f82d870fb9ea8be5ebca0f8863aea46d452aaab4b49433b00a736e",
+          "bytes": 67591
+        },
+        {
+          "path": "scripts/ci/test_app_isolated.py",
+          "sha256": "1acd42df420161b21f18a1be2414109accf677267c9a53c8d87c3e2304c51f1e",
+          "bytes": 74758
+        },
+        {
+          "path": "scripts/dev/build.py",
+          "sha256": "9c31f76c2e14f21c8108103cd95daae07115c96fdd60d24ce1a5af8c53a11294",
+          "bytes": 8059
+        },
+        {
+          "path": "scripts/dev/test-package.py",
+          "sha256": "a04e0ab12df833bddbd2650a5748df7dedbd3f0bce335a2ea542757f66f77794",
+          "bytes": 2718
+        }
+      ]
+    }
+  }
+}

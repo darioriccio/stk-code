@@ -1,0 +1,122 @@
+{
+  "contract": "tholus.stk-scintilla-intro/1",
+  "schemaVersion": 1,
+  "profileId": "sc4_cargo_three_slots_v1",
+  "profileRevision": "1",
+  "locale": "it",
+  "durationSeconds": 40,
+  "frameRateNumerator": 30,
+  "frameRateDenominator": 1,
+  "frameCount": 1200,
+  "width": 1920,
+  "height": 1080,
+  "license": "CC-BY-4.0",
+  "author": "Immersive Relay contributors (Codex-assisted)",
+  "variants": [
+    {
+      "variantId": "C1",
+      "minCrew": 1,
+      "maxCrew": 1,
+      "videoPath": "C1/intro_it.mp4",
+      "videoSHA256": "f1fb7d01976d8270f983b3d6aacd51d00244c8a9ba789245988321e1c3851be3",
+      "subtitlesPath": "C1/intro_it.vtt",
+      "subtitlesSHA256": "20f8e23c94fa0fda78d1942c65052cc8618cd8db9c3f301c727087fc9f0f1068",
+      "panels": [
+        {
+          "path": "C1/panel_01.png",
+          "sha256": "8876a07129142e151a2417f98fe4903a346d1088a2ba57b6dce700d416409594"
+        },
+        {
+          "path": "C1/panel_02.png",
+          "sha256": "540345e87f4a69c27abfb203ee620aa89024ebc307aaf93b2b8fbbe581f1083a"
+        },
+        {
+          "path": "C1/panel_03.png",
+          "sha256": "a0e018fc14518f0e223498a7febd5a5edf15305353ea094b7433f60a30b687c0"
+        },
+        {
+          "path": "C1/panel_04.png",
+          "sha256": "4717c3e9d5fb623e08b79d5e1f01b412ed77544da4add934eae1d5d4b891cef4"
+        },
+        {
+          "path": "C1/panel_05.png",
+          "sha256": "d052eb0a0abccf79c257fcc7ac529e03457c502c45fd1d01c8631f9cd5536efc"
+        },
+        {
+          "path": "C1/panel_06.png",
+          "sha256": "f82e186065cccc16ec14f5a534c3986e2c749fc3754bd179478e7c2b0455fa28"
+        }
+      ]
+    },
+    {
+      "variantId": "C2",
+      "minCrew": 2,
+      "maxCrew": 2,
+      "videoPath": "C2/intro_it.mp4",
+      "videoSHA256": "383077058cee79366deeadd7d164e2eb1550ddaa0f43de4d07b1af46eafdf495",
+      "subtitlesPath": "C2/intro_it.vtt",
+      "subtitlesSHA256": "99a58f048594842c6a5a9d1f9b8bffc1984161f0049188e7080f294183e8f224",
+      "panels": [
+        {
+          "path": "C2/panel_01.png",
+          "sha256": "7321193d2fd80e415cc3b2bc9d80415048fe8ff343f5902bac4a97e073a611c4"
+        },
+        {
+          "path": "C2/panel_02.png",
+          "sha256": "bc5fc34d6a4951e4ab31611bfc85904ecb97af7dfc88bfa3f9557a83b58d5726"
+        },
+        {
+          "path": "C2/panel_03.png",
+          "sha256": "d23a1b698862e30a79d0a693aa0403a6ca731da235a27bee94e323a312dbe5f3"
+        },
+        {
+          "path": "C2/panel_04.png",
+          "sha256": "9002e0055238a4a60257171cddf5c25e2b834c0e5ca2cd6c78997e4416222b6d"
+        },
+        {
+          "path": "C2/panel_05.png",
+          "sha256": "0c4d1d71cba798b08c35dc4eda0c0a22030d117a94988cc0ffc681dde9b96c37"
+        },
+        {
+          "path": "C2/panel_06.png",
+          "sha256": "77ccd6a29f495b4bb84f9f698b79e534f952a62c7c8cbc82fe04338d56fbb343"
+        }
+      ]
+    },
+    {
+      "variantId": "C3plus",
+      "minCrew": 3,
+      "maxCrew": 5,
+      "videoPath": "C3plus/intro_it.mp4",
+      "videoSHA256": "5ac507a1f1c29e7b09e04642c6a41555d0bd6dc78228c5f01deb664540e0c4d1",
+      "subtitlesPath": "C3plus/intro_it.vtt",
+      "subtitlesSHA256": "19fc9b8b6c30dda2fca88efe1f2696b17487da6dd4e6dc5c5f8b3904828803e8",
+      "panels": [
+        {
+          "path": "C3plus/panel_01.png",
+          "sha256": "cc45280e5ab3726c79a69a2ff4aa464d4b8c83988ea6ef164a6e523276acad63"
+        },
+        {
+          "path": "C3plus/panel_02.png",
+          "sha256": "797210308080716eecaf4eef09352eac1201134c683f1ebd162668986ed3ab7e"
+        },
+        {
+          "path": "C3plus/panel_03.png",
+          "sha256": "58311a9a95890ab4f1c2f90f4d5225df7d5fc14362a15ecd70809dfa611a2dfc"
+        },
+        {
+          "path": "C3plus/panel_04.png",
+          "sha256": "e5efc134319fc7571e659efb329bb9655af86e6b9b85bc0b88bcaec4f9e2eac7"
+        },
+        {
+          "path": "C3plus/panel_05.png",
+          "sha256": "ff6accc3b80bb0fab18efc1fbf9b5792cbf69d6d88fd9bfd6f3a845f2fe56746"
+        },
+        {
+          "path": "C3plus/panel_06.png",
+          "sha256": "6f8f3a83fd0b47e0dce1edabb4b62404badc0963bd260bac8491574fb760ffc4"
+        }
+      ]
+    }
+  ]
+}

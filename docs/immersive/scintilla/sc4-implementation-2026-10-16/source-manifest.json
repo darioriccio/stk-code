@@ -1,0 +1,867 @@
+{
+  "generatedAtUTC": "2026-10-16T11:49:55.714003+00:00",
+  "scope": "SC4 delta relative to initial HEAD plus WIP",
+  "manifestSelfHashExcluded": true,
+  "repositories": {
+    "stk": {
+      "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "headAtStart": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "initialDirtyFiles": 132,
+      "files": [
+        {
+          "path": "data/immersive_relay/scintilla/README.md",
+          "beforeSHA256": null,
+          "sha256": "3f98d22246bf204a0f368749a859004f491da4ea740639eb477308a1fa1bdef3",
+          "bytes": 3043
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/intro_it.mp4",
+          "beforeSHA256": null,
+          "sha256": "f1fb7d01976d8270f983b3d6aacd51d00244c8a9ba789245988321e1c3851be3",
+          "bytes": 2243747
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/intro_it.vtt",
+          "beforeSHA256": null,
+          "sha256": "20f8e23c94fa0fda78d1942c65052cc8618cd8db9c3f301c727087fc9f0f1068",
+          "bytes": 1038
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_01.png",
+          "beforeSHA256": null,
+          "sha256": "8876a07129142e151a2417f98fe4903a346d1088a2ba57b6dce700d416409594",
+          "bytes": 52246
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_02.png",
+          "beforeSHA256": null,
+          "sha256": "540345e87f4a69c27abfb203ee620aa89024ebc307aaf93b2b8fbbe581f1083a",
+          "bytes": 60172
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_03.png",
+          "beforeSHA256": null,
+          "sha256": "a0e018fc14518f0e223498a7febd5a5edf15305353ea094b7433f60a30b687c0",
+          "bytes": 63029
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_04.png",
+          "beforeSHA256": null,
+          "sha256": "4717c3e9d5fb623e08b79d5e1f01b412ed77544da4add934eae1d5d4b891cef4",
+          "bytes": 79000
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_05.png",
+          "beforeSHA256": null,
+          "sha256": "d052eb0a0abccf79c257fcc7ac529e03457c502c45fd1d01c8631f9cd5536efc",
+          "bytes": 70765
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C1/panel_06.png",
+          "beforeSHA256": null,
+          "sha256": "f82e186065cccc16ec14f5a534c3986e2c749fc3754bd179478e7c2b0455fa28",
+          "bytes": 64407
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/intro_it.mp4",
+          "beforeSHA256": null,
+          "sha256": "383077058cee79366deeadd7d164e2eb1550ddaa0f43de4d07b1af46eafdf495",
+          "bytes": 2237013
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/intro_it.vtt",
+          "beforeSHA256": null,
+          "sha256": "99a58f048594842c6a5a9d1f9b8bffc1984161f0049188e7080f294183e8f224",
+          "bytes": 1042
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_01.png",
+          "beforeSHA256": null,
+          "sha256": "7321193d2fd80e415cc3b2bc9d80415048fe8ff343f5902bac4a97e073a611c4",
+          "bytes": 52494
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_02.png",
+          "beforeSHA256": null,
+          "sha256": "bc5fc34d6a4951e4ab31611bfc85904ecb97af7dfc88bfa3f9557a83b58d5726",
+          "bytes": 60422
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_03.png",
+          "beforeSHA256": null,
+          "sha256": "d23a1b698862e30a79d0a693aa0403a6ca731da235a27bee94e323a312dbe5f3",
+          "bytes": 66199
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_04.png",
+          "beforeSHA256": null,
+          "sha256": "9002e0055238a4a60257171cddf5c25e2b834c0e5ca2cd6c78997e4416222b6d",
+          "bytes": 79245
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_05.png",
+          "beforeSHA256": null,
+          "sha256": "0c4d1d71cba798b08c35dc4eda0c0a22030d117a94988cc0ffc681dde9b96c37",
+          "bytes": 71016
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C2/panel_06.png",
+          "beforeSHA256": null,
+          "sha256": "77ccd6a29f495b4bb84f9f698b79e534f952a62c7c8cbc82fe04338d56fbb343",
+          "bytes": 64657
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/intro_it.mp4",
+          "beforeSHA256": null,
+          "sha256": "5ac507a1f1c29e7b09e04642c6a41555d0bd6dc78228c5f01deb664540e0c4d1",
+          "bytes": 2277175
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/intro_it.vtt",
+          "beforeSHA256": null,
+          "sha256": "19fc9b8b6c30dda2fca88efe1f2696b17487da6dd4e6dc5c5f8b3904828803e8",
+          "bytes": 1045
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_01.png",
+          "beforeSHA256": null,
+          "sha256": "cc45280e5ab3726c79a69a2ff4aa464d4b8c83988ea6ef164a6e523276acad63",
+          "bytes": 52929
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_02.png",
+          "beforeSHA256": null,
+          "sha256": "797210308080716eecaf4eef09352eac1201134c683f1ebd162668986ed3ab7e",
+          "bytes": 60859
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_03.png",
+          "beforeSHA256": null,
+          "sha256": "58311a9a95890ab4f1c2f90f4d5225df7d5fc14362a15ecd70809dfa611a2dfc",
+          "bytes": 73552
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_04.png",
+          "beforeSHA256": null,
+          "sha256": "e5efc134319fc7571e659efb329bb9655af86e6b9b85bc0b88bcaec4f9e2eac7",
+          "bytes": 79685
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_05.png",
+          "beforeSHA256": null,
+          "sha256": "ff6accc3b80bb0fab18efc1fbf9b5792cbf69d6d88fd9bfd6f3a845f2fe56746",
+          "bytes": 71451
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/C3plus/panel_06.png",
+          "beforeSHA256": null,
+          "sha256": "6f8f3a83fd0b47e0dce1edabb4b62404badc0963bd260bac8491574fb760ffc4",
+          "bytes": 65096
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/README.md",
+          "beforeSHA256": null,
+          "sha256": "3409f2e8d6d414fa83ada8694b0f7840defce0b6a3ed0b5f374cdf98d4367451",
+          "bytes": 2992
+        },
+        {
+          "path": "data/immersive_relay/scintilla/intro_it_v1/manifest.json",
+          "beforeSHA256": null,
+          "sha256": "775512c3405743981237e5b7cc1a5fb00acc31c732ca43fe299ae42f4bfc4c61",
+          "bytes": 4145
+        },
+        {
+          "path": "data/immersive_relay/scintilla/mission_results_it_v1.png",
+          "beforeSHA256": null,
+          "sha256": "554bc936e1fed8a5c436be1be5e7151461db8bd4dba96e610124bf8555e0afc1",
+          "bytes": 74182
+        },
+        {
+          "path": "data/immersive_relay/scintilla/snowtuxpeak_mission_v1.json",
+          "beforeSHA256": null,
+          "sha256": "3e3131ecb46f5a400b995c4dd4a0eed95e4342811dd0c255080be84a8a705730",
+          "bytes": 5789
+        },
+        {
+          "path": "data/shaders/immersive_equirectangular.frag",
+          "beforeSHA256": "eb8634798622a7803733012dc92fa470518918a3563434a29f2df956333190dd",
+          "sha256": "167eb93886518f966f94bbfec756149428100d22fea36c1714dde66018ad1d5e",
+          "bytes": 2223
+        },
+        {
+          "path": "data/shaders/immersive_fisheye_domemaster.frag",
+          "beforeSHA256": "50030ac520cc5922024fed3128b7a2a0428a5ebc603ce62fa3d1711ed7c66634",
+          "sha256": "4e2e009eb77a433d5f48695ecff02885a6a54b192b2ecd6e3643fcf7e891d568",
+          "bytes": 4488
+        },
+        {
+          "path": "data/shaders/utils/immersive_scintilla.frag",
+          "beforeSHA256": "b26f27a1e61f129d8bbde931530c18e8419c0ba95b3be87acd3678f519a2f0dc",
+          "sha256": "b484a1e3d25f738ef5a6414f7515737fe076ef921ae1be2410fa6aa7af2c937a",
+          "bytes": 51469
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/OPERATORE.md",
+          "beforeSHA256": null,
+          "sha256": "7e722be460b04afea249dc53a1862a76f6deb2aac8b36b131054c7f9a86d807b",
+          "bytes": 8822
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/README.md",
+          "beforeSHA256": null,
+          "sha256": "0fffe61d1883cfbdc1aaa50067384a5fc8d1703e3b9c0bc61f6bc84cc77f7aab",
+          "bytes": 7561
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/REGRESSIONI.md",
+          "beforeSHA256": null,
+          "sha256": "a0ee9a25d09c5532dc1bdef2ff463680a263fe3dba30eccaf952f03a6e910d8c",
+          "bytes": 7545
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/SC4_API.md",
+          "beforeSHA256": null,
+          "sha256": "eac52444ab2e849e3068f987fb36756f83d584677235aa40607f0e3d4305de1e",
+          "bytes": 8664
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/collector-python-tests.json",
+          "beforeSHA256": null,
+          "sha256": "f3d95b4f7071fbf2e034c61dbbb5a2b45a3de2d7cc1e40b80c2425e0fb457fb3",
+          "bytes": 745
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/intro-C1-contact.png",
+          "beforeSHA256": null,
+          "sha256": "68c163d0291838041b4a70116d6773ba854e34f015e86758aea3d0067afa0a0f",
+          "bytes": 364653
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/intro-C1-decoded-8s.png",
+          "beforeSHA256": null,
+          "sha256": "e50025e3146bc6487a79ec7345fc0ba70dc28dc468f76e370fa796fb8c4ceb6c",
+          "bytes": 228843
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/intro-C2-contact.png",
+          "beforeSHA256": null,
+          "sha256": "8a1f846168f3c4994777093541705b49fb3f3e9e8cff8a97598a8d4395c61b64",
+          "bytes": 364094
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/intro-C3plus-contact.png",
+          "beforeSHA256": null,
+          "sha256": "077cd12e9f53f30ead63edaa773bc54accad60704df3c1f537724e415584c5c4",
+          "bytes": 371074
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/intro-validation.json",
+          "beforeSHA256": null,
+          "sha256": "3d5832a56f5963c74213465307bbda466d755cec1afdbbde862897e5bf47412d",
+          "bytes": 1254
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/qualification-python-tests.json",
+          "beforeSHA256": null,
+          "sha256": "f07d5a78a859affd7ecb4c35d86b1acfdfeda17c05c0adb3c1a081ebf218563c",
+          "bytes": 5351
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/sc2-sc3-source-checks-updated.json",
+          "beforeSHA256": null,
+          "sha256": "6b18896a7c688ef494ab9172159053c84804a271e0a6d53066d75cc8253eaedd",
+          "bytes": 1605
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/sc4-host-step10-review.json",
+          "beforeSHA256": null,
+          "sha256": "a3fcba9a65cd338b6ac0f600c11d3b92aa90b7a32cd1f17c13092e71ccd4783e",
+          "bytes": 5506
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/sc4-host-step11-final-review.json",
+          "beforeSHA256": null,
+          "sha256": "a4e1e1512fadfb482f56d96ce97c67451d0b9183690754e58a9fb5388052be17",
+          "bytes": 5449
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/sc4-phase10-native-source-check.json",
+          "beforeSHA256": null,
+          "sha256": "72be1d91354b57d61ea2f84ce1a90a50481917ba64476ba3c3faee6c24dad2f3",
+          "bytes": 2450
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/source-checks-final.json",
+          "beforeSHA256": null,
+          "sha256": "46b13eece6526079c6ccf43a5933bffcedd0ff420836b826a070eee6b26a88a2",
+          "bytes": 9340
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-01-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "7cce12e718ac75823f8545505e3c798b4628fd74322d6eec31968c5cb920a018",
+          "bytes": 915
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-02-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "ae948190cd595ba22403f96883527f85257e4739dd5ddcd68c38ffc69786e3c0",
+          "bytes": 1547
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-03-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "4dc28d0df65266fa3aefb6e8f9654f8a0ddda19bbd93d3cf44c570cadc3dbdee",
+          "bytes": 1065
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-04-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "8973a62abfd112d98aeb052c249c6fe8b6df66eafac3891c44778d0f291c9df1",
+          "bytes": 1270
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-05-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "413094ca16fbb82b29c93b5ba319b65b4cbec6170b973dc96350ca0b0ad34392",
+          "bytes": 269
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-06-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "ae612c9b26b1b9466a039abb5dd14719446009fab144c5d7b7178ae94ef4eed2",
+          "bytes": 495
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-07-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "b0521df1ed25974c4cd1a8913783837e421af74d291ded21474dfb2226793992",
+          "bytes": 574
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-08-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "5e139fc62c2502cf967ba77ee79cba58e760d1586d631926293637e179a5d116",
+          "bytes": 1089
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-09-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "a4f027ba61a66212755ab1101f4681169028a793b0c996b9f46bd20d7c1365df",
+          "bytes": 1101
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step-10-source-review.json",
+          "beforeSHA256": null,
+          "sha256": "2a757a770bb1ff2029fa40b7da0c18159eb0a0cb435bcc8264e923ff74ed79e3",
+          "bytes": 1453
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step06-cable-math.json",
+          "beforeSHA256": null,
+          "sha256": "1f62ed09d993c7a1cd0537f1298a777efe0e43a36de4dfa0b02a737fec91e543",
+          "bytes": 1168
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/evidence/step07-native-result-asset.json",
+          "beforeSHA256": null,
+          "sha256": "fe9e9e4c5152e32406c60bc83bb828a3dfc35a3dd0b9a4c1f9a4f1ee7c95d3a2",
+          "bytes": 281
+        },
+        {
+          "path": "docs/immersive/scintilla/sc4-implementation-2026-10-16/verification.json",
+          "beforeSHA256": null,
+          "sha256": "96b4761f5a5889eb827901756b3090fcb606e87f119d8730f9e4d6435ba7bcee",
+          "bytes": 3453
+        },
+        {
+          "path": "docs/immersive_relay_tholustos_integration.md",
+          "beforeSHA256": "58007eec4336418d1a754d39b5cc3e86f24f2e4890692fcf99f767848446ca64",
+          "sha256": "44b1fe22ecf5565d38fb87462e4d44336f8dbb469e08fb9bcd680acea343163b",
+          "bytes": 21974
+        },
+        {
+          "path": "sources.cmake",
+          "beforeSHA256": "11744f915883aed9e1302da86dc109730c601959540f30cf79cc041e8eb44bb9",
+          "sha256": "60bbf33f285d1497cbbd9cc421d2429bd192cf0789c9704dda95eab61111d99a",
+          "bytes": 605
+        },
+        {
+          "path": "src/graphics/stk_tex_manager.cpp",
+          "beforeSHA256": "5b66c5e573acbfd684157b2a7eadcd2461773d81b5b54980f2b8423e2f4c30f3",
+          "sha256": "f1e842cdd897f0fcdd6026de8303ae48d20aa5d7fc10da5ee2f1cd133fa717ca",
+          "bytes": 11355
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_race_mode.cpp",
+          "beforeSHA256": "17fd5c6289335660e5cd8dff936fe19d4f0b4abd078f61bfc3482681814cb7ac",
+          "sha256": "0c7fe0191f5178d2db6221de61e2a37a55309d46d5a3f1ef67a421e0baa76b81",
+          "bytes": 22227
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_race_mode.hpp",
+          "beforeSHA256": "e7c3c325f38652e123e2c365b6322ffdfc0f65c942029c86a09df50e0ad17ea8",
+          "sha256": "784844d6d68fe37a22efdf68380597cc5353d755e452f9106411fc8a884c99a7",
+          "bytes": 2521
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.cpp",
+          "beforeSHA256": "635ebbb5848636824f530bd06419fff9e8943b07f98c713f652288b50238e73e",
+          "sha256": "cc1ee6b1cadd1c9d83d86bf2f142d9fff2202a20a61604093e9805e066b69411",
+          "bytes": 126630
+        },
+        {
+          "path": "src/modes/immersive_relay/relay_session_controller.hpp",
+          "beforeSHA256": "396ba6a0fc534b196223694b50929516f31c2747f281edda8eb44b0a5a8dd31b",
+          "sha256": "c0c6bde101f1cea523eaeeb52d3ff33511887ff69f93dd93bcd2a7fd48013d7b",
+          "bytes": 18594
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+          "beforeSHA256": "4b24517954d65b90f70839b283db16cbae49264d05b333de011142e169b42ab2",
+          "sha256": "5e51548764691220fd8b187e4117c43a4752b766d34820b5f56d591c32a6e195",
+          "bytes": 85535
+        },
+        {
+          "path": "src/modes/immersive_relay/remote/relay_state_publisher.cpp",
+          "beforeSHA256": "c36abc96b85a2823078addea5990bac0f083ceb26bd038234ae837a913d944b0",
+          "sha256": "cbf5758f13008b9caf9521ad5d956e373469b7eb73907436296fe0eddc78e20e",
+          "bytes": 39034
+        },
+        {
+          "path": "src/modes/immersive_relay/render/projection/fisheye_domemaster_projection.cpp",
+          "beforeSHA256": "74e6a5b5418ef4bab0100be577298970c760516dacf7fdee65034f101f67e826",
+          "sha256": "420ef94b52bb20882a2f88d5610769cc7058584ccf4ac5e9d76f7758bec7f528",
+          "bytes": 20297
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_json.hpp",
+          "beforeSHA256": null,
+          "sha256": "08a0f25a0f632d3c5815677264d733b4e7223c26a9cb58a0e72657e841a1093b",
+          "bytes": 10165
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_layout.hpp",
+          "beforeSHA256": "577761f1f1c2eef69d6cb080e625da4233ea7e925d6763f36d3d03ac1adc2db7",
+          "sha256": "e2f2cd312055dcd38638d8f60c7799d018fbbb25f9dc3def725c480017ea3e2e",
+          "bytes": 6265
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission.cpp",
+          "beforeSHA256": null,
+          "sha256": "41833b041bcd56107bb48b8e76e5304ef80d9b0550b9385a7618bbbdb5cc6e84",
+          "bytes": 23831
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission.hpp",
+          "beforeSHA256": null,
+          "sha256": "c327094d1f9eccf4c164e487429af9fe882002da98a3e1d45adf384ef2f1e852",
+          "bytes": 8847
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_anchors.cpp",
+          "beforeSHA256": null,
+          "sha256": "f68f9af876e382e5de8d6885a763a75231c013b1b1bb4e321894073166f40a11",
+          "bytes": 14943
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_anchors.hpp",
+          "beforeSHA256": null,
+          "sha256": "4181f56cf34b6cbbbd96bc3f87870886c1bc641272b407c686d954c4925739d5",
+          "bytes": 3400
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_measurement.hpp",
+          "beforeSHA256": null,
+          "sha256": "8b456d39d678f6cf9d9f19999df3adad5369e5abd046a6eea81b87dcc26e5c97",
+          "bytes": 18163
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_protocol.hpp",
+          "beforeSHA256": null,
+          "sha256": "e3a9dd67b179aa25aba32377d77ae21d71ece351d5cd9d5442b1ec70602a28d5",
+          "bytes": 8642
+        },
+        {
+          "path": "src/modes/immersive_relay/scintilla_mission_result_json.hpp",
+          "beforeSHA256": null,
+          "sha256": "d3d039a30432ea8572234b0a5391dc43ef34c63f9b0cb33d0c801bef14138b22",
+          "bytes": 2622
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+          "beforeSHA256": "3824f03a43186e6fd6b69b53e1edd2efd90ee0b7aa846b0f6e858c976140b1ad",
+          "sha256": "28e5e0644c5ee743a4a0ccfae9febec02bf0668f6e4da30a08d4aa611d85f7c0",
+          "bytes": 144521
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+          "beforeSHA256": "bf4635cc350434ac2e78b99d33b601070efe39698478635038ca2294859ecb39",
+          "sha256": "4d6861e090d16bb7732855e9820259eba936ba518bb3fcb9cfc165f1a761a6ab",
+          "bytes": 4003
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+          "beforeSHA256": "6420c6b38de43d5082166ac91593150243b9fd3080d31693f4baea6ce1c86a73",
+          "sha256": "effc0863adb745451fa12e54a1ca840624f46ba8d6e990b1e1f4ce04c0e696b2",
+          "bytes": 90773
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+          "beforeSHA256": "dbf1979c97a96503d585b3cdfbd56226703568524e9c7c29779cd5fd8e09e539",
+          "sha256": "9f860baa48292e14b2eca8bab3b016adaf040a62c8550411448235a46331251b",
+          "bytes": 9740
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_measurement_native.hpp",
+          "beforeSHA256": null,
+          "sha256": "421b40a92c5c39efbfc9de2741253394f49cd43ff9ae87a5b3acdef88c24babd",
+          "bytes": 27246
+        },
+        {
+          "path": "tools/immersive/scintilla/check_mission_intro_assets.py",
+          "beforeSHA256": null,
+          "sha256": "8277896e84918b94d2229610ba606b9edc96fde072532ea49256e2b621cd5f7d",
+          "bytes": 4977
+        },
+        {
+          "path": "tools/immersive/scintilla/collect_mission_measurement.py",
+          "beforeSHA256": null,
+          "sha256": "d4b316fcc894197a808ca9f393b8eb3eaf3e1717d638067bd974a28b3f33949f",
+          "bytes": 8564
+        },
+        {
+          "path": "tools/immersive/scintilla/create_mission_intro.py",
+          "beforeSHA256": null,
+          "sha256": "deceab78d3899c2fdfab48eac6940f33a29e093719977c1792fe92b7c42c1918",
+          "bytes": 15168
+        },
+        {
+          "path": "tools/immersive/scintilla/create_mission_result_atlas.py",
+          "beforeSHA256": null,
+          "sha256": "a43111cdd53c64baace7d98236ffdb6d3f4f554aea0e8c711e520438e3bf3bd1",
+          "bytes": 1435
+        },
+        {
+          "path": "tools/immersive/scintilla/test_collect_mission_measurement.py",
+          "beforeSHA256": null,
+          "sha256": "ee36bc122688937c0054cf10ed00f7c21ab28fa923371fd196f73e4846313c7a",
+          "bytes": 4725
+        },
+        {
+          "path": "tools/immersive/scintilla/test_mission_qualification.py",
+          "beforeSHA256": null,
+          "sha256": "ae490e789d01321a64c6d20a7c98cb569f421f4a8e054dc321b99cc1b6d8e2ca",
+          "bytes": 22408
+        },
+        {
+          "path": "tools/immersive/scintilla/validate_mission_qualification.py",
+          "beforeSHA256": null,
+          "sha256": "f32dee1781977284d997fbd26bcd62b2d87a67988c701d5a51141d6ad6b3c143",
+          "bytes": 30216
+        },
+        {
+          "path": "tools/immersive/tests/CMakeLists.txt",
+          "beforeSHA256": "493074f62963fe14483e22fcce8a45779296d6459816f9717dc9a4dc6f9e221b",
+          "sha256": "93b10e732431a1f5f84c847d5d969a36f6b25ee088d90cf2aff4d3a7e6052e30",
+          "bytes": 13613
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_combat.py",
+          "beforeSHA256": "630d3f4f6015bb2a4cb8a7153ef9a45a0f5c56458ad417c01ce2b021b525fa62",
+          "sha256": "9c00bb884ecf9477bc68bd2e559e2cc7849694d8e3e8b6ecb23c88db8e464c91",
+          "bytes": 13621
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_defense.py",
+          "beforeSHA256": "9970591313ac0542641ee299f700a90deb2cbc867979fa7c7f7c69cb27eb9637",
+          "sha256": "518904177e9caa60af8b99f273f52cc890e5b2972c17583adf903f8d8fa908a1",
+          "bytes": 20599
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_mission_api_source.py",
+          "beforeSHA256": null,
+          "sha256": "eec4518338c35aad9446aba93e06c51d6c44cd1c94fd623e05c8e4994ec48175",
+          "bytes": 7282
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_mission_finish_source.py",
+          "beforeSHA256": null,
+          "sha256": "d258d7ce370ca286bbadd20b89e9d468d373c8426da34da00414d1349ba6df7c",
+          "bytes": 7746
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_mission_hud_source.py",
+          "beforeSHA256": null,
+          "sha256": "3ceb4d204cbceee3febbbeb8661690d5f52eba8a8c5c105fdc50a37c1e324996",
+          "bytes": 3324
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_mission_lifecycle_source.py",
+          "beforeSHA256": null,
+          "sha256": "b580e57b838d731174d8d766b24042ff15a0fb06d872fd47ad61fa0755c2b2ef",
+          "bytes": 3751
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_mission_presentation_source.py",
+          "beforeSHA256": null,
+          "sha256": "6c5aaa2ebb49349c9cb12f5e6dc5e53b00c3ad6eb7135517dd6fbeb7e5282e5e",
+          "bytes": 3704
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_tool_feedback.py",
+          "beforeSHA256": "6494f37bc4ed81f5a53ea1f61eb48e71ae1f766f6713f54ceccb00782527ee74",
+          "sha256": "24ac8c77471338f6c74d45752f5b9db3baa8e5d1810996184327ef0ac47524ce",
+          "bytes": 11343
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_depth_gpu.cpp",
+          "beforeSHA256": "60cbeca118e79d88f8de3e5aa707c364d2b635280ee61f6a331173396cbae429",
+          "sha256": "be562bc0d3777df4f543057f6b4048bb27052fb553bfd9c7e507f5a6c7ad0b59",
+          "bytes": 19223
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_input_cases.inc",
+          "beforeSHA256": "d2ab52d34c3ee31db41a032eb0ac64094a397bb5dc900be8b3c45063264f726a",
+          "sha256": "d75850b7e41d701ff78ea7fea5eb95be39471deef901aa03873bab3a477a616f",
+          "bytes": 7115
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+          "beforeSHA256": "60dc18aafea963eb9290102de34b3a3a6ad957b8af8843d129c43243c6d8abfd",
+          "sha256": "f4fcf41a4dfda7698c322de46a44bd1915d06e723c364a28945f3c1bd1d7859e",
+          "bytes": 161355
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_anchors_cases.inc",
+          "beforeSHA256": null,
+          "sha256": "8a0573388e196bed494f85761d794e07de5f97bbf6dba0de1aa0e348c200d8eb",
+          "bytes": 1090
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_anchors_regression.cpp",
+          "beforeSHA256": null,
+          "sha256": "f318f38bafdebd91ba8ba35ba2bea123d3fbc4d64d4dd7a15add4be03cb9dec8",
+          "bytes": 11668
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_cases.inc",
+          "beforeSHA256": null,
+          "sha256": "fd9c8cff3c795ddad62220009b400a1f985dd91ce5bd369c66943c7f3967fd27",
+          "bytes": 1959
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_measurement_regression.cpp",
+          "beforeSHA256": null,
+          "sha256": "dccecb6b658e06019e21d4f1cb61ffc8b09cb1b1cb2af793c2c9a1359cbdeb41",
+          "bytes": 3477
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_protocol_regression.cpp",
+          "beforeSHA256": null,
+          "sha256": "d26135a6810e250ccac3c2c1e70ef11dc051a24a6972050f4e0c93cb8e3aa84b",
+          "bytes": 7820
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_mission_regression.cpp",
+          "beforeSHA256": null,
+          "sha256": "8942f85216d7034cae575a0c6ff4af70cf74d658c717d7fc2e8ca79f854987ee",
+          "bytes": 25846
+        }
+      ]
+    },
+    "host": {
+      "root": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "headAtStart": "86192cac835ebe22934d83605b6192480837643d",
+      "initialDirtyFiles": 88,
+      "files": [
+        {
+          "path": "Modules/CalibrationEngine/MetalRenderer/DomeRendererViewModel.swift",
+          "beforeSHA256": "1ba49aef72cccc87dbc8cf0a249712f5c489ba5185d0be83b088c8adcc2732e3",
+          "sha256": "db93936b973423c13b6b8084e6ccf26e1970d0930764e40eac268ff1809ab6ff",
+          "bytes": 372260
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKIntroCompositionAccess.swift",
+          "beforeSHA256": null,
+          "sha256": "640917a205ae460cf19ceb8464da755e7362d537145fa66da28375d6737d874a",
+          "bytes": 311
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKIntroMedia.swift",
+          "beforeSHA256": null,
+          "sha256": "a9f65e71147186ae49f9b36cc03b64803f0b3b1e6dacee8b687154d846d0afb4",
+          "bytes": 7269
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKMissionHTTP.swift",
+          "beforeSHA256": null,
+          "sha256": "6985771caa7174d3b3dbb62436b173341173f486e8fe269c51a30d8a0abf90ad",
+          "bytes": 5969
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialCommissioning.swift",
+          "beforeSHA256": "a8d0d35a1ca4ed513d58f2fc56ca28c894d16e887b07e5d72871f830ddcb431f",
+          "sha256": "66b983272abc2ea9d9a35d35b565796ada135bfaba57b1c36f6098bfb76d5a2b",
+          "bytes": 8529
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+          "beforeSHA256": "792bc3bb5395f2976b8627a90fb58e9ecd37dcccd3c3ed02b30fc9636223b40f",
+          "sha256": "3f961bc06daef62cfcd9d4ec75fea83c653778711bd4722ea9f8c063bc5d7a80",
+          "bytes": 30421
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift",
+          "beforeSHA256": "ed22e0a6eac03a5e0152edf4b37b6e17544ccea9f36694a4676e5b24ee4854ec",
+          "sha256": "e79f6d37b94baa44acce933ed12eb8beca39974f946cbc3d24d32c94f5183e9b",
+          "bytes": 37487
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+          "beforeSHA256": "fa5fd54b54c5cfb83c65b23b39f19b0200a34c0604adf82139177ebe65303049",
+          "sha256": "04399b95d4842a90147293c53d1270527dcae11c3e736b4fa4dd9169964c0f50",
+          "bytes": 25100
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartAPIModels.swift",
+          "beforeSHA256": "eb7d3b985f219ca676ae318a4981569f9459de8e54567be37c9d5041529f38ce",
+          "sha256": "e562e4d09be1d5e36079768e55a851cdb8372bffc39449729b97048fa2713062",
+          "bytes": 62591
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+          "beforeSHA256": "38515bb39d5bfb54c24ff328d69f5dac6d3529fa17f112706484c575827ef57c",
+          "sha256": "31edde2aae2cff116bcee1a24b24f597082ca21b41d71f18a90cc75de8869f10",
+          "bytes": 152121
+        },
+        {
+          "path": "Modules/GameShowControl/Workspace/GamesSTKSpatialInputView.swift",
+          "beforeSHA256": "ef2ca593a25147d05dab7aa5cbb317e7d70ec73e254b152675f44e8aab899d55",
+          "sha256": "a4085a0685266bd159b2e36e8a219c3f838a85126aa52f4f3e10bc48e05de6a6",
+          "bytes": 10859
+        },
+        {
+          "path": "Modules/GameShowControl/Workspace/GamesWorkspaceStore.swift",
+          "beforeSHA256": "5aa7498d55be8127decaad96e2f92eac3bada0eb5cca42c70f41d25f1b735cec",
+          "sha256": "ee614bee584ba7ef7404e9c8f9ce54e0ce27ad3bb5d05254575d2ac5d19b8ca7",
+          "bytes": 51830
+        },
+        {
+          "path": "Modules/Shared/MediaBus.swift",
+          "beforeSHA256": "6f856e05e374b3491fb1a0ff85e698b99ea54bcd2774fd5a2a200df0f8167bcc",
+          "sha256": "e90aca971cef6b51b572c75aac648d8fee5da6c227dbaddbab2ea9b20586e6e2",
+          "bytes": 71197
+        },
+        {
+          "path": "Modules/VideoInputs/VideoInputManager.swift",
+          "beforeSHA256": "c7e675f4e9db31d2284fbea90c1fd94466e09c7478439528516f04cfd5e23fb2",
+          "sha256": "df9ec1fe2b9c2a30b95515a9fc697b2bfeba3e61c8824dbd8e57362a4da4923d",
+          "bytes": 36681
+        },
+        {
+          "path": "Modules/VideoPlayer/VideoPlayerViewModel.swift",
+          "beforeSHA256": "bb09b07cd74062f3614b560b70868b8d7587838e427dcadbe4c145f1a36be1c5",
+          "sha256": "f8e16fa7b81ccbc61b95593bffb17950cb21ce1a39dcd8bb9efa8eaede5a3225",
+          "bytes": 131643
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Package.swift",
+          "beforeSHA256": null,
+          "sha256": "980a92c1c4db4c96ad7d76cc5f694f2c86e6d8b1c6eb4fd137786a1d2fd61c60",
+          "bytes": 442
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionIdentity.swift",
+          "beforeSHA256": null,
+          "sha256": "66830d049301eed3bd5c2aeee66e8ed645dc3d0bc6da0d1265382411576e9ed1",
+          "bytes": 2043
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionIntroManifest.swift",
+          "beforeSHA256": null,
+          "sha256": "be2e416588c50909efc6bdfdbd91604038f045ddddb2ac33f5ed75a7a16facd5",
+          "bytes": 3087
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionIntroState.swift",
+          "beforeSHA256": null,
+          "sha256": "c49277bc24683ab557770d3a6cc3b866463bd1d24eb134f24ffc3c94035df644",
+          "bytes": 3582
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionResult.swift",
+          "beforeSHA256": null,
+          "sha256": "f0e2949ccabbcb1f9dd6949c2cd6e6bc2c51829d1da4f91f4d67d6741cb0fb4b",
+          "bytes": 4877
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Sources/TholusScintillaMission/MissionState.swift",
+          "beforeSHA256": null,
+          "sha256": "5095d6d9dd97d9a6d0ee6490007de204dbbf3319bb823f066585d73cb29854ac",
+          "bytes": 12663
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/MissionFixture.swift",
+          "beforeSHA256": null,
+          "sha256": "4e6ad0bf5137262347640622aa6e157ef1b9378b91103053bdc290382a65f7cd",
+          "bytes": 3237
+        },
+        {
+          "path": "Packages/TholusScintillaMission/Tests/TholusScintillaMissionTests/MissionTests.swift",
+          "beforeSHA256": null,
+          "sha256": "03d900675cab9fb40240ae3c3c5c10c935d9930a29fa6648a0c2366269571d13",
+          "bytes": 8007
+        },
+        {
+          "path": "SocialTableController.xcodeproj/project.pbxproj",
+          "beforeSHA256": "c57a10a960e15aa71a3ba7a4462b7ca8b7da69820713e0904ed3d949f97edfa9",
+          "sha256": "37940eb794c86cb7e7ef61303dd8c6321c8f555f076e3379bbd14b894ad8f59b",
+          "bytes": 67591
+        },
+        {
+          "path": "SocialTableController/Localizable.xcstrings",
+          "beforeSHA256": "8f675a93c427fc6bda68b0f007cc482a589438e9a2891847487fd95875cd263d",
+          "sha256": "9017a8a4617ae04cd71216e14cc85d9bfe82138529a0873bc25a1b0214fbe995",
+          "bytes": 14012438
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKIntroMediaTests.swift",
+          "beforeSHA256": null,
+          "sha256": "bdab763d6e12428cfb653c6c0a2639d0aeb3d5dd3c4a30c8d9a5aacd2f875143",
+          "bytes": 5224
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKMissionHTTPTests.swift",
+          "beforeSHA256": null,
+          "sha256": "521a537dbb5412da575c57f59df59ce9b9f42bb8d3515190ad72325b5e2f24b2",
+          "bytes": 8375
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialActivationTests.swift",
+          "beforeSHA256": "dab053b62b4cb63b8218bbf3769bda509a8aadb7356a7f852b74e9b4d464ee82",
+          "sha256": "cc602b0341b7d331e9c8400fbbd79fd7e9cf334ef8bbecb1a98b30a2960f0261",
+          "bytes": 21118
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+          "beforeSHA256": "5116cefe447172f4a821c771d0c45c2d3ad92039bbfd71a59239b8cf40587cd9",
+          "sha256": "956e063b98f1b79beb94dd1403d8fa0ac8441c5a01f738f103d560a1b46e9b6d",
+          "bytes": 111482
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ScintillaMissionFixture.swift",
+          "beforeSHA256": null,
+          "sha256": "103416a068571df3bb3aa3ba5ec51de6fcb502a60742915df68adf670f7acc6c",
+          "bytes": 3249
+        },
+        {
+          "path": "scripts/ci/test_app_isolated.py",
+          "beforeSHA256": "c555fa5d37d3340fc19a0bf61b9837b2ad1a62b2656d6a3ad731568dc25ba53a",
+          "sha256": "c813c2103e3caf4f0f97afa868bf83a1887e656afb017da98ab9a5881874f845",
+          "bytes": 73642
+        }
+      ]
+    }
+  }
+}

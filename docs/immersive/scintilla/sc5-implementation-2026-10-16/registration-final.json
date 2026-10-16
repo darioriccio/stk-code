@@ -1,0 +1,156 @@
+{
+  "kind": "source_registry_inspection_not_native_execution",
+  "CMakeConfigured": false,
+  "nativeOrSwiftTestsExecuted": false,
+  "native": {
+    "protocol": {
+      "file": "scintilla_crew_protocol_regression.cpp",
+      "cases": [
+        "canonicalUInt64AndEveryAuthorityDimension",
+        "closedOperationAndProfileSchemas",
+        "onlyIntentAcceptsIncompleteAndLegacyAuthority",
+        "bindingProofsAreClosedBoundedAndBijective",
+        "exactReceiptSurvivesAuthorityChange"
+      ],
+      "count": 5
+    },
+    "core": {
+      "file": "scintilla_crew_regression.cpp",
+      "cases": [
+        "rolesMatchEveryNativeRaceAndFairnessCalculation",
+        "partyDisabledAndPreprepareSnapshotsRemainCoherent",
+        "partyHoldQuorumAndPhysicalAcknowledgementAtEveryFrequency",
+        "partyPendingProofUsesOriginalAdmissionAndRejectsNegativeRepair",
+        "partyExpiryIsExclusiveAndZeroCannotReopenAnOldHold",
+        "partyQuorumUsesOriginalAdmissionAcrossAsyncCompletionAndIdTies",
+        "partyAuthorityReleaseVetoAndQuotaSurviveReprepare",
+        "partyGateReasonsDoNotSpendQuotaOrAllowLatentPending",
+        "partyRejectsDuplicatePeopleOldAuthorityAndBootstrapAcrossRebind",
+        "advisoryTechnicalHoldAlignsTickAndReadyAllowsPreviousTickPress",
+        "allAvailabilitySubsetsAreBoundedInjectiveAndComplete",
+        "defenseAndRecoveryRespectRealHandCapacity",
+        "heldOccupationIsPreservedAndInterruptionAdviceIsSeparate",
+        "invalidationBypassesStabilityAndExpiredTargetsDisappear",
+        "waitingOutranksAffinityWithoutRoleMonopoly",
+        "commitCreditsAreDistinctBoundedAndPersistForPeople",
+        "opportunityAccountingSeparatesReadinessPauseAndNoTarget",
+        "malformedFactsFailClosedAndNextValidTickRecovers",
+        "maximumFrequencyWaitAndCountersNeverWrap",
+        "heldPreviewHasRolesButCannotClaimPrepared",
+        "previewProfileChoiceAndMissedFullRotationRemainHeld",
+        "disablingNeverPreparedPreviewClearsRolesAndKeepsIntentRevision",
+        "observedTurnLocksEvenNeverPreparedPreviewAgainstDowngrade",
+        "nativeTurnCommitIsTheOnlyAdvancement",
+        "sameRaceReprepareSuspendAndResetKeepCorrectAuthority",
+        "frozenRosterAndProfileCannotBeRewrittenByRetry",
+        "invalidInitialPreparationDoesNotSeedRace",
+        "competenceModuloRemainsExactAtUInt64Maximum"
+      ],
+      "count": 28
+    },
+    "controller": {
+      "file": "scintilla_crew_controller_regression.cpp",
+      "cases": [
+        "initialGateBlocksAllStartsAndAdministrativeTurn",
+        "confirmedStageACommitsIntoHeldStageB",
+        "automaticStageAAlsoClosesBeforePhysics",
+        "pausedStageAAllowsPhoneConfirmationButHealthyPresentationIsRequired",
+        "skipCreatesOneAdministrativeTurnAndCannotFarmStageB",
+        "preparedStageBWaitsForEveryExplicitReadyResumeIngress",
+        "resetsPreserveRequirementAndCloseOldAdmission",
+        "gameplayResumeRequiresStageBAndLegacyRemainsIndependent",
+        "naturalCrewReportUsesExactMissionTupleAndSharedPublisherEnvelope",
+        "artificialCrewReportUsesCopiedObservationAndCannotAcquireLateCredits",
+        "administrativeNativeHandoffMakesNaturalCrewReportNonComparable",
+        "resetKeepsBothImmutableSessionArchivesAndTheSamePublishedEnvelope",
+        "newRacePreviewAbortHasCompleteCrewEnvelopeAndMissingRosterCannotBecomeLegacy",
+        "committedHandoffThenAbortBeforeEngineObservationUsesNativeAuthorityOnly"
+      ],
+      "count": 14
+    },
+    "zones": {
+      "file": "scintilla_crew_zones_regression.cpp",
+      "cases": [
+        "authoringNeverQualifiesAndLoadingIsAtomic",
+        "exactNativeTrackNodesAndDirectionAreRequired",
+        "qualificationBindsEveryZoneBuildAndEvidenceHash",
+        "remainingDistanceIsCheckedAtTheLastConsent",
+        "rescueTeleportBackwardAndClockGapsBreakContinuity",
+        "sameTickRecheckCannotAcceptMovedKartOrFinalSegment",
+        "nativeEvidenceRequiresClosedProvenanceAndReturnsBoundedProofHashes",
+        "nativeEvidenceRejectsSyntheticStaleFailedAndIncompleteObservations"
+      ],
+      "count": 8
+    },
+    "boost_math": {
+      "file": "scintilla_crew_boost_math_regression.cpp",
+      "cases": [
+        "partyTangentImpulsePreservesNormalAndMatchesCounterexample",
+        "partyTotalCapUsesCurrentSlowdownAndRejectsNoUsefulImpulse",
+        "partyFloatAndDoubleConversionsRespectBoundedImpulse",
+        "partyMalformedNumbersAndNonunitNormalsFailBeforeWriting",
+        "partyNumericalToleranceRejectsOutOfScaleInputs",
+        "partyDurationsUseFloorAndNativeInt16BoundsAtEveryFrequency"
+      ],
+      "count": 6
+    },
+    "result": {
+      "file": "scintilla_crew_result_regression.cpp",
+      "cases": [
+        "naturalSnapshotPreservesEveryParticipantAndProfileBucket",
+        "reportParametersMatchExactIntegerRulesAtEveryFPS",
+        "identityMismatchAndMalformedObservationCannotFreeze",
+        "frozenRecordOutlivesLateCreditsPauseResetAndProfileChange",
+        "artificialAdminTestSaturationCannotBeComparable",
+        "exclusiveArchiveNeverOverwritesAndKeysBoundNames"
+      ],
+      "count": 6
+    },
+    "services": {
+      "file": "scintilla_crew_services_regression.cpp",
+      "cases": [
+        "normalWinsAtTheProductionCommitPointAndCannotChargeTwice",
+        "partySuccessChargesOnceAndCreditsOnlyTheCommittedQuorum",
+        "rejectedPhysicsHasNeitherChargeCooldownQuotaNorLateRetry",
+        "lateHoldTerminalAndSameTickThreatWinBeforeOptionalPhysics"
+      ],
+      "count": 4
+    },
+    "input": {
+      "count": 129,
+      "newCrewCases": [
+        "crewBindingObservationUsesNativePhysicalIdentityAndLossHistory",
+        "crewLogicalRebindPreservesPhysicalBindingAndRequiresNewEpoch",
+        "crewPossessionContinuityCannotRecoverWithoutNewInputEpoch",
+        "crewPossessionBaselinePrecedesFirstReadAndIdempotentRebindCannotHealLoss",
+        "crewNeutralityIncludesOptionalGripControl",
+        "crewNeutralityRequiresFreshObservedUpAfterAuthorityBoundaries",
+        "crewLayoutV3ReservesExactPartyCircleAndPreservesLegacyMasks",
+        "crewDisabledContextCannotDisarmLegacyInput",
+        "crewPartyPrimaryAndDisabledToolNeverReachWorldGameplay",
+        "crewPartyPressAuthorityAndAdmissionRemainImmutableAcrossAimsAndProposal",
+        "crewPartyInitialPendingIsOnlyTheActualReliablePressQuery",
+        "crewHistoricalPartyProposalIsCapturedAndRetiredIdentityIsRejected",
+        "crewPartyPendingNegativeCannotBecomePendingOrPositiveForTheSamePress",
+        "crewPartyCoalescedDepartureAndReturnStayInterruptedBeforeAndAfterProof",
+        "crewOldAndMixedFramesRejectEveryAuthorityDimensionWithoutRevokingGrant",
+        "crewSameTurnRebindCannotUseAnOldInputEpochFrame",
+        "crewRealUpSerialSurvivesControlClearingButNotAuthorityChange",
+        "crewPartySourceJSONUsesOnlyCurrentFiniteFeedbackAndClearsConsent"
+      ]
+    }
+  },
+  "app": {
+    "phase8And9Methods": 20,
+    "phase8And9Invocations": 39,
+    "crewHTTPMethods": 9,
+    "missing": []
+  },
+  "packageTestMethods": {
+    "CrewPossessionTests.swift": 13,
+    "CrewTests.swift": 13,
+    "CrewCapabilityTests.swift": 4,
+    "CrewIntroTests.swift": 6,
+    "CrewResultTests.swift": 4
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "scope": "SC3 steps 0-10; no native execution or SC4",
+  "repositories": {
+    "stk": {
+      "main_path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "head": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "baseline_files": 4481,
+      "baseline_manifest_sha256": "be95b73f89c2827b4ceccb2ebb44bdfe48b67892fc7830a6c18f464e900565d8",
+      "delta": {
+        "data/shaders/utils/immersive_scintilla.frag": {
+          "before": "ea75c2c7b8a38d5a22ecfda1abcfe1bf70a286063df83aae4c2b8d55b82ac632",
+          "after": "58c2878056942156474bab0d93099833131926bbb9e59b98612e4e05fbf4bcef"
+        },
+        "docs/immersive/scintilla/sc3-2026-10-15/API.md": {
+          "before": null,
+          "after": "f01a206f215e24b80ceb7217a08b411a8bef75a02f8a94d6023bf1ed5aa522c0"
+        },
+        "docs/immersive/scintilla/sc3-2026-10-15/README.md": {
+          "before": null,
+          "after": "2c2ca370be0d4b839b42261fe8614cfb649541620b02468c90a6646b10f4152d"
+        },
+        "docs/immersive/scintilla/sc3-2026-10-15/REGRESSIONI.md": {
+          "before": null,
+          "after": "363890f75ab2e0a88f8b00d6107718bfa71dab55dffe656ab30630acff80273e"
+        },
+        "docs/immersive/scintilla/sc3-2026-10-15/calcoli-riscontro.json": {
+          "before": null,
+          "after": "32d9103d9a50bac096638b58e25d8d6a967d76813f715e8213833afa1f425639"
+        },
+        "docs/immersive/scintilla/sc3-2026-10-15/verification.json": {
+          "before": null,
+          "after": "e0d00422f27d31418313e258e89daf60b2c032e937be13baef261ff134ea1bf8"
+        },
+        "sources.cmake": {
+          "before": "c4850106c2f67a321b54626af50cb444b02ba283542195f3eecf647f2f6f9fc2",
+          "after": "11744f915883aed9e1302da86dc109730c601959540f30cf79cc041e8eb44bb9"
+        },
+        "src/karts/abstract_kart.hpp": {
+          "before": "f7650a122317c5f7531d8feb189590abda6eff2b44853016f0e2a02bc713983f",
+          "after": "e9c35c29d186a05a6b0935ba7e5613117d5b401c585010caa7d84d7d38d05e3b"
+        },
+        "src/karts/explosion_animation.cpp": {
+          "before": "231f2b34d028753eb1726f864ce1160e2a35f75fce83bc418d8bf1b0f57801d0",
+          "after": "c07bd383755efa782cd58eebcb7d61d63b3c2ec79b62f9b73450d221266896bd"
+        },
+        "src/karts/kart.cpp": {
+          "before": "b8bdaa2aabb43db7e851a62212921a81f2fadbcc1604a8b346855d6ac7f990ed",
+          "after": "9f778a7c9695fb653de87374022248b17f9fbba113492862ba181471308745bf"
+        },
+        "src/karts/kart.hpp": {
+          "before": "eabcd468e09f85b7a4213bc38cdb6fda3986905f09269ab61041aa1cdea028c2",
+          "after": "c6c58b64f8b2760561fe6deeeac712944c2e3c904ff9debee0632fcd0cd3c94a"
+        },
+        "src/modes/immersive_relay/relay_race_mode.cpp": {
+          "before": "b23acee916b90c36ee5aa05b942b0a11bb3faa94c3448a1ac2fc91a88974577f",
+          "after": "f2edc0f62e760c16c55ca23b88f08fe3c66360ac3c7008e16d1ee426d2dcd3a0"
+        },
+        "src/modes/immersive_relay/relay_session_controller.cpp": {
+          "before": "2d6ab56dad9160973c2f5133121d041f91ff68f707af298e93b498a3fc413275",
+          "after": "635ebbb5848636824f530bd06419fff9e8943b07f98c713f652288b50238e73e"
+        },
+        "src/modes/immersive_relay/relay_session_controller.hpp": {
+          "before": "bb3b894fd81ebe185c5fb932420b4fdb4e2972119821e126265f16e084a30517",
+          "after": "396ba6a0fc534b196223694b50929516f31c2747f281edda8eb44b0a5a8dd31b"
+        },
+        "src/modes/immersive_relay/remote/relay_command_router.cpp": {
+          "before": "7e8718ad978cb50495560ac9f16d55c48ac31faa0e6cbdbc92b8928d415cc3b8",
+          "after": "4d8f71051a7b6731fd5123312b5880e71ec42e9990bad3daa06e54776ea7c9b2"
+        },
+        "src/modes/immersive_relay/scintilla_defense.cpp": {
+          "before": null,
+          "after": "27a94a46dfdca41dc2181d55661d8a744e215c1f80ca8d5c5af1d78ebdb1b193"
+        },
+        "src/modes/immersive_relay/scintilla_defense.hpp": {
+          "before": null,
+          "after": "f0c6b23c7704fbc02bd8d10f40eeb811bc5f9723015156929b9253d1bca11b29"
+        },
+        "src/modes/immersive_relay/scintilla_defense_collision.cpp": {
+          "before": null,
+          "after": "fcb0922476c57afbf8c921d58fb9d30b492691286b6b4e68abe1bec06841cf66"
+        },
+        "src/modes/immersive_relay/scintilla_defense_collision.hpp": {
+          "before": null,
+          "after": "4e3b159575bd6b4bd2462b9c74e26f7f793f095be53675371b267116f59251ed"
+        },
+        "src/modes/immersive_relay/scintilla_defense_physics.cpp": {
+          "before": null,
+          "after": "e62fdff8b8763bfbae16c2ece0d0f99088633fd68b8bc0bec9cf22b1a7dca1be"
+        },
+        "src/modes/immersive_relay/scintilla_defense_physics.hpp": {
+          "before": null,
+          "after": "937cffe7bcd6acc08b2d43d451ac39e1cd80a641a369a0c5c3eaf20b0976c68d"
+        },
+        "src/modes/immersive_relay/scintilla_layout.hpp": {
+          "before": null,
+          "after": "577761f1f1c2eef69d6cb080e625da4233ea7e925d6763f36d3d03ac1adc2db7"
+        },
+        "src/modes/immersive_relay/spatial/scintilla_engine.cpp": {
+          "before": "2ccbb0b422109aa1cdbd715196813f55f0895abdb6936817b511caf77d0df34c",
+          "after": "d798dbab67222153b190f8ea9468abebdd937e10ee09cedc3d4046cd09b80fce"
+        },
+        "src/modes/immersive_relay/spatial/scintilla_engine.hpp": {
+          "before": "acb7b888715e786621afcf8f5b510a8e94fd3aa9b8d1a95591d39019926a1127",
+          "after": "952a7d973b2495aa93880f70346f79edb413d311a02dd06678b05cdb60219a2f"
+        },
+        "src/modes/immersive_relay/spatial/scintilla_input.cpp": {
+          "before": "34216b1e62b8ec879b622440f8cfaa34905c5665d2f9a8b2b0f61d1c3195a674",
+          "after": "ef3ef317dc60c5167c25e34f6db7c2ecd32feb084012431daeeb62fa1eea6f9d"
+        },
+        "src/modes/immersive_relay/spatial/scintilla_input.hpp": {
+          "before": "85cfa8c6ea1400d845985613d6b63d3ff384518c28fd2cb31e828c7cda1a1b95",
+          "after": "379a47cd29be0280c8a4d0a252e4cc82d3becbe9919fff873dd4eae192f721e7"
+        },
+        "src/physics/physics.cpp": {
+          "before": "09e89817f81c1f0c34792d688082011328ce324aae9709ff35030da8d731c84b",
+          "after": "60c8af2526406bcd024a302f1bddec50ba6808045d01ce6bd633d016ab32eb8b"
+        },
+        "tools/immersive/tests/CMakeLists.txt": {
+          "before": "8b2067215134b894711f12aa917decd30e9b25240f8c45fc79d59b96c151872a",
+          "after": "025b5744a0864fc5321181fad24ed385bb70fd3397e013603bc8c314e1bcbb88"
+        },
+        "tools/immersive/tests/README.md": {
+          "before": "90679d5a0e433f0af0d262479ccb688cc3326a18391c85707d9a0eb08f809906",
+          "after": "a34174a17384d78aa9ae7a6b8fd67979e030d2a39cfe8afda20bda539e5f88b8"
+        },
+        "tools/immersive/tests/check_scintilla_combat.py": {
+          "before": "0301c6a3fca08dea434bbf230c1452c99531f24b828df6499f78ce7665e9f35d",
+          "after": "630d3f4f6015bb2a4cb8a7153ef9a45a0f5c56458ad417c01ce2b021b525fa62"
+        },
+        "tools/immersive/tests/check_scintilla_defense.py": {
+          "before": null,
+          "after": "d8c4a1bfdaf75f83951646da3ea3ac7eeee51726f1f152b6f9ae3209af4257c9"
+        },
+        "tools/immersive/tests/check_scintilla_tool_feedback.py": {
+          "before": "086a98705cb6f86a6b98d9e682001b3dfb44d3a8e80e3134bf54ff2d3458525f",
+          "after": "b26e52efe3bbf4c62e2dde231543e83c58c3add01f0fad6fa35a1f8c62f71e49"
+        },
+        "tools/immersive/tests/scintilla_defense_cases.inc": {
+          "before": null,
+          "after": "dcc5a85cffc7a93f4baa62a30a59a9e86eb7c6f887707eae9649e7aaa580f519"
+        },
+        "tools/immersive/tests/scintilla_defense_collision_regression.cpp": {
+          "before": null,
+          "after": "1e5831cc1212e3409268930b72b37865915628276f359e324d704221243e5224"
+        },
+        "tools/immersive/tests/scintilla_defense_regression.cpp": {
+          "before": null,
+          "after": "3e639ee46f2d08de7c08ceeb2ccd9451ae5ab50922308bb6e4d6458c19c3e238"
+        },
+        "tools/immersive/tests/scintilla_input_cases.inc": {
+          "before": "d5f93280b87d01dbcbb8106fe89f0a1078710e2bb4e227acd1fa83242108689f",
+          "after": "928ae2bf897f6c222eef841abe1e6f7c50ba4ad19dc3f3fd81cc3c68127e0938"
+        },
+        "tools/immersive/tests/scintilla_input_regression.cpp": {
+          "before": "1c46910d9a38987188edd5bef74fba8aafe6e52d828e65ae02ace036b8ea9532",
+          "after": "0004625b9e152e7de032ff6f95ff0adb02cf68e2788336cda7fa74c1ede959b7"
+        }
+      }
+    },
+    "host": {
+      "main_path": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "head": "86192cac835ebe22934d83605b6192480837643d",
+      "baseline_files": 8557,
+      "baseline_manifest_sha256": "29bce1a71f991153b8cc049d8e2e084e3dffe6d175b28bb04e7c03dcf4945a65",
+      "delta": {
+        "Modules/GameShowControl/ImmersiveSTKSpatialCommissioning.swift": {
+          "before": "073bfbff61e9a67974de5b1268e8c1666c45435a9aa2c4af5115d263c557319a",
+          "after": "a8d0d35a1ca4ed513d58f2fc56ca28c894d16e887b07e5d72871f830ddcb431f"
+        },
+        "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift": {
+          "before": "5232fa89a2e1760cd3decd8d8e5d7260e3a2cd45e4581067e68f3106b42d999e",
+          "after": "7a514b3cdd8df80dde691a8beee6dccfddb7ce9535aae4ce499060fc8b0cbc1a"
+        },
+        "Modules/GameShowControl/ImmersiveSTKSpatialInput.swift": {
+          "before": "cabb13e209937c95b7ed8fb8fc7a7363cf6c31645e6a23ceb7ef32e2bdb64c2d",
+          "after": "ed22e0a6eac03a5e0152edf4b37b6e17544ccea9f36694a4676e5b24ee4854ec"
+        },
+        "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift": {
+          "before": "a359e19476347e2fa50ee013cef6742af9b16ca51b65e72c8f43f38cc5f90234",
+          "after": "fa5fd54b54c5cfb83c65b23b39f19b0200a34c0604adf82139177ebe65303049"
+        },
+        "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md": {
+          "before": "3d23c2f8568d135b2002b7ca1252213f36d76374b727d608a1e7edc7204e4c1b",
+          "after": "465946b1ad4f4b779e6058ee00eaac5ffb9e43899468e3b08d0dfbb221acd178"
+        },
+        "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift": {
+          "before": "2cbcaf38f4b4b45b3800cfe3c7f3de9505f3d0e6cfdb23cf19391fd04121cd0c",
+          "after": "58ba6646c715da30206d002883ac40accda7fe53cfb24d38bc206f9eb1bc8e92"
+        },
+        "Modules/GameShowControl/Workspace/GamesSTKSpatialInputView.swift": {
+          "before": "f74b059d5d14be7b60d8ec0ae696738d9972de8b88c5e36aaeb3f781123fc63a",
+          "after": "ef2ca593a25147d05dab7aa5cbb317e7d70ec73e254b152675f44e8aab899d55"
+        },
+        "SocialTableController/Localizable.xcstrings": {
+          "before": "b96ac6eab6ca2878c702e537e475d20ae4c238fb9a322ca74649df851ab666ac",
+          "after": "448eac9c60c9af60c3101461bf85ed1bcb99db9748a0a58858d13b99cbbc5b08"
+        },
+        "Tests/SocialTableControllerTests/ImmersiveSTKDefenseHTTPTests.swift": {
+          "before": null,
+          "after": "378cc2dae53ab939722690ad682f70f68267a90d60592a032f30b88b844650f3"
+        },
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialActivationTests.swift": {
+          "before": "06f103ff40213bce51fb2ffa7e39b29afaca8e36e85b6efd14b5d84919b91874",
+          "after": "dab053b62b4cb63b8218bbf3769bda509a8aadb7356a7f852b74e9b4d464ee82"
+        },
+        "Tests/SocialTableControllerTests/ImmersiveSTKSpatialInputTests.swift": {
+          "before": "6a1ee724c03387e6d98bde5b2fe9c22f7ce6ff74f9f437662f1276fdf97a8115",
+          "after": "63085132269cb547f260c46b10e08dc611d0ec79a0713dffd0863f52647db3dc"
+        },
+        "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift": {
+          "before": "b1bf2dafb97491b9aea7c9a3a0405098f67c381056d6c765ae10cd3a91a54ca9",
+          "after": "53333d051244dae33c1cb16292e8276a521c6170eb2a012110a236862dbfe1d1"
+        },
+        "docs/immersive-stk/sc3-2026-10-15/README.md": {
+          "before": null,
+          "after": "9fd0ab5cd802c4e6517c68ff94a8c2b738427adf603ecf16f114c481c0d64081"
+        }
+      }
+    }
+  },
+  "excludes": [
+    "this manifest (self hash)"
+  ]
+}

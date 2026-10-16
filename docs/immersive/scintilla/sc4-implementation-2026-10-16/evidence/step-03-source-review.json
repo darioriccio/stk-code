@@ -1,0 +1,23 @@
+{
+  "step": 3,
+  "input_regression_cases_written": [
+    "missionHistoricalRangeAndWireIdentityStayTyped",
+    "missionAllPlausibleFramesMustAgreeOnPhaseAndKind",
+    "missionPressAdmissionCannotBorrowANewerOpenSnapshot",
+    "missionPreOpenPressAndPhaseChangesStayInterrupted",
+    "missionPressSerialIsImmutableAcrossNewAims",
+    "missionPendingEarlierPressKeepsOwnershipOrder",
+    "missionStickyLossAndCoalescedRealReleaseReachTheCore",
+    "missionContextMismatchAndRetirementRejectHistoricalProof",
+    "missionHeldWorldCanObserveOnlyRealCurrentPresentation",
+    "missionMixedPrimaryQueuePreservesBothTypedDeliveries",
+    "missionFeedbackIsEpochCheckedPersistentAndContextSpecific",
+    "missionReleaseReceiptDoesNotSurvivePauseOrParticipantRebind",
+    "missionNewerAimCannotReinterpretAnOlderPendingPress",
+    "missionNewDefenseWarningDoesNotInterruptTheSameCapsule"
+  ],
+  "single_dispatch": true,
+  "primary_snapshot_correlation_reviewed": true,
+  "compiled_or_run": false,
+  "independent_source_review": "passed after mission feedback context fix"
+}

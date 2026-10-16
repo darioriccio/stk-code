@@ -1,0 +1,9 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "tools/immersive/CheckRelayProjectionSource.py"
+  ],
+  "exit_code": 0,
+  "scope": "Existing Python source/math suite against main working tree; no GPU/compiler/game/receiver/physical proof"
+}

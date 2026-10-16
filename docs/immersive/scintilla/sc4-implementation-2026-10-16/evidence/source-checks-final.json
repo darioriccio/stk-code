@@ -1,0 +1,89 @@
+{
+  "scope": "source_mathematics_only",
+  "build": false,
+  "nativeGameOrApp": false,
+  "GPU": false,
+  "records": [
+    {
+      "name": "defense",
+      "chunk_id": "ea8e4c",
+      "wall_time_seconds": 0.163091417,
+      "exit_code": 0,
+      "original_token_count": 800,
+      "output": "test_additive_routes_and_all_server_start_gates (__main__.DefenseSourceAndMathChecks.test_additive_routes_and_all_server_start_gates) ... ok\ntest_asymmetric_socket_aabb_radius_contains_every_corner (__main__.DefenseSourceAndMathChecks.test_asymmetric_socket_aabb_radius_contains_every_corner) ... ok\ntest_boost_cost_is_shared_by_accounting_api_and_visible_hud (__main__.DefenseSourceAndMathChecks.test_boost_cost_is_shared_by_accounting_api_and_visible_hud) ... ok\ntest_bundled_bullet_abi_and_actual_shape_lifetime (__main__.DefenseSourceAndMathChecks.test_bundled_bullet_abi_and_actual_shape_lifetime) ... ok\ntest_candidate_selection_respects_priority_across_pending_gpu_queries (__main__.DefenseSourceAndMathChecks.test_candidate_selection_respects_priority_across_pending_gpu_queries) ... ok\ntest_compound_arc_error_and_separation_bound (__main__.DefenseSourceAndMathChecks.test_compound_arc_error_and_separation_bound) ... ok\ntest_fixed_point_rates_and_ceiling_windows (__main__.DefenseSourceAndMathChecks.test_fixed_point_rates_and_ceiling_windows) ... ok\ntest_impact_is_tangential_idempotent_and_boost_commits_cost_last (__main__.DefenseSourceAndMathChecks.test_impact_is_tangential_idempotent_and_boost_commits_cost_last) ... ok\ntest_native_fixtures_registered_once_with_actual_bullet (__main__.DefenseSourceAndMathChecks.test_native_fixtures_registered_once_with_actual_bullet) ... ok\ntest_native_physics_step_is_bracketed_and_missing_trace_cancels (__main__.DefenseSourceAndMathChecks.test_native_physics_step_is_bracketed_and_missing_trace_cancels) ... ok\ntest_native_source_delimiters_are_balanced (__main__.DefenseSourceAndMathChecks.test_native_source_delimiters_are_balanced) ... ok\ntest_optical_proof_not_a_warning_seen_boolean (__main__.DefenseSourceAndMathChecks.test_optical_proof_not_a_warning_seen_boolean) ... ok\ntest_post_physics_boost_commits_native_floor_before_success (__main__.DefenseSourceAndMathChecks.test_post_physics_boost_commits_native_floor_before_success) ... ok\ntest_race_reset_retains_physical_authority_but_clears_gameplay (__main__.DefenseSourceAndMathChecks.test_race_reset_retains_physical_authority_but_clears_gameplay) ... ok\ntest_rear_uses_the_same_camera_face_sampling_as_main_view (__main__.DefenseSourceAndMathChecks.test_rear_uses_the_same_camera_face_sampling_as_main_view) ... ok\ntest_release_and_new_epoch_precede_admission_and_deadline (__main__.DefenseSourceAndMathChecks.test_release_and_new_epoch_precede_admission_and_deadline) ... ok\ntest_same_grant_rebind_preserves_physical_authority_and_replay (__main__.DefenseSourceAndMathChecks.test_same_grant_rebind_preserves_physical_authority_and_replay) ... ok\ntest_single_rear_composite_read_only_and_opaque_hud (__main__.DefenseSourceAndMathChecks.test_single_rear_composite_read_only_and_opaque_hud) ... ok\ntest_socket_sweep_covers_the_relocated_segment (__main__.DefenseSourceAndMathChecks.test_socket_sweep_covers_the_relocated_segment) ... ok\ntest_world_offense_is_independent_of_defense_threat (__main__.DefenseSourceAndMathChecks.test_world_offense_is_independent_of_defense_threat) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.042s\n\nOK\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_defense.py"
+    },
+    {
+      "name": "depth",
+      "chunk_id": "7858cf",
+      "wall_time_seconds": 2.090831959,
+      "exit_code": 0,
+      "original_token_count": 308,
+      "output": "test_actual_rules_and_engine_shader_wiring_match (__main__.DepthVisibilityTests.test_actual_rules_and_engine_shader_wiring_match) ... ok\ntest_audit_wall_counterexample (__main__.DepthVisibilityTests.test_audit_wall_counterexample) ... ok\ntest_depth_arithmetic_const_initializers_are_valid_before_glsl_420 (__main__.DepthVisibilityTests.test_depth_arithmetic_const_initializers_are_valid_before_glsl_420) ... ok\ntest_depth_code_edges_are_conservative (__main__.DepthVisibilityTests.test_depth_code_edges_are_conservative) ... ok\ntest_depth_cube_blit_matches_packed_face_rtt_and_propagates_failure (__main__.DepthVisibilityTests.test_depth_cube_blit_matches_packed_face_rtt_and_propagates_failure) ... ok\ntest_equal_ambiguous_and_clear_depth_boundaries (__main__.DepthVisibilityTests.test_equal_ambiguous_and_clear_depth_boundaries) ... ok\ntest_invalid_values_and_strict_clip_planes (__main__.DepthVisibilityTests.test_invalid_values_and_strict_clip_planes) ... ok\ntest_occluders_reject_behind_and_preserve_separated_front_markers (__main__.DepthVisibilityTests.test_occluders_reject_behind_and_preserve_separated_front_markers) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 1.894s\n\nOK\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_depth.py"
+    },
+    {
+      "name": "mission_api_source",
+      "chunk_id": "0cec63",
+      "wall_time_seconds": 0.000008125,
+      "exit_code": 0,
+      "original_token_count": 17,
+      "output": "SC4 API: 17 source checks passed; HTTP/runtime remains unexecuted.\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_mission_api_source.py"
+    },
+    {
+      "name": "mission_finish_source",
+      "chunk_id": "88d21a",
+      "wall_time_seconds": 0.155139333,
+      "exit_code": 0,
+      "original_token_count": 19,
+      "output": "SC4 finish integration: 20 source checks passed; no build/runtime executed.\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_mission_finish_source.py"
+    },
+    {
+      "name": "mission_hud_source",
+      "chunk_id": "65afdf",
+      "wall_time_seconds": 0.000019042,
+      "exit_code": 0,
+      "original_token_count": 20,
+      "output": "SC4 HUD: 18 source/asset contracts passed; native rendering remains unexecuted.\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_mission_hud_source.py"
+    },
+    {
+      "name": "mission_lifecycle_source",
+      "chunk_id": "3037b3",
+      "wall_time_seconds": 0.000007667,
+      "exit_code": 0,
+      "original_token_count": 20,
+      "output": "SC4 lifecycle: 16 source checks passed; native lifecycle remains unexecuted.\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_mission_lifecycle_source.py"
+    },
+    {
+      "name": "mission_presentation_source",
+      "chunk_id": "6e6d9f",
+      "wall_time_seconds": 0.146351958,
+      "exit_code": 0,
+      "original_token_count": 20,
+      "output": "SC4 presentation: 12 source contracts passed; no build/GPU/runtime executed.\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_mission_presentation_source.py"
+    },
+    {
+      "name": "stagger_clearance",
+      "chunk_id": "06492d",
+      "wall_time_seconds": 0.687788917,
+      "exit_code": 0,
+      "original_token_count": 283,
+      "output": "test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose (__main__.StaggerClearanceChecks.test_asymmetric_compound_bounds_fit_at_every_pitch_and_world_pose) ... ok\ntest_bullet_queries_use_the_actual_shape_center_and_conservative_fallback (__main__.StaggerClearanceChecks.test_bullet_queries_use_the_actual_shape_center_and_conservative_fallback) ... ok\ntest_float_center_and_extent_conversion_only_expands_the_envelope (__main__.StaggerClearanceChecks.test_float_center_and_extent_conversion_only_expands_the_envelope) ... ok\ntest_original_ceiling_counterexample_is_inside_the_checked_sweep (__main__.StaggerClearanceChecks.test_original_ceiling_counterexample_is_inside_the_checked_sweep) ... ok\ntest_pitch_displacement_cannot_enter_an_admitted_supporting_plane (__main__.StaggerClearanceChecks.test_pitch_displacement_cannot_enter_an_admitted_supporting_plane) ... ok\ntest_upward_ledges_and_invalid_contacts_are_not_support (__main__.StaggerClearanceChecks.test_upward_ledges_and_invalid_contacts_are_not_support) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.507s\n\nOK\n",
+      "cmd": "python3 -B tools/immersive/tests/check_scintilla_stagger_clearance.py"
+    },
+    {
+      "name": "projection",
+      "chunk_id": "0762d4",
+      "wall_time_seconds": 1.211581,
+      "exit_code": 0,
+      "original_token_count": 185,
+      "output": "test_actual_shared_face_sampler_has_full_sphere_coverage (__main__.ProjectionSourceTests.test_actual_shared_face_sampler_has_full_sphere_coverage) ... ok\ntest_cardinal_contract_and_vertical_publication (__main__.ProjectionSourceTests.test_cardinal_contract_and_vertical_publication) ... ok\ntest_independent_receiver_round_trip (__main__.ProjectionSourceTests.test_independent_receiver_round_trip) ... ok\ntest_render_thread_and_presentation_gate_wiring (__main__.ProjectionSourceTests.test_render_thread_and_presentation_gate_wiring) ... ok\ntest_seam_continuity_and_poles (__main__.ProjectionSourceTests.test_seam_continuity_and_poles) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 1.210s\n\nOK\n",
+      "cmd": "python3 -B tools/immersive/CheckRelayProjectionSource.py"
+    }
+  ]
+}

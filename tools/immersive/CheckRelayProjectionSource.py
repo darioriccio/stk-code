@@ -97,7 +97,7 @@ class ProjectionSourceTests(unittest.TestCase):
 
     def test_render_thread_and_presentation_gate_wiring(self):
         dispatcher=(ROOT/'src/modes/immersive_relay/remote/relay_game_dispatcher.cpp').read_text()
-        self.assertIn('if (method != "POST"',dispatcher)
+        self.assertRegex(dispatcher,r'if\s*\(\s*method\s*!=\s*"POST"')
         controller=(ROOT/'src/modes/immersive_relay/relay_session_controller.cpp').read_text()
         for method in ['startSession','operatorStart','operatorCountdown','operatorResume','confirmHandoff']:
             code=controller.split('bool RelaySessionController::'+method+'(',1)[1].split('\n}',1)[0]
@@ -122,7 +122,14 @@ class ProjectionSourceTests(unittest.TestCase):
         self.assertNotIn('m_presentation_ready',camera)
         router=(ROOT/'src/modes/immersive_relay/remote/relay_command_router.cpp').read_text()
         ready=router.split('if (route_path == "/immersive/v1/operator/ready")',1)[1].split('\n    }',1)[0]
-        self.assertLess(ready.index('!snapshot.m_presentation_ready'),ready.index('operatorReset'))
+        # Results Ready may reset a combat race while video is held. It must
+        # return before the ordinary Ready path, which gates every actual start.
+        self.assertLess(ready.index('operatorReset'),ready.index('"scintilla_combat_reset_requires_prepare"'))
+        self.assertLess(ready.index('"scintilla_combat_reset_requires_prepare"'),ready.index('controller->pilotReady'))
+        pilot=controller.split('bool RelaySessionController::pilotReady(',1)[1].split('\n}',1)[0]
+        for start in ['confirmHandoff(', 'operatorCountdown(', 'transitionArcadeLocked(']:
+            self.assertLess(pilot.index('!state.m_presentation_ready'),pilot.index(start))
+        self.assertIn('!m_presentation_ready || !m_scintilla_start_permitted',pilot)
         self.assertIn('render_reconfiguration_requires_pause',router)
         self.assertIn('equirectangular_requires_supported_2_to_1_projection',router)
 

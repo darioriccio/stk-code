@@ -1,0 +1,44 @@
+{
+  "kind": "SC2 audit point 3: sticky beam interruption; source-only evidence",
+  "SC3_started": false,
+  "checks": {
+    "combat_source_math": 10,
+    "stagger_clearance_source_math": 6,
+    "previous_stagger_checkpoint_hashes": 9,
+    "diff_check": "pass"
+  },
+  "native_regressions_added": 4,
+  "spatial_cases_registered_total": 64,
+  "native_tests_executed": false,
+  "build_or_typecheck_executed": false,
+  "files": [
+    {
+      "path": "docs/immersive/scintilla/sc2-beam-loss-2026-10-15/README.md",
+      "sha256": "99c11c5cf5550d6c190d4a6b8ea7a4de46262b392e979a4fee36934a696583ff"
+    },
+    {
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "sha256": "5727e634cffeef000cddb93178dc37f27cd1f02b10b4d0ff317d2509cb058abb"
+    },
+    {
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "sha256": "4afd6c9594a926c425117e0a73b33a7e15dae32ed01524a23f903fcc97ea2700"
+    },
+    {
+      "path": "tools/immersive/tests/README.md",
+      "sha256": "7a399efebe9cf776c0bdddb7cecc50a2b5402432976c2d5ffef5f85a3104e0b6"
+    },
+    {
+      "path": "tools/immersive/tests/check_scintilla_combat.py",
+      "sha256": "0301c6a3fca08dea434bbf230c1452c99531f24b828df6499f78ce7665e9f35d"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_input_cases.inc",
+      "sha256": "bd7a777747dbdb0a7847f57874f96721a913d27c73bee07345d9fb594689493a"
+    },
+    {
+      "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+      "sha256": "3b452f4c731b6dc82d9dd31ebfee9f0ea404ac7799f8db388dd3ef077bba45e8"
+    }
+  ]
+}

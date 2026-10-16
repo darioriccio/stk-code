@@ -23,6 +23,10 @@ SyphonOutputAdapterMac::SyphonOutputAdapterMac()
     m_unavailable_logged = false;
     m_width = 0;
     m_height = 0;
+    m_lease_enabled = false;
+    m_lease_directory = m_lease_gate = m_lease_data = -1;
+    m_writer_gate = m_writer_data = false;
+    m_publish_fence = NULL;
 }
 
 SyphonOutputAdapterMac::~SyphonOutputAdapterMac()
@@ -82,6 +86,11 @@ bool SyphonOutputAdapterMac::publishWithTarget(unsigned int texture,
     }
     return false;
 }
+
+bool SyphonOutputAdapterMac::prepareLease() { return false; }
+bool SyphonOutputAdapterMac::acquireWriter() { return false; }
+void SyphonOutputAdapterMac::closeLease() {}
+void SyphonOutputAdapterMac::pollPublishedLease() {}
 
 void SyphonOutputAdapterMac::shutdown()
 {

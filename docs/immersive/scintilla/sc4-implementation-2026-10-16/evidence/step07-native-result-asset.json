@@ -1,0 +1,10 @@
+{
+  "asset": "data/immersive_relay/scintilla/mission_results_it_v1.png",
+  "sha256": "554bc936e1fed8a5c436be1be5e7151461db8bd4dba96e610124bf8555e0afc1",
+  "dimensions": [
+    2048,
+    800
+  ],
+  "rows": 5,
+  "visual_review": "completed on generated PNG, not a GPU/output proof"
+}

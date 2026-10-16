@@ -1,0 +1,28 @@
+{
+  "scope": "pure_math_and_explicit_synthetic_negative_fixtures",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "-v",
+    "test_mission_qualification.py"
+  ],
+  "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc4-implementation-2026-10-16/stk/tools/immersive/scintilla",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "exitCode": 0,
+  "testCount": 25,
+  "elapsedSeconds": 4.064,
+  "nativeExecution": false,
+  "compilerOrBuild": false,
+  "GPUExecution": false,
+  "opticalQualification": false,
+  "hardwareQualification": false,
+  "qualificationReportProduced": false,
+  "sourceSHA256": {
+    "validate_mission_qualification.py": "f32dee1781977284d997fbd26bcd62b2d87a67988c701d5a51141d6ad6b3c143",
+    "test_mission_qualification.py": "ae490e789d01321a64c6d20a7c98cb569f421f4a8e054dc321b99cc1b6d8e2ca"
+  },
+  "testOutput": "test_canonical_wide_identities_never_pass_through_float (test_mission_qualification.BoundedProtocol.test_canonical_wide_identities_never_pass_through_float) ... ok\ntest_duplicate_escaped_keys_and_nonfinite_numbers_are_rejected (test_mission_qualification.BoundedProtocol.test_duplicate_escaped_keys_and_nonfinite_numbers_are_rejected) ... ok\ntest_line_limit_duplicate_frame_and_incomplete_footer_fail_closed (test_mission_qualification.BoundedProtocol.test_line_limit_duplicate_frame_and_incomplete_footer_fail_closed) ... ok\ntest_mixed_configuration_and_manually_changed_range_cannot_admit (test_mission_qualification.BoundedProtocol.test_mixed_configuration_and_manually_changed_range_cannot_admit) ... ok\ntest_trace_symlinks_and_oversized_anchor_are_rejected_before_reading (test_mission_qualification.BoundedProtocol.test_trace_symlinks_and_oversized_anchor_are_rejected_before_reading) ... ok\ntest_capsule_angular_limit_and_ideal_straight_line_budget (test_mission_qualification.QualificationMathematics.test_capsule_angular_limit_and_ideal_straight_line_budget) ... ok\ntest_exact_cargo_circle_boundary_is_reserved (test_mission_qualification.QualificationMathematics.test_exact_cargo_circle_boundary_is_reserved) ... ok\ntest_half_open_capsule_budget_counts_intervals_not_endpoints (test_mission_qualification.QualificationMathematics.test_half_open_capsule_budget_counts_intervals_not_endpoints) ... ok\ntest_linear_maximin_matches_independent_quadratic_oracle (test_mission_qualification.QualificationMathematics.test_linear_maximin_matches_independent_quadratic_oracle) ... ok\ntest_no_wall_time_credit_without_native_tick_progress (test_mission_qualification.QualificationMathematics.test_no_wall_time_credit_without_native_tick_progress) ... ok\ntest_peak_speed_cannot_promote_sustained_minimum (test_mission_qualification.QualificationMathematics.test_peak_speed_cannot_promote_sustained_minimum) ... ok\ntest_reset_cannot_stitch_two_short_windows (test_mission_qualification.QualificationMathematics.test_reset_cannot_stitch_two_short_windows) ... ok\ntest_tether_three_seconds_is_inclusive (test_mission_qualification.QualificationMathematics.test_tether_three_seconds_is_inclusive) ... ok\ntest_c2_objects_are_independent_and_missing_second_is_rejected (test_mission_qualification.SyntheticNegativeCaptures.test_c2_objects_are_independent_and_missing_second_is_rejected) ... ok\ntest_explicit_discontinuity_on_duplicate_tick_breaks_the_window (test_mission_qualification.SyntheticNegativeCaptures.test_explicit_discontinuity_on_duplicate_tick_breaks_the_window) ... ok\ntest_held_chunks_do_not_concatenate_into_a_window (test_mission_qualification.SyntheticNegativeCaptures.test_held_chunks_do_not_concatenate_into_a_window) ... ok\ntest_interleaved_duplicate_ticks_preserve_runs_without_adding_credit (test_mission_qualification.SyntheticNegativeCaptures.test_interleaved_duplicate_ticks_preserve_runs_without_adding_credit) ... ok\ntest_long_later_window_cannot_repair_bad_activation (test_mission_qualification.SyntheticNegativeCaptures.test_long_later_window_cannot_repair_bad_activation) ... ok\ntest_occlusion_and_pending_queries_break_the_entire_window (test_mission_qualification.SyntheticNegativeCaptures.test_occlusion_and_pending_queries_break_the_entire_window) ... ok\ntest_one_unseen_lap_cannot_be_certified (test_mission_qualification.SyntheticNegativeCaptures.test_one_unseen_lap_cannot_be_certified) ... ok\ntest_open_activation_cannot_substitute_shell_activation (test_mission_qualification.SyntheticNegativeCaptures.test_open_activation_cannot_substitute_shell_activation) ... ok\ntest_reverse_progress_and_teleports_cannot_qualify_forward_windows (test_mission_qualification.SyntheticNegativeCaptures.test_reverse_progress_and_teleports_cannot_qualify_forward_windows) ... ok\ntest_snapshot_peak_and_max_speed_do_not_cover_native_base (test_mission_qualification.SyntheticNegativeCaptures.test_snapshot_peak_and_max_speed_do_not_cover_native_base) ... ok\ntest_synthetic_complete_geometry_never_becomes_real_qualification (test_mission_qualification.SyntheticNegativeCaptures.test_synthetic_complete_geometry_never_becomes_real_qualification) ... ok\ntest_two_short_phase_runs_are_not_pooled (test_mission_qualification.SyntheticNegativeCaptures.test_two_short_phase_runs_are_not_pooled) ... ok\n\n----------------------------------------------------------------------\nRan 25 tests in 3.962s\n\nOK\n"
+}

@@ -512,6 +512,11 @@ int Kart::getSpeedIncreaseTicksLeft(unsigned int category) const
     return m_max_speed->getSpeedIncreaseTicksLeft(category);
 }   // getSpeedIncreaseTimeLeft
 
+bool Kart::isSpeedIncreaseActive(unsigned int category) const
+{
+    return m_max_speed->isSpeedIncreaseActive(category) != 0;
+}
+
 // -----------------------------------------------------------------------------
 void Kart::setBoostAI(bool boosted)
 {

@@ -1,0 +1,133 @@
+{
+  "kind": "SC2 audit point 1 Ready gate correction; source-only evidence",
+  "SC3_started": false,
+  "checks": {
+    "combat_source_math_passed": 8,
+    "localization_swift_files": 1648,
+    "localization_new_findings": 0,
+    "whitespace": "pass"
+  },
+  "native_regression_cases_added": {
+    "cpp": 4,
+    "swift_scenarios": 29
+  },
+  "native_tests_executed": false,
+  "build_or_typecheck_executed": false,
+  "files": [
+    {
+      "repository": "stk",
+      "path": "docs/immersive/scintilla/sc2-ready-gate-2026-10-15/README.md",
+      "sha256": "cc8dd8c319c3797c384b525b688d401f4bb26332a734022c9dd1d3c91df10983"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/remote/relay_command_router.cpp",
+      "sha256": "7e8718ad978cb50495560ac9f16d55c48ac31faa0e6cbdbc92b8928d415cc3b8"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/scintilla_combat.cpp",
+      "sha256": "f195f121fd83fc8e73cebaffa1e4f1ee6924831d4d1ad39f96fffe7e08e8699e"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/scintilla_combat.hpp",
+      "sha256": "816119d817e7593dee7b15823061d8ef94fd0c85fd3701653ad50502f1b31708"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.cpp",
+      "sha256": "7f7998a6cc4481d066e945f11c318f565a11d2a876311942fccbeaed38da1ca6"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_engine.hpp",
+      "sha256": "acb7b888715e786621afcf8f5b510a8e94fd3aa9b8d1a95591d39019926a1127"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+      "sha256": "4af4264edfd8719d1b04185314177bdedd70bfb9f5bed85f2ffe4403217bd462"
+    },
+    {
+      "repository": "stk",
+      "path": "src/modes/immersive_relay/spatial/scintilla_input.hpp",
+      "sha256": "c2d0d46c674e4e3f840c62ee95c6cc69522c24529a5368e7ee2d85e209140843"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/README.md",
+      "sha256": "1a6d9a3575cd3e0cb19277a61089de6508519c87aa3cfcc67772526f86eed47b"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/check_scintilla_combat.py",
+      "sha256": "eaa8a4f1720b088d13040e2892c6f3186351517728402120ff3d7a55955f0ad1"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/relay_game_dispatcher_cases.inc",
+      "sha256": "8581b67f4d5f646413df8373c729bbd65c15b1f03567bcee8a784643aa96f55d"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/relay_game_dispatcher_regression.cpp",
+      "sha256": "80c9388f761bfd6fcaa8975be113bf0efc831eeb44bee7f6bb246c482b9aa2df"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_combat_cases.inc",
+      "sha256": "fdda8be0f84b67892c5aa667816cc4ddb831962659a9cee7cf9ac2fd3a30d4b8"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_combat_regression.cpp",
+      "sha256": "b56a1881e820bc880e3f0fb357897c645a1a707e203ba891635c72fbad03ede1"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_input_cases.inc",
+      "sha256": "2fa75d6c43919c2ab427d089d91445d6c8957ae39c562820bca174219904afa3"
+    },
+    {
+      "repository": "stk",
+      "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+      "sha256": "e272f5a244c16249700dedbb6756508149652c0ab41d9c6ab6d5eeaa0301a71c"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+      "sha256": "799d0559d102b4d786bfbbc3b7b451923a0afe5a4c1878cf9257661d9e5e699b"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSTKSpatialPreparation.swift",
+      "sha256": "a359e19476347e2fa50ee013cef6742af9b16ca51b65e72c8f43f38cc5f90234"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+      "sha256": "2cbcaf38f4b4b45b3800cfe3c7f3de9505f3d0e6cfdb23cf19391fd04121cd0c"
+    },
+    {
+      "repository": "host",
+      "path": "Modules/GameShowControl/ImmersiveSuperTuxKartIntegration.md",
+      "sha256": "3d23c2f8568d135b2002b7ca1252213f36d76374b727d608a1e7edc7204e4c1b"
+    },
+    {
+      "repository": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift",
+      "sha256": "850309d53f210148c859a6dccd0b718439bacd44f6e11a5703245a45afc0ded3"
+    },
+    {
+      "repository": "host",
+      "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+      "sha256": "b1bf2dafb97491b9aea7c9a3a0405098f67c381056d6c765ae10cd3a91a54ca9"
+    },
+    {
+      "repository": "host",
+      "path": "SocialTableController/Localizable.xcstrings",
+      "sha256": "b96ac6eab6ca2878c702e537e475d20ae4c238fb9a322ca74649df851ab666ac"
+    }
+  ]
+}

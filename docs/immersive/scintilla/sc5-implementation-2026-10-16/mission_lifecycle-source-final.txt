@@ -1,0 +1,1 @@
+SC4 lifecycle: 16 source checks passed; native lifecycle remains unexecuted.

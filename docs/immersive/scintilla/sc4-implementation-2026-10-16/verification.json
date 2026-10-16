@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-16",
+  "generatedAtUTC": "2026-10-16T11:47:32.146633+00:00",
+  "status": "software_source_and_offline_assets_delivered_executable_qualification_pending",
+  "plan": "../sc4-plan-2026-10-16/PIANO_SC4.md",
+  "machine": {
+    "system": "Darwin",
+    "release": "25.5.0",
+    "architecture": "arm64",
+    "python": "3.14.6"
+  },
+  "constraints": {
+    "build": false,
+    "compilerOrTypecheck": false,
+    "CMakeConfigure": false,
+    "appOrGameLaunched": false,
+    "nativeAPIExercised": false,
+    "GPUExecuted": false,
+    "hardwareQualified": false,
+    "SC5Started": false
+  },
+  "checksPassed": {
+    "combat": 10,
+    "defense": 20,
+    "depth": 8,
+    "missionAPI_and_cache": 17,
+    "missionFinish": 20,
+    "missionHUD": 18,
+    "missionLifecycle": 16,
+    "missionPresentation": 12,
+    "staggerClearance": 6,
+    "toolFeedback": 6,
+    "projection": 5,
+    "qualification_offline": 25,
+    "collector_offline": 10
+  },
+  "assetChecks": {
+    "variantCount": 3,
+    "panelCount": 18,
+    "videoCount": 3,
+    "subtitleCount": 3,
+    "framesPerClip": 1200,
+    "fps": "30/1",
+    "durationSeconds": 40,
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "allClipsFullOfflineDecode": true,
+    "PNGVisualReview": true,
+    "AVFoundationOrPhysicalPlayback": false
+  },
+  "localization": {
+    "swiftFiles": 1657,
+    "newFindings": 0,
+    "finalCommissioningFixChangesCopy": false
+  },
+  "nativeCasesWrittenNotRun": {
+    "mission": 32,
+    "anchors": 16,
+    "protocol": 6,
+    "measurement": 8,
+    "sharedInputTotal": 103,
+    "combatRetained": 25,
+    "defenseRetained": 24
+  },
+  "swiftCases": "Package/HTTP/runtime/media and retained commissioning fixtures registered, not compiled or executed",
+  "finalAuditFixes": [
+    "Invalidate qualification on actual world/global resource reload; preserve same-world reset and individual font eviction",
+    "Retain physical commissioning authority across only an explicitly approved held layout1-to-layout2 import"
+  ],
+  "qualification": {
+    "authoringStatus": "development_unqualified",
+    "realNativeTraces": 0,
+    "qualifiedGeometryReportCreated": false,
+    "publicReady": "closed_without_real_matching_native_evidence_and_preparation"
+  },
+  "notRun": [
+    "vanilla/Relay/SERVER_ONLY builds",
+    "C++/Swift compiled test suites",
+    "native HTTP and GPU fixtures",
+    "AVFoundation/MediaBus actual intro and return",
+    "actual anchor/tether qualification",
+    "SC4 natural race and complete results-to-next-race cycle",
+    "physical SI5/optics/comfort/venue"
+  ],
+  "git": {
+    "commit": false,
+    "push": false,
+    "baselineDirtyFiles": {
+      "stk": 132,
+      "host": 88
+    },
+    "promotion": "guarded SHA/HEAD transfer; final hashes in source-manifest.json and external promotion.json"
+  },
+  "evidenceDirectory": "evidence",
+  "documentationChecks": {
+    "markdownLinks": "passed",
+    "JSON": "passed",
+    "PythonAST": "passed",
+    "gitDiffCheckBothWorktrees": "passed"
+  },
+  "finalIndependentSourceReviews": {
+    "native": "passed after content-cache generation correction",
+    "host": "passed after retained-commissioning correction",
+    "documentation": "passed after clarification that all allowlisted groups must qualify"
+  },
+  "cleanup": {
+    "intermediateEncodingSegments": "removed after final asset hashes and delivery verification",
+    "evidenceAndIsolatedSourceWorktrees": "retained for pending executable verification"
+  }
+}

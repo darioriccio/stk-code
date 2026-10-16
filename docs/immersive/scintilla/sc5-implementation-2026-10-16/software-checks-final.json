@@ -1,0 +1,226 @@
+{
+  "buildsRun": false,
+  "nativeTestsRun": false,
+  "SC6Started": false,
+  "checks": [
+    {
+      "name": "plan-math",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "docs/immersive/scintilla/sc5-plan-2026-10-16/verifica_calcoli.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.205,
+      "log": "plan-math-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "qualification",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/immersive/scintilla",
+        "-p",
+        "test_*qualification.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 5.303,
+      "log": "qualification-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "collector",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/immersive/scintilla",
+        "-p",
+        "test_collect_mission_measurement.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.144,
+      "log": "collector-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "intro-schema",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/immersive/scintilla",
+        "-p",
+        "test_crew_intro.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.297,
+      "log": "intro-schema-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "party-zones",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/immersive/scintilla",
+        "-p",
+        "test_party_zones.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.07,
+      "log": "party-zones-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "projection-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/CheckRelayProjectionSource.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 1.095,
+      "log": "projection-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "crew_physics-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_crew_physics_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.055,
+      "log": "crew_physics-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "crew_wire-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_crew_wire_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.055,
+      "log": "crew_wire-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "crew_render-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_crew_render_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.06,
+      "log": "crew_render-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "crew_report-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_crew_report_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.065,
+      "log": "crew_report-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "mission_hud-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_mission_hud_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.033,
+      "log": "mission_hud-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "mission_api-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_mission_api_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.062,
+      "log": "mission_api-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "mission_finish-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_mission_finish_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.06,
+      "log": "mission_finish-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "mission_lifecycle-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_mission_lifecycle_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.04,
+      "log": "mission_lifecycle-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    },
+    {
+      "name": "mission_presentation-source",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "tools/immersive/tests/check_scintilla_mission_presentation_source.py"
+      ],
+      "cwd": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "returncode": 0,
+      "elapsedSeconds": 0.044,
+      "log": "mission_presentation-source-final.txt",
+      "kind": "offline_python_or_source_only"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "scope": "SC0-SC3 qualification fixes only; no SC4",
+  "repositories": {
+    "stk": {
+      "mainCheckout": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Immersive SupertuxKart/stk-code",
+      "qualifiedWorktree": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/stk",
+      "baselineHEAD": "0827c13dbec8e927ccee08ba52c97c7fa6b74a67",
+      "files": [
+        {
+          "path": "data/shaders/utils/immersive_scintilla.frag",
+          "beforeSHA256": "05efa6c96c69afa83076d13cd8e761f75be0cc82af74dfcb390bcbd09ce4c3a0",
+          "qualifiedSHA256": "b26f27a1e61f129d8bbde931530c18e8419c0ba95b3be87acd3678f519a2f0dc"
+        },
+        {
+          "path": "src/modes/immersive_relay/spatial/scintilla_input.cpp",
+          "beforeSHA256": "b421dae6c1403ce137b027b59717c969b668565dab7c840a4cf48a5ddf886af1",
+          "qualifiedSHA256": "6420c6b38de43d5082166ac91593150243b9fd3080d31693f4baea6ce1c86a73"
+        },
+        {
+          "path": "tools/immersive/tests/README.md",
+          "beforeSHA256": "a34174a17384d78aa9ae7a6b8fd67979e030d2a39cfe8afda20bda539e5f88b8",
+          "qualifiedSHA256": "eda6b0d9e0ede8c8c5ecd9003f9283b76d7263ad8c11aa2fadad247e0bbf80dd"
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_defense.py",
+          "beforeSHA256": "5db228280b685d5cff381162feb978a4973dbbc236aa3eed06466872d4372223",
+          "qualifiedSHA256": "9970591313ac0542641ee299f700a90deb2cbc867979fa7c7f7c69cb27eb9637"
+        },
+        {
+          "path": "tools/immersive/tests/check_scintilla_depth.py",
+          "beforeSHA256": "1eb0e36b97e71093465c216cfe001b01467ad8aab1f26940d1af15bfd21b921a",
+          "qualifiedSHA256": "77120474c65fded98530940e40b4a43ab4911f01c895ffce5392dc159b7ef600"
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_input_regression.cpp",
+          "beforeSHA256": "8a3c50ce838e93f8febca8f4fb431fea2a17ee2421102256a6b76abd31a400d9",
+          "qualifiedSHA256": "60dc18aafea963eb9290102de34b3a3a6ad957b8af8843d129c43243c6d8abfd"
+        },
+        {
+          "path": "src/modes/immersive_relay/render/cubemap_render_target.cpp",
+          "beforeSHA256": "b9dc2392dbee227dc148ab3e882d24f20393ea1185ff9cb173d732f9fd451281",
+          "qualifiedSHA256": "9041e8290c334aaeb96759ca5055b29b8c62ffc2385ca841dafa74d2844ec288"
+        },
+        {
+          "path": "tools/immersive/CheckRelayProjectionSource.py",
+          "beforeSHA256": "f7bc70e3df7b1e27bdab6c9b3aba3d79ad399dd413e71bae48674ae79f4f09a7",
+          "qualifiedSHA256": "65015f08b3a19e246b5314f94d86e86192831517bdb7a5521a7410da7167eb96"
+        },
+        {
+          "path": "tools/immersive/tests/scintilla_depth_gpu.cpp",
+          "beforeSHA256": null,
+          "qualifiedSHA256": "60cbeca118e79d88f8de3e5aa707c364d2b635280ee61f6a331173396cbae429"
+        },
+        {
+          "path": "tools/immersive/tests/run_scintilla_depth_gpu.py",
+          "beforeSHA256": null,
+          "qualifiedSHA256": "243a585676a2c678344d64f2be6492d77509710af215701350274da2e6c0a715"
+        }
+      ]
+    },
+    "host": {
+      "mainCheckout": "/Volumes/SanDisk 2TB/the usual neXt/03_PROGETTI/Social Table App/SocialTableController",
+      "qualifiedWorktree": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc0-sc3-native-qualification-2026-10-15/host",
+      "baselineHEAD": "86192cac835ebe22934d83605b6192480837643d",
+      "files": [
+        {
+          "path": "Modules/GameShowControl/ImmersiveSTKSpatialHTTP.swift",
+          "beforeSHA256": "7a514b3cdd8df80dde691a8beee6dccfddb7ce9535aae4ce499060fc8b0cbc1a",
+          "qualifiedSHA256": "792bc3bb5395f2976b8627a90fb58e9ecd37dcccd3c3ed02b30fc9636223b40f"
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKDefenseHTTPTests.swift",
+          "beforeSHA256": "378cc2dae53ab939722690ad682f70f68267a90d60592a032f30b88b844650f3",
+          "qualifiedSHA256": "35667edcfc86b50cd57ad5f1fc3950a2b32558b220bd62e824cdbe9ceeb9e959"
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSTKSpatialHTTPTests.swift",
+          "beforeSHA256": "24c7b0139f55ccd46cdc5a96e823d98268df35e9cf80eaa291cc423c3954b2f0",
+          "qualifiedSHA256": "f0c4c8bea1177247ab30664f62f65e4e6bc7a2aeca8743ebf2d536266e97cb29"
+        },
+        {
+          "path": "Modules/GameShowControl/ImmersiveSuperTuxKartRuntimeController.swift",
+          "beforeSHA256": "e70036c48c1d138d5e03c3fcefe563fd865063c14fd8cefe805ed7b68cf1c891",
+          "qualifiedSHA256": "73fee57015c36a3a57670f7915ccb61237bb855cccd5fa47642af2abf5e27ef6"
+        },
+        {
+          "path": "Packages/TholusChromaHost/Sources/TholusChromaHost/Resources/Studio/build-receipt.json",
+          "beforeSHA256": "43d05f532cbf964110687c4530a8de66314c9e128017bff66a36b682798b167b",
+          "qualifiedSHA256": "fbd9243e0bfcc4b4855af206d81a20b3a09dedfdce181bd2abefc4213e32e1f4"
+        },
+        {
+          "path": "Packages/TholusChromaHost/StudioSources.lock.json",
+          "beforeSHA256": "0ad97b25668d4969087cceb76c290f5a6da653160e6cf4b26bc2bd14955faa52",
+          "qualifiedSHA256": "e94364236f462a66ddf7817a4fae13c30e353ccef7a9ea363b6c16bdda572f3c"
+        },
+        {
+          "path": "Packages/TholusSpatialInput/Sources/TholusSpatialInput/SpatialNativeTrackingProvider.swift",
+          "beforeSHA256": "ffcadf84410b1fdd08d5b651ef04f052615b84492ab98b450886446d6566ad6f",
+          "qualifiedSHA256": "001c6b1ae7475430be0abab6e32372aeeda0a002a45524c16867b7e3259001ee"
+        },
+        {
+          "path": "Packages/TholusSpatialInput/Tests/TholusSpatialInputTests/NativeCalibrationProviderTests.swift",
+          "beforeSHA256": "be8852b31c6c4ae35e980aa94480340ea548f197c6344d7822b2c169f0f6f894",
+          "qualifiedSHA256": "c9ed6d9f0374c344f9dde69fc615f5d0ffac762a264f85d9fedb592a892c3137"
+        },
+        {
+          "path": "Tests/SocialTableControllerTests/ImmersiveSuperTuxKartIntegrationTests.swift",
+          "beforeSHA256": "ebf07f5d93152d6ff9643817f5d3464345e6b2da0fa1b07d19efec9782f22607",
+          "qualifiedSHA256": "21d93969e64faf44683d4601561e6718424ff441173b358f66f7b994b875210f"
+        },
+        {
+          "path": "scripts/ci/test_app_isolated.py",
+          "beforeSHA256": "b2972ec786b70a10f56eeb43811844f76a2df6d9714834c30811283d86c8d612",
+          "qualifiedSHA256": "e16a033b332b92e930583d74ea693333cf83bb90a6beb7d43db0b56dcb258b70"
+        },
+        {
+          "path": "scripts/ci/tests/test_app_isolated_runner.py",
+          "beforeSHA256": "ac13915196af064bec4f3b0463d1e4cd625ffdf241b4494e9550c0ea83a2230d",
+          "qualifiedSHA256": "d48360f23fcde68cc3b65acb70844d9abad93a3875b8952128f79222967e9abb"
+        }
+      ]
+    }
+  }
+}

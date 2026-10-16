@@ -1,0 +1,1 @@
+SC4 presentation: 12 source contracts passed; no build/GPU/runtime executed.

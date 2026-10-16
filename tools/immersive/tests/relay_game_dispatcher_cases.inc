@@ -1,0 +1,7 @@
+// Shared executable / CTest registry; stop must remain last for all-case mode.
+DISPATCHER_CASE(asynchronousQueuePreservesFifoAndFastSnapshots)
+DISPATCHER_CASE(cancellationBeforeDrainFreesCapacityAndCannotExecute)
+DISPATCHER_CASE(cancelAfterRoutingBeginsPreservesUncertainEffectSemantics)
+DISPATCHER_CASE(combatStateNeverReadsGameStateOnHttpThread)
+DISPATCHER_CASE(combatIntentAndReadyStayOrderedOnTheGameThread)
+DISPATCHER_CASE(stoppingCompletesWaitersAndRefusesFurtherQueuedWork)

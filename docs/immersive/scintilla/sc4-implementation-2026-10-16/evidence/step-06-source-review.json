@@ -1,0 +1,19 @@
+{
+  "step": 6,
+  "independent_source_review": "passed",
+  "source_contracts_passed": 12,
+  "finish_source_contracts_passed": 20,
+  "depth_math_source_tests_passed": 8,
+  "GPU_fixtures_written_reviewed": {
+    "depth": 64,
+    "mission_style": 87,
+    "cable": 13
+  },
+  "cable_independent_double_oracle": {
+    "samples": 2000,
+    "seed": 604,
+    "max_contact_error_m": 4.263256414560601e-14
+  },
+  "additional_ray_capsule_double_checks": 20000,
+  "GPU_CXX_build_or_runtime_executed": false
+}

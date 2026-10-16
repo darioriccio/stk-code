@@ -1,0 +1,23 @@
+{
+  "kind": "source_and_mathematics_only",
+  "swift_tests_executed": false,
+  "build_or_compiler_executed": false,
+  "physics_rates_checked": 941,
+  "range": [
+    60,
+    1000
+  ],
+  "checks": [
+    "9 exact tick formulae via independent rational arithmetic",
+    "native/host closed parameter field parity",
+    "native/host result metadata field parity",
+    "UUID lowercase encode and explicit pilot null encoding",
+    "same-race frozen report acceptance guard and retained result after reset reviewed",
+    "report ingress tied to confirmed producer capability/crew authority",
+    "Party zoneQualified gate precedes challenge/SC2-4; held zoneAvailable is not required"
+  ],
+  "limitations": [
+    "Swift tests written and read, not compiled or executed",
+    "no app/native/hardware/renderer runtime execution"
+  ]
+}

@@ -17,6 +17,9 @@ class RelayPlayerController : public LocalPlayerController
 {
 private:
     bool isDrivingAction(PlayerAction action) const;
+    int m_party_raw_brake=0;
+    int m_party_brake_ticks=0;
+    void enforcePartyBrake();
 
 public:
     RelayPlayerController(AbstractKart* kart, const int local_player_id,
@@ -25,6 +28,11 @@ public:
     virtual void update(int ticks) OVERRIDE;
     virtual bool action(PlayerAction action, int value,
                         bool dry_run=false) OVERRIDE;
+    virtual void reset() OVERRIDE;
+    // Retains the actual analog action even while the session holds input.
+    // m_prev_brake cannot be used: vanilla stores any nonzero value there.
+    bool partyDriverVeto() const {return m_party_raw_brake>32768/2;}
+    void beginPartyBrakeLease(int ticks);
 };
 
 #endif // ENABLE_IMMERSIVE_RELAY

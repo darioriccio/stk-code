@@ -17,6 +17,9 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "items/attachment.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
+#endif
 
 #include <algorithm>
 #include "achievements/achievements_status.hpp"
@@ -117,6 +120,9 @@ void Attachment::set(AttachmentType type, int ticks,
                      AbstractKart *current_kart,
                      bool set_by_rewind_parachute)
 {
+#ifdef ENABLE_IMMERSIVE_RELAY
+    if(type==ATTACH_BOMB&&ImmersiveRelay::ScintillaEngine::combatPolicyActive())return;
+#endif
     bool was_bomb = m_type == ATTACH_BOMB;
     int16_t prev_ticks = m_ticks_left;
     clear();
@@ -324,6 +330,9 @@ void Attachment::hitBanana(ItemState *item_state)
             ExplosionAnimation::create(m_kart);
         clear();
         new_attachment = AttachmentType(ticks % 3);
+#ifdef ENABLE_IMMERSIVE_RELAY
+        if(ImmersiveRelay::ScintillaEngine::combatPolicyActive())new_attachment=AttachmentType(ticks % 2);
+#endif
         // Disable the banana on which the kart just is for more than the
         // default time. This is necessary to avoid that a kart lands on the
         // same banana again once the explosion animation is finished, giving
@@ -353,6 +362,9 @@ void Attachment::hitBanana(ItemState *item_state)
             new_attachment = AttachmentType(ticks % 2);
         else
             new_attachment = AttachmentType(ticks % 3);
+#ifdef ENABLE_IMMERSIVE_RELAY
+        if(ImmersiveRelay::ScintillaEngine::combatPolicyActive())new_attachment=AttachmentType(ticks % 2);
+#endif
     }   // switch
 
     if (add_a_new_item)

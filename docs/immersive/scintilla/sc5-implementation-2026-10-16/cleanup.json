@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "ownedWorktreesOnly": true,
+  "unexpectedUnpreservedTaskEdits": [],
+  "buildOrNativeProcessesStarted": false,
+  "preserved": [
+    "all original WIP",
+    "SC5 source, tests, documentation, final media and evidence",
+    "other worktrees and shared caches"
+  ],
+  "removed": [
+    {
+      "repo": "stk-code",
+      "path": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/stk-code",
+      "elapsedSeconds": 0.399,
+      "kind": "owned imported-baseline worktree and task-local bytecode caches"
+    },
+    {
+      "repo": "host",
+      "path": "/Volumes/SanDisk 2TB/CodexWorkspace/ImmersiveSupertuxKart/sc5-implementation-2026-10-16/host",
+      "elapsedSeconds": 0.839,
+      "kind": "owned imported-baseline worktree and task-local bytecode caches"
+    }
+  ]
+}

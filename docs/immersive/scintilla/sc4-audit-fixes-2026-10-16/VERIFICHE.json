@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-16",
+  "scope": "SC4 audit findings 1-3 only",
+  "checksExecuted": {
+    "qualificationPython": {
+      "passed": 31,
+      "total": 31,
+      "freshFullRun": true,
+      "syntheticOfflineFixtures": true
+    },
+    "collectorPython": {
+      "passed": 10,
+      "total": 10
+    },
+    "independentProofIntervalOracle": {
+      "histories": 20000,
+      "passed": true,
+      "nativeExecution": false
+    },
+    "nativeSourceAndMath": {
+      "apiContracts": 28,
+      "lifecycleContracts": 16,
+      "presentationContracts": 12,
+      "finishContracts": 20,
+      "defenseCases": 20,
+      "combatCases": 10
+    },
+    "hostSource": {
+      "introContracts": 4,
+      "maintenanceContracts": 7
+    },
+    "isolatedRunnerPython": {
+      "passed": 29,
+      "total": 29
+    },
+    "hostLocalization": {
+      "swiftFiles": 1658,
+      "newFindings": 0
+    }
+  },
+  "regressionsWrittenRegisteredNotExecuted": {
+    "nativeInputSuite": {
+      "newMaintenanceCases": 8,
+      "suiteCases": 111
+    },
+    "nativeMeasurementSuite": {
+      "newCases": 4,
+      "suiteCases": 12
+    },
+    "swiftIntroNewInvocations": 5,
+    "swiftMaintenanceNewInvocations": 17
+  },
+  "notExecuted": [
+    "build",
+    "compiler/typecheck",
+    "CMake configure",
+    "Swift/C++ native regression execution",
+    "native HTTP integration",
+    "app/game/GPU execution",
+    "physical input and optical timing",
+    "real measurement collection",
+    "SC5"
+  ],
+  "realQualifiedDescriptorCreated": false,
+  "verificationMeaning": "Source/static and offline mathematical evidence only. Native integration remains unverified until authorized build/runtime tests."
+}

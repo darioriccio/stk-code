@@ -21,6 +21,7 @@
 
 #include "karts/abstract_kart_animation.hpp"
 #include "utils/vec3.hpp"
+#include <cstdint>
 
 /**
  * \brief This class is a 'mixin' for kart, and handles the animated explosion.
@@ -62,6 +63,12 @@ friend class KartRewinder;
     int m_reset_trans_compressed[4];
 
     bool m_direct_hit;
+#ifdef ENABLE_IMMERSIVE_RELAY
+    bool m_relay_stagger=false;
+    int m_relay_ticks=0;
+    float m_relay_height=0, m_relay_pitch=0;
+    ExplosionAnimation(AbstractKart* kart,int ticks,float height,float pitch);
+#endif
 
     // ------------------------------------------------------------------------
     void restoreData(BareNetworkString* b);
@@ -80,6 +87,11 @@ public:
     static ExplosionAnimation *create(AbstractKart *kart);
     // ------------------------------------------------------------------------
     virtual ~ExplosionAnimation();
+#ifdef ENABLE_IMMERSIVE_RELAY
+    // Local Relay-only policy: preserves attachments and all camera modes.
+    static ExplosionAnimation* createRelayStagger(AbstractKart* kart,int64_t ticks);
+    bool relayMotionSuppressed() const { return m_relay_stagger&&m_relay_height==0; }
+#endif
     // ------------------------------------------------------------------------
     virtual void update(int ticks);
     // ------------------------------------------------------------------------

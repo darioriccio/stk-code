@@ -16,6 +16,10 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
+#endif
+
 #include "physics/physics.hpp"
 
 #include "animations/three_d_animation.hpp"
@@ -195,8 +199,14 @@ void Physics::update(int ticks)
     double start;
     if(UserConfigParams::m_physics_debug) start = StkTime::getRealTime();
 
+    #ifdef ENABLE_IMMERSIVE_RELAY
+    ImmersiveRelay::ScintillaEngine::beforeDefensePhysics();
+    #endif
     m_dynamics_world->stepSimulation(stk_config->ticks2Time(1), 1,
                                      stk_config->ticks2Time(1)      );
+    #ifdef ENABLE_IMMERSIVE_RELAY
+    ImmersiveRelay::ScintillaEngine::afterDefensePhysics();
+    #endif
     if (UserConfigParams::m_physics_debug)
     {
         Log::verbose("Physics", "At %d physics duration %12.8f",

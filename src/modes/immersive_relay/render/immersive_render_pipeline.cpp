@@ -13,6 +13,7 @@
 #include "modes/immersive_relay/relay_session_controller.hpp"
 #include "utils/log.hpp"
 #include "utils/time.hpp"
+#include "modes/immersive_relay/spatial/scintilla_engine.hpp"
 
 #ifndef SERVER_ONLY
 #include "modes/immersive_relay/output/debug_window/debug_window_output_adapter.hpp"
@@ -91,6 +92,7 @@ void ImmersiveRenderPipeline::destroy()
 
 void ImmersiveRenderPipeline::setConfig(const ImmersiveRenderConfig& config)
 {
+    ScintillaEngine::invalidate("projection_configuration_changed");
     std::lock_guard<std::mutex> lock(m_snapshot_mutex);
     m_config = config;
     syncLegacyDomemasterSize(&m_config);
@@ -171,6 +173,7 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
     m_stats.m_publish_skipped++;
     return;
 #else
+    if (g_syphon_output) g_syphon_output->pollPublishedLease();
     if (!g_camera_rig.get())
         g_camera_rig.reset(new ImmersiveCameraRig());
     if (!g_capture.get())
@@ -196,6 +199,7 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         return;
     }
 
+    ScintillaEngine::beforeCapture(*g_camera_rig, config);
     const uint64_t capture_start = StkTime::getMonoTimeMs();
     std::unique_ptr<FullSphereCapture> next_capture;
     FullSphereCapture* capture = g_capture.get();
@@ -216,6 +220,7 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         m_stats.m_publish_skipped++;
         return;
     }
+    ScintillaEngine::retainDepth(*capture);
     m_stats.m_capture_time_ms = elapsedMs(capture_start);
     m_stats.m_cubemap_render_time_ms = m_stats.m_capture_time_ms;
 
@@ -278,6 +283,7 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
         }
     }
 
+    ScintillaEngine::finishFrame(published);
     m_stats.m_configuration_applied = published;
     if (!published)
         m_stats.m_publish_skipped++;
@@ -311,8 +317,22 @@ void ImmersiveRenderPipeline::renderFrame(float dt)
 #endif
 }
 
+std::string ImmersiveRenderPipeline::prepareScintillaOutput()
+{
+#if !defined(SERVER_ONLY) && defined(ENABLE_SYPHON_OUTPUT)
+    const ImmersiveRenderConfig config=getConfig();
+    if(!config.isEnabled() || !config.wantsSyphon())return "";
+    if(!g_syphon_output)g_syphon_output.reset(new SyphonOutputAdapterMac());
+    if(!g_syphon_output->initialize(config.m_syphon_server_name,config.m_projection_width,config.m_projection_height))return "";
+    return g_syphon_output->serverUUID();
+#else
+    return "";
+#endif
+}
+
 void ImmersiveRenderPipeline::shutdown()
 {
+    ScintillaEngine::shutdown();
 #ifndef SERVER_ONLY
     if (g_syphon_output.get())
         g_syphon_output->shutdown();

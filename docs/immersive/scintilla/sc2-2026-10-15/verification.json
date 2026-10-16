@@ -1,0 +1,63 @@
+{
+  "phase": "SC2",
+  "date": "2026-10-15",
+  "status": "implemented_source_only_not_runtime_qualified",
+  "SC3_started": false,
+  "checks_executed": [
+    {
+      "command": "python3 -B tools/immersive/CheckRelayProjectionSource.py",
+      "kind": "source/math",
+      "passed": 5
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_depth.py",
+      "kind": "source/math",
+      "passed": 6
+    },
+    {
+      "command": "python3 -B tools/immersive/tests/check_scintilla_combat.py",
+      "kind": "source/math",
+      "passed": 6
+    },
+    {
+      "command": "python3 -B docs/immersive/scintilla/sc2-plan-2026-10-15/verifica_calcoli.py",
+      "kind": "independent math",
+      "passed": 106
+    },
+    {
+      "command": "python3 -B scripts/localization/check_mac_localization.py --base HEAD",
+      "repository": "host",
+      "kind": "source localization guard",
+      "files_scanned": 1648,
+      "new_findings": 0
+    },
+    {
+      "command": "git diff --check",
+      "kind": "whitespace",
+      "result": "pass"
+    }
+  ],
+  "native_regressions_written_not_executed": {
+    "combat_cases": 15,
+    "spatial_cases_total": 59,
+    "spatial_cases_added_in_SC2": 7,
+    "dispatcher_cases_total": 5,
+    "dispatcher_cases_added_in_SC2": 1,
+    "host_parameterized_cases_added": 59
+  },
+  "not_executed": [
+    "CMake configure",
+    "C++/Swift/shader compilation or typechecking",
+    "native C++/Swift tests",
+    "game/app/helper launch",
+    "GPU/physics integration",
+    "Syphon/physical projection",
+    "hardware controllers",
+    "vanilla binary regression"
+  ],
+  "limitations": [
+    "preexisting SI5 endpoint isolation may require producer exit after a granted endpoint is closed; full driver/controller rebinding is not qualified here",
+    "range, hop amplitude and race penalty remain balance hypotheses",
+    "source/math checks do not execute production binaries"
+  ]
+}
