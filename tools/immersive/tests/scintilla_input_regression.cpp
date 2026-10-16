@@ -2725,6 +2725,91 @@ void crewPartySourceJSONUsesOnlyCurrentFiniteFeedbackAndClearsConsent()
  copy=r.reticles()[0];copy.u=std::numeric_limits<double>::infinity();CHECK(!Runtime::partyFeedbackForRendering(copy).consenting);
  view.progress=.5;view.consenting=true;r.setPartyFeedback({view});CHECK(!at(crewPartyFeedbackJSON(r),"consenting").boolean);
 }
+// ---- Tuned input (test week). Built-in defaults are covered by every case above.
+Runtime& combatReady(Runtime& r,Visibility* visibility,const ScintillaTuning::Input& tuning)
+{
+ ready(r);r.setTuning(tuning);Frame f=frame(1);f.targets[0].combat.instance=700;f.targets[0].combat.eligible=true;r.addFrame(f);
+ r.setCombatContext(true,0,{});r.setVisibilityOracle([visibility](const Frame&,const Target&,const Vec3&,double){return *visibility;});
+ r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});
+ CHECK(r.route("/spatial/presentation",presentation(),1000000).status==200);return r;
+}
+void toolPress(Runtime& r)
+{
+ CHECK(r.route("/spatial/input",edgeAt("tool-release","released",0,999970,0,"secondary"),1000000).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("tool-press","pressed",1,999980,0,"secondary"),1000000).status==200);
+}
+void graceToleratesOnlyAShortBeamLoss()
+{
+ for(unsigned mode=0;mode<3;++mode){
+  ScintillaTuning::Input t;if(mode<2)t.beamGraceS=0.12;
+  Runtime r;Visibility visibility=Visibility::Visible;combatReady(r,&visibility,t);toolPress(r);
+  CHECK(r.beamProofs(1000000)[0].visible);
+  visibility=Visibility::Occluded;CHECK(r.route("/spatial/input",feedbackAim(999985,.5,.5,10),1000000).status==200);
+  const auto during=r.beamProofs(1000000)[0];
+  if(mode==2){CHECK(during.held&&!during.visible);continue;} // default: strict and immediate
+  CHECK(during.held&&during.visible&&during.target==7);     // tolerated, last positive proof stands
+  if(mode==0){
+   visibility=Visibility::Visible;CHECK(r.route("/spatial/input",feedbackAim(999990,.5,.5,11),1000000).status==200);
+   CHECK(r.beamProofs(1110000)[0].visible); // recovered within the grace; freshness extends by it
+  }else CHECK(!r.beamProofs(1120000)[0].visible); // the loss outlived the grace
+ }
+}
+void drawnReticleJudgesWhatWasShown()
+{
+ for(bool drawn:{false,true}){
+  Runtime r;ready(r);ScintillaTuning::Input t;if(drawn)t.hitTest=ScintillaTuning::HitTest::DrawnReticle;r.setTuning(t);
+  // The pose at the trigger is off target; the reticle the frame showed was on it.
+  Frame f=frame(1);f.targets[0].combat.instance=700;f.targets[0].combat.eligible=true;
+  DrawnReticle shown;shown.sourceId="s1";shown.u=.5;shown.v=.5;f.drawnReticles.push_back(shown);r.addFrame(f);
+  r.setCombatContext(true,0,{});r.setVisibilityOracle([](const Frame&,const Target&,const Vec3&,double){return Visibility::Visible;});
+  r.setLiveTargetOracle([](uint64_t,uint64_t){return true;});
+  CHECK(r.route("/spatial/presentation",presentation(),1000000).status==200);
+  CHECK(r.route("/spatial/input",edgeAt("release","released",0,999970),1000000).status==200);
+  auto press=edgeAt("press","pressed",1,999980);replace(press,"\"u\":0.5","\"u\":0.6");
+  CHECK(r.route("/spatial/input",press,1000000).status==200);
+  const auto shots=r.drainCombatShots();CHECK(shots.size()==1);
+  CHECK(shots[0].result==(drawn?"hit":"miss"));CHECK(!drawn||(shots[0].targetId==7&&shots[0].u==.5&&std::abs(shots[0].poseU-.6)<1e-12));
+ }
+}
+void autoFireUsesOnlyNewerPoses()
+{
+ Runtime r;Visibility visibility=Visibility::Visible;ScintillaTuning::Input t;t.autoFireIntervalS=.25;combatReady(r,&visibility,t);
+ CHECK(r.route("/spatial/input",edgeAt("release","released",0,999970),1000000).status==200);
+ CHECK(r.route("/spatial/input",edgeAt("press","pressed",1,999980),1000000).status==200);
+ CHECK(r.drainCombatShots().size()==1);
+ Frame later=frame(2);later.captureUs=1000000;later.targets[0].combat.instance=700;later.targets[0].combat.eligible=true;r.addFrame(later);
+ CHECK(r.route("/spatial/presentation",racePresentation(2,1000010,1300000),1300000).status==200);
+ CHECK(r.route("/spatial/input",feedbackAim(1245000,.5,.5,10),1300000).status==200);r.tick(1300000,true);
+ CHECK(r.drainCombatShots().empty()); // 245 ms after the press: below the interval
+ CHECK(r.route("/spatial/input",feedbackAim(1250100,.5,.5,11),1300000).status==200);r.tick(1300000,true);
+ auto shots=r.drainCombatShots();CHECK(shots.size()==1&&shots[0].automatic&&shots[0].eventId=="press:auto:1");
+ CHECK(shots[0].result=="hit"&&shots[0].frameId==2&&r.reticles()[0].autoShots==1);
+ r.tick(1300000,true);CHECK(r.drainCombatShots().empty()); // the same pose never fires twice
+ CHECK(r.route("/spatial/input",edgeAt("stop","released",2,1260000),1300000).status==200);
+ CHECK(r.route("/spatial/input",feedbackAim(1290000,.5,.5,12),1300000).status==200);r.tick(1300000,true);
+ CHECK(r.drainCombatShots().empty());
+}
+void fireRateRejectionCanBeSilentAndIsAlwaysRecorded()
+{
+ for(bool feedback:{true,false}){
+  Runtime r;Visibility visibility=Visibility::Visible;ScintillaTuning::Input t;t.fireRateFeedback=feedback;combatReady(r,&visibility,t);
+  r.setTelemetry(true);
+  CHECK(r.route("/spatial/input",edgeAt("release","released",0,999970),1000000).status==200);
+  CHECK(r.route("/spatial/input",edgeAt("first","pressed",1,999980),1000000).status==200);
+  CHECK(r.reticles()[0].presses==1&&r.reticles()[0].pressU==.5&&r.reticles()[0].pressedUs==1000000);
+  CHECK(r.route("/spatial/input",edgeAt("again-release","released",2,999985),1000000).status==200);
+  const auto before=r.reticles()[0].feedback.kind;
+  CHECK(r.route("/spatial/input",edgeAt("again","pressed",3,999990),1000000).status==409);
+  CHECK((r.reticles()[0].feedback.kind==FeedbackKind::Rejected)==feedback);
+  if(!feedback)CHECK(r.reticles()[0].feedback.kind==before);
+  const auto resolved=r.drainResolved();CHECK(resolved.size()==1&&resolved[0].eventId=="first"&&resolved[0].result=="hit");
+  const auto notes=r.drainNotes();
+  CHECK(notes.size()==1&&notes[0].kind=="rejected"&&notes[0].reason=="fire_rate_limited"&&notes[0].control=="primary");
+  CHECK(r.drainResolved().empty()&&r.drainNotes().empty());
+  const auto times=r.presentedTimes(1000000);CHECK(times.size()==1&&times[0].frame==1&&times[0].captureUs==995000&&times[0].low<=times[0].high);
+ }
+}
+
 struct TestCase {const char* name;void (*run)();};
 const TestCase cases[]={
 #define SCINTILLA_CASE(name) {#name,name},

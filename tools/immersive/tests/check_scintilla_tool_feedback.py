@@ -121,7 +121,7 @@ class ToolFeedbackSourceChecks(unittest.TestCase):
         overlay = SHADER.split('vec3 scintillaOverlay(', 1)[1].split('float scintillaAlpha(', 1)[0]
         self.assertIn('if(scintilla_enabled==0)return scintillaMissionHUD(color,uvGL,dimensions)', overlay)
         self.assertLess(overlay.index('color=scintillaToolFeedback(color,uvGL,dimensions)'),
-                        overlay.rindex('return scintillaMissionHUD(color,uvGL,dimensions)'))
+                        overlay.rindex('return scintillaLatencyFlash(scintillaMissionHUD(color,uvGL,dimensions)'))
         self.assertNotIn('untilUs', block)
         self.assertNotIn('f.w', block)
         # Icons use different shapes as well as color; the owner and recipient

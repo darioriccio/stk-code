@@ -29,6 +29,7 @@ uniform sampler2D scintilla_mission_result_text; // five transparent Italian row
 uniform int scintilla_target_count;
 uniform vec4 scintilla_targets[32];
 uniform vec4 scintilla_reticles[5]; // top-left u,v,valid,held mode
+uniform vec4 scintilla_latency_flash[5]; // top-left u,v,active,radius in pixels (diagnostic)
 uniform vec4 scintilla_tools[5]; // ToolStatus, opener source slot, reserved, reserved
 uniform vec4 scintilla_feedback[5]; // frozen u,v,FeedbackKind,remaining fade
 uniform vec2 scintilla_near_far;
@@ -1011,7 +1012,17 @@ vec3 scintillaOverlay(vec3 color,vec3 direction,vec2 uvGL,vec2 dimensions)
     if(scintilla_crew_enabled!=0)return color;
     if(scintilla_mission_result.x<.5)color=scintillaFeedback(color,uvGL,dimensions);
     color=scintillaToolFeedback(color,uvGL,dimensions);
-    return scintillaMissionHUD(color,uvGL,dimensions);
+    return scintillaLatencyFlash(scintillaMissionHUD(color,uvGL,dimensions),uvGL,dimensions);
+}
+// Latency probe: a saturated disc on top of everything, filmed to time the
+// optical path from a trigger press. Inactive outside that diagnostic profile.
+vec3 scintillaLatencyFlash(vec3 color,vec2 uvGL,vec2 dimensions)
+{
+    for(int i=0;i<5;i++){
+        vec4 f=scintilla_latency_flash[i];if(f.z<0.5)continue;
+        if(length((uvGL-vec2(f.x,1.0-f.y))*dimensions)<=f.w)return vec3(1.0);
+    }
+    return color;
 }
 float scintillaAlpha(vec2 pixel,vec2 dimensions)
 {

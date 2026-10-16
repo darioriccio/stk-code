@@ -124,6 +124,21 @@ foreach(TUNING_CASE_LINE IN LISTS TUNING_CASE_LINES)
         ENVIRONMENT "SCINTILLA_TUNING_DIR=${STK_REGRESSION_ROOT}/data/immersive_relay/scintilla/tuning")
 endforeach()
 
+if(UNIX)
+    add_executable(scintilla_telemetry_regression scintilla_telemetry_regression.cpp
+        "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_telemetry.cpp")
+    target_include_directories(scintilla_telemetry_regression PRIVATE "${STK_REGRESSION_ROOT}/src")
+    target_link_libraries(scintilla_telemetry_regression PRIVATE Threads::Threads)
+    set_target_properties(scintilla_telemetry_regression PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/scintilla_telemetry_cases.inc")
+    file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/scintilla_telemetry_cases.inc" TELEMETRY_CASE_LINES REGEX "^TELEMETRY_CASE\\([A-Za-z0-9_]+\\)$")
+    foreach(TELEMETRY_CASE_LINE IN LISTS TELEMETRY_CASE_LINES)
+        string(REGEX REPLACE "^TELEMETRY_CASE\\(([A-Za-z0-9_]+)\\)$" "\\1" TELEMETRY_CASE_NAME "${TELEMETRY_CASE_LINE}")
+        add_test(NAME "scintilla.telemetry.${TELEMETRY_CASE_NAME}" COMMAND scintilla_telemetry_regression --case "${TELEMETRY_CASE_NAME}")
+        set_tests_properties("scintilla.telemetry.${TELEMETRY_CASE_NAME}" PROPERTIES LABELS "relay;scintilla;telemetry" TIMEOUT 120)
+    endforeach()
+endif()
+
 add_executable(scintilla_mission_regression scintilla_mission_regression.cpp
     "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/scintilla_mission.cpp")
 target_include_directories(scintilla_mission_regression PRIVATE "${STK_REGRESSION_ROOT}/src")
@@ -193,7 +208,9 @@ find_package(Python3 3.10 COMPONENTS Interpreter REQUIRED)
 if(Python3_Interpreter_FOUND)
     add_test(NAME scintilla.mission.qualification.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_mission_qualification.py")
     add_test(NAME scintilla.mission.collector.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_collect_mission_measurement.py")
+    add_test(NAME scintilla.telemetry.report.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_telemetry_report.py")
     set_tests_properties(scintilla.mission.qualification.offline scintilla.mission.collector.offline PROPERTIES LABELS "relay;scintilla;mission;offline" TIMEOUT 120)
+    set_tests_properties(scintilla.telemetry.report.offline PROPERTIES LABELS "relay;scintilla;telemetry;offline" TIMEOUT 120)
 endif()
 
 # SC5 closed identities and bounded exact retry replies, without engine or GL.

@@ -42,6 +42,12 @@ struct Target
     ScintillaMission::Snapshot mission;
     // SC1 registers rendered marker primitives; no invisible aim-assist volumes.
 };
+// Reticle actually drawn into a frame: the drawn_reticle hit test uses it.
+struct DrawnReticle
+{
+    std::string sourceId;
+    double u=0.5, v=0.5;
+};
 struct Frame
 {
     std::string stream;
@@ -54,6 +60,7 @@ struct Frame
     // Combat range rules of this frame, applied to its historical targets.
     double combatMaxRange=30, combatMinAngularSine=std::sin(0.75*3.14159265358979323846/180.0);
     std::vector<Target> targets;
+    std::vector<DrawnReticle> drawnReticles;
     ScintillaDefense::View defense;
     ScintillaDefense::Layout layout;
     bool crewEnabled=false,partyEnabled=false;
@@ -105,6 +112,10 @@ struct Reticle
     ScintillaCrew::PartyFeedback partyFeedback;
     TargetKind targetKind=TargetKind::Rival;
     ScintillaDefense::Surface intent;
+    // Admitted primary presses (latency probe) and runtime auto-fire pulses.
+    uint64_t presses=0, autoShots=0;
+    int64_t pressedUs=0, pressPoseUs=0;
+    double pressU=0.5, pressV=0.5;
 };
 struct BindingState {
     std::string sourceId,participantId,deviceBindingRevision,trackingSpaceEpoch,poseContinuityId,roomCalibrationRevision,gripCalibrationRevision;
@@ -118,6 +129,9 @@ struct HitEvent
     TargetKind kind=TargetKind::Rival;
     std::string sourceId, participantId, eventId, control, result;
     uint64_t targetId=0, targetInstance=0, frameId=0;
+    double u=0.5, v=0.5; // judged reticle point
+    double poseU=-1, poseV=-1; // pose point when the judged one differs
+    bool automatic=false;
     int64_t evaluatedUs=0;
     uint64_t serial=0, raceEpoch=0, inputEpoch=0, actionSequence=0;
     int64_t admittedTick=0;
@@ -134,6 +148,10 @@ struct BeamProof {
     bool held=false, visible=false;
 };
 struct PresentedFrame {Frame frame;int64_t low=0,high=0;};
+// Telemetry note: an admission rejection or a disarm, with its reason.
+struct InputNote {std::string kind,sourceId,participantId,control,reason;int64_t at=0;};
+// Observational only (telemetry): presentation interval of a published frame.
+struct PresentedTime {uint64_t frame=0;int64_t captureUs=0,low=0,high=0;};
 struct DefenseAdmission {std::string evidence;std::vector<double> regions;};
 struct Reply
 {
@@ -217,6 +235,11 @@ public:
     std::vector<ScintillaDefense::Beam> defenseBeams(int64_t nowUs) const;
     std::vector<PresentedFrame> presentedDefenseFrames(int64_t nowUs,bool allowHeld=false) const;
     bool defenseVideoReady(int64_t nowUs,bool allowHeld=false) const;
+    std::vector<PresentedTime> presentedTimes(int64_t nowUs) const;
+    // Bounded telemetry queues (512 each), filled only while enabled.
+    void setTelemetry(bool enabled);
+    std::vector<HitEvent> drainResolved();
+    std::vector<InputNote> drainNotes();
     void setDefenseContext(bool enabled,const std::vector<ScintillaDefense::ToolFeedback>&);
     Reply validateDefenseIntent(const std::string&,const std::string& race,const std::string& revision,bool*) const;
     Reply validateDefensePrepare(const std::string&,const std::string& race,const std::string& roster,DefenseAdmission*,bool missionLayout=false) const;

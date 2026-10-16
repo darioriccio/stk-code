@@ -121,7 +121,11 @@ class CombatSourceAndMath(unittest.TestCase):
         # traces specify the independent requirement: no return to a held lock
         # after an established negative or a target/instance transition.
         finish = INPUT.split('void finish(Pending& p,', 1)[1].split('void resolveQueue(', 1)[0]
-        guard = re.search(r'if\((source\.proofVisible&&.*?)\)\s*source\.proofInterrupted=true;', finish, re.S)[1]
+        # The loss guard is named so beamGraceS can defer it; without grace it
+        # still latches the interruption in the same resolution.
+        guard = re.search(r'const bool lost=(source\.proofVisible&&.*?);', finish, re.S)[1]
+        self.assertIn('if(lost)source.proofInterrupted=true;', finish)
+        self.assertIn('if(graceUs()>0&&(departed||lost))', finish)
         self.assertIn('missionKind(p.event.kind)?p.event.historicalMission.instance:p.event.historical.instance', finish)
         guard = guard.replace('source.proofVisible', 'previous_visible').replace('source.proofTarget', 'previous_target')
         guard = guard.replace('source.proofInstance', 'previous_instance').replace('proofInstance', 'instance')
@@ -147,6 +151,8 @@ class CombatSourceAndMath(unittest.TestCase):
                   ([(True, 7, 700, 'capsule', 1), (True, 7, 700, 'tether', 1)], False),
                   ([(True, 7, 700, 'capsule', 1), (True, 7, 700, 'capsule', 2), (True, 7, 700, 'capsule', 1)], False)]
         output = re.search(r'b.visible=([^;]+);', INPUT)[1]
+        # Built-in tuning: no grace, so interrupted(s,now) is the latched flag.
+        output = output.replace('m->interrupted(s,now)', 'interrupted').replace('m->graceUs()', '0')
         output = output.replace('b.held', 'held').replace('s.proofInterrupted', 'interrupted').replace('s.proofVisible', 'visible')
         output = output.replace('m->issuedAt', 'issued').replace('&&', ' and ')
         output = re.sub(r'!(?!=)', ' not ', output)

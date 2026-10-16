@@ -1,0 +1,3 @@
+TELEMETRY_CASE(linesAreEscapedCompactJSON)
+TELEMETRY_CASE(writerKeepsOrderAndReportsInFooter)
+TELEMETRY_CASE(oversizedLinesAreDroppedNotBlocking)

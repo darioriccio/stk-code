@@ -19,7 +19,9 @@
 #include "modes/immersive_relay/scintilla_mission_protocol.hpp"
 #include "modes/immersive_relay/scintilla_mission_result_json.hpp"
 #include "modes/immersive_relay/scintilla_tuning.hpp"
+#include "modes/immersive_relay/scintilla_telemetry.hpp"
 #include <cstdlib>
+#include <ctime>
 #include "io/file_manager.hpp"
 #include "network/crypto.hpp"
 #include "modes/linear_world.hpp"
@@ -1656,6 +1658,278 @@ void terminateMission(const std::string& reason)
         mission.abort(result.terminationReason,result.finishSequence);
     closeMissionAdmission();publishMissionSnapshot();
 }
+namespace {
+// ---- Session telemetry: observations for balancing, never gameplay authority.
+ScintillaTelemetry::Writer telemetryWriter;
+uint64_t telemetryRace=0;
+std::string telemetryError;
+int64_t telemetryNextSample=0,telemetryNextPresentation=0;
+std::map<uint64_t,ScintillaCombat::Snapshot> telemetryCombat;
+std::map<uint64_t,ScintillaMission::Snapshot> telemetryMission;
+std::map<std::string,BeamProof> telemetryBeams;
+Defense::View telemetryDefense;
+int64_t telemetryBoostUntil=0;
+std::array<ScintillaMission::Slot,ScintillaMission::Profile::SlotCount> telemetrySlots;
+bool telemetryResult=false,telemetryGameplay=false,telemetryFinished=false;
+int telemetryLap=-1;
+std::vector<std::string> telemetryRoster;
+uint64_t telemetryPresentedFrame=0;
+std::vector<double> telemetryPresentationMs;
+struct FlashRecord {std::string source;uint64_t press=0,frame=0;int64_t pressedUs=0,poseUs=0,captureUs=0;};
+std::deque<FlashRecord> telemetryFlashes;
+std::map<std::string,uint64_t> telemetryFlashLogged;
+const char* combatPhaseName(ScintillaCombat::Phase p)
+{static const char* n[]={"shielded","acquiring","breached","stagger_pending","stagger","recovery"};return n[int(p)];}
+const char* defensePhaseName(Defense::Phase p)
+{static const char* n[]={"idle","await_warning","telegraph","launch_pending","flying","await_impact","cooldown"};return n[int(p)];}
+const char* missionPhaseName(ScintillaMission::Phase p)
+{static const char* n[]={"shell","open","collected","expired","tether_awaiting_presentation","tether_recoverable"};return n[int(p)];}
+const char* slotName(ScintillaMission::SlotState s){return s==ScintillaMission::SlotState::Secured?"secured":s==ScintillaMission::SlotState::Tethered?"tethered":"empty";}
+const char* targetKindName(TargetKind k)
+{return k==TargetKind::Rival?"rival":k==TargetKind::MissionCapsule?"capsule":k==TargetKind::MissionTether?"tether":"diagnostic_pickup";}
+bool telemetryEnabled()
+{const char* v=std::getenv("STK_RELAY_TELEMETRY");return !(v&&(std::string(v)=="0"||std::string(v)=="off"));}
+ScintillaTelemetry::Line telemetryLine(const char* type)
+{ScintillaTelemetry::Line l(type);l.integer("t",nowUs()).integer("tick",simulationTick);return l;}
+void telemetryWrite(const ScintillaTelemetry::Line& line){if(telemetryWriter.isOpen())telemetryWriter.write(line.str());}
+std::string jsonStrings(const std::vector<std::string>& values)
+{std::string out="[";for(size_t i=0;i<values.size();++i)out+=(i?",":"")+ScintillaTelemetry::escape(values[i]);return out+"]";}
+void closeTelemetry(const std::string& reason)
+{
+    if(!telemetryWriter.isOpen())return;
+    telemetryWrite(telemetryLine("close").text("reason",reason));
+    telemetryWriter.close();consumer.setTelemetry(false);
+    telemetryCombat.clear();telemetryMission.clear();telemetryBeams.clear();telemetryDefense=Defense::View();
+    telemetryBoostUntil=0;telemetrySlots={};telemetryResult=telemetryGameplay=telemetryFinished=false;telemetryLap=-1;
+    telemetryFlashes.clear();telemetryFlashLogged.clear();telemetryPresentationMs.clear();telemetryRoster.clear();
+}
+void openTelemetry()
+{
+    if(telemetryWriter.isOpen()&&telemetryRace==raceEpoch)return;
+    closeTelemetry("race_generation_changed");
+    if(!telemetryEnabled()||telemetryRace==raceEpoch)return; // one attempt per race
+    telemetryRace=raceEpoch;
+    const char* configured=std::getenv("STK_RELAY_TELEMETRY_DIR");
+    std::string directory=configured&&*configured?configured:file_manager->getUserConfigDir()+"relay-telemetry";
+    if(!directory.empty()&&directory.back()=='/')directory.pop_back();
+    if(!file_manager->checkAndCreateDirectoryP(directory)){telemetryError="telemetry_directory_unavailable";return;}
+    std::time_t clock=std::time(nullptr);std::tm utc{};
+#ifdef _WIN32
+    gmtime_s(&utc,&clock);
+#else
+    gmtime_r(&clock,&utc);
+#endif
+    char stamp[32],iso[32];std::strftime(stamp,sizeof(stamp),"%Y%m%d-%H%M%S",&utc);std::strftime(iso,sizeof(iso),"%Y-%m-%dT%H:%M:%SZ",&utc);
+    const std::string path=directory+"/scintilla-"+stamp+"-race"+std::to_string(raceEpoch)+"-"+producerUUID().substr(0,8)+".ndjson";
+    if(!telemetryWriter.open(path,&telemetryError))return;
+    telemetryError.clear();consumer.setTelemetry(true);
+    telemetryNextSample=telemetryNextPresentation=0;telemetryPresentedFrame=0;
+    telemetryWrite(telemetryLine("header").text("schema",ScintillaTelemetry::Schema).text("startedAtUtc",iso)
+        .text("producerUUID",producerUUID()).unsignedInteger("raceEpoch",raceEpoch)
+        .text("track",RaceManager::get()->getTrackName()).integer("physicsFps",stk_config->getPhysicsFPS())
+        .text("projection",current.projection.kind).integer("width",current.projection.width).integer("height",current.projection.height)
+        .text("tuningSource",tuningSource).text("tuningSha256",tuningHash).text("tuningProfile",tuning.profileId)
+        .raw("tuning",ScintillaTuning::effectiveJSON(tuning)).raw("crew",jsonStrings(lastRoster)));
+}
+// Nearest target to the judged reticle in the frame that was actually shown:
+// edgeDeg < 0 is inside the marker, small positive values are near misses.
+void telemetryAim(ScintillaTelemetry::Line& l,uint64_t frameId,double u,double v,double poseU,double poseV)
+{
+    auto f=std::find_if(publishedFrames.rbegin(),publishedFrames.rend(),[&](const Frame& x){return x.id==frameId;});
+    if(f==publishedFrames.rend())return;
+    const auto world=[&](double pu,double pv,SpatialVec3* out){
+        SpatialVec3 local;if(!Runtime::projectionDirection(f->projection,pu,pv,&local))return false;
+        *out=SpatialVec3(f->cameraRight.x*local.x+f->cameraUp.x*local.y+f->cameraForward.x*local.z,
+            f->cameraRight.y*local.x+f->cameraUp.y*local.y+f->cameraForward.y*local.z,
+            f->cameraRight.z*local.x+f->cameraUp.z*local.y+f->cameraForward.z*local.z);return true;};
+    SpatialVec3 d;if(!world(u,v,&d))return;
+    const double rad=180/3.14159265358979323846;
+    SpatialVec3 pose;if(poseU>=0&&world(poseU,poseV,&pose))
+        l.number("poseLagDeg",std::acos(std::max(-1.0,std::min(1.0,dot(d,pose))))*rad);
+    const Target* best=nullptr;double bestEdge=1e9,bestOffset=0,bestRadius=0,bestDistance=0;
+    for(const auto& t:f->targets){
+        if(t.kind==TargetKind::DiagnosticPickup)continue;
+        const SpatialVec3 delta(t.center.x-f->cameraPosition.x,t.center.y-f->cameraPosition.y,t.center.z-f->cameraPosition.z);
+        const double distance=std::sqrt(dot(delta,delta));if(distance<=t.radius)continue;
+        const double offset=std::acos(std::max(-1.0,std::min(1.0,dot(d,delta)/distance)))*rad;
+        const double angular=std::asin(t.radius/distance)*rad;
+        if(offset-angular<bestEdge){best=&t;bestEdge=offset-angular;bestOffset=offset;bestRadius=angular;bestDistance=distance;}
+    }
+    if(!best)return;
+    const bool eligible=best->kind==TargetKind::Rival?best->combat.eligible:best->mission.eligible;
+    l.raw("nearest",ScintillaTelemetry::Line("target").text("kind",targetKindName(best->kind)).unsignedInteger("id",best->id)
+        .number("distanceM",bestDistance).number("angularRadiusDeg",bestRadius).number("offsetDeg",bestOffset)
+        .number("edgeDeg",bestEdge).flag("eligible",eligible).str());
+}
+void noteLatencyFlash(const Reticle& r)
+{
+    if(!telemetryWriter.isOpen())return;
+    auto& logged=telemetryFlashLogged[r.sourceId];if(logged==r.presses)return;logged=r.presses;
+    FlashRecord record;record.source=r.sourceId;record.press=r.presses;record.frame=current.id;
+    record.pressedUs=r.pressedUs;record.poseUs=r.pressPoseUs;record.captureUs=current.captureUs;
+    telemetryFlashes.push_back(record);while(telemetryFlashes.size()>64)telemetryFlashes.pop_front();
+    telemetryWrite(telemetryLine("latency_flash").text("source",r.sourceId).unsignedInteger("press",r.presses)
+        .unsignedInteger("frame",current.id).integer("poseUs",r.pressPoseUs).integer("receivedUs",r.pressedUs).integer("captureUs",current.captureUs));
+}
+void telemetryCombatShot(const HitEvent& e,const ScintillaCombat::Outcome& result,bool applied)
+{
+    telemetryWrite(telemetryLine("combat_shot").text("participant",e.participantId).text("event",e.eventId)
+        .unsignedInteger("target",e.targetId).text("reason",result.reason).flag("contributed",result.contributed)
+        .flag("effectRequested",result.requestEffect).flag("effectApplied",applied).flag("automatic",e.automatic));
+}
+void telemetryMissionShot(const HitEvent& e,const ScintillaMission::Outcome& result)
+{
+    telemetryWrite(telemetryLine("mission_shot").text("participant",e.participantId).text("event",e.eventId)
+        .unsignedInteger("entity",e.targetId).flag("accepted",result.accepted)
+        .text("status",ScintillaMission::Runtime::statusReason(result.status)).flag("automatic",e.automatic));
+}
+void telemetrySample(int64_t now)
+{
+    auto* world=World::getWorld();auto* human=defenseHuman();if(!world||!human)return;
+    double ahead=-1,behind=-1;unsigned attackable=0;
+    for(unsigned i=0;i<world->getNumKarts();++i){
+        auto* k=world->getKart(i);if(!k||k==human||k->isEliminated())continue;
+        const double d=(k->getXYZ()-human->getXYZ()).length();
+        if(k->getPosition()<human->getPosition()){if(ahead<0||d<ahead)ahead=d;}else if(behind<0||d<behind)behind=d;
+    }
+    for(const auto& t:current.targets)if(t.kind==TargetKind::Rival&&t.combat.eligible)++attackable;
+    unsigned held=0,valid=0;for(const auto& b:consumer.beamProofs(now))held+=b.held;for(const auto& r:consumer.reticles())valid+=r.valid;
+    const auto* linear=dynamic_cast<LinearWorld*>(world);
+    telemetryWrite(telemetryLine("sample").number("speed",human->getSpeed()).integer("position",human->getPosition())
+        .integer("lap",linear?linear->getLapForKart(human->getWorldKartId()):-1)
+        .number("aheadM",ahead).number("behindM",behind).integer("attackable",attackable)
+        .integer("capsules",missionPlacements.size()).integer("secured",mission.securedCount())
+        .text("defense",defensePhaseName(defense.view().phase)).number("energy",defense.energy()).number("heat",defense.heat())
+        .flag("boostReady",defense.boostStatus(ScintillaDefensePhysics::eligibleHuman(human))==Defense::Status::BoostReady)
+        .flag("humanTransient",ScintillaDefensePhysics::humanTransient(human))
+        .integer("reticles",valid).integer("beams",held).flag("gameplay",telemetryGameplay));
+}
+void telemetryTick()
+{
+    if(!active||!combat.configured())return;
+    openTelemetry();if(!telemetryWriter.isOpen())return;
+    const int64_t now=nowUs();
+    for(const auto& e:consumer.drainResolved()){
+        auto l=telemetryLine("input");l.text("source",e.sourceId).text("participant",e.participantId).text("control",e.control)
+            .text("event",e.eventId).text("result",e.result).flag("automatic",e.automatic).text("kind",targetKindName(e.kind))
+            .unsignedInteger("target",e.targetId).unsignedInteger("frame",e.frameId).integer("poseUs",e.evaluatedUs)
+            .number("u",e.u).number("v",e.v);
+        if(e.frameId)telemetryAim(l,e.frameId,e.u,e.v,e.poseU,e.poseV);
+        telemetryWrite(l);
+    }
+    for(const auto& n:consumer.drainNotes())
+        telemetryWrite(telemetryLine("input_note").text("kind",n.kind).text("source",n.sourceId).text("participant",n.participantId)
+            .text("control",n.control).text("reason",n.reason).integer("at",n.at));
+    for(const auto& b:consumer.beamProofs(now)){
+        auto& previous=telemetryBeams[b.participantId];
+        if(previous.held!=b.held||previous.visible!=b.visible||previous.target!=b.target||previous.controlEpoch!=b.controlEpoch)
+            telemetryWrite(telemetryLine("beam").text("participant",b.participantId).flag("held",b.held).flag("visible",b.visible)
+                .unsignedInteger("target",b.target).unsignedInteger("controlEpoch",b.controlEpoch));
+        previous=b;
+    }
+    for(const auto& s:combat.snapshots()){
+        auto& previous=telemetryCombat[s.target];
+        if(previous.phase!=s.phase||previous.count!=s.count||previous.window!=s.window||previous.instance!=s.instance){
+            const auto& crew=combat.crew();
+            telemetryWrite(telemetryLine("combat").unsignedInteger("target",s.target).unsignedInteger("instance",s.instance)
+                .text("phase",combatPhaseName(s.phase)).integer("count",s.count).integer("required",s.required)
+                .text("opener",s.opener>=0&&size_t(s.opener)<crew.size()?crew[s.opener]:"").unsignedInteger("window",s.window));
+        }
+        previous=s;
+    }
+    const auto& v=defense.view();
+    if(v.phase!=telemetryDefense.phase||v.threat!=telemetryDefense.threat){
+        auto l=telemetryLine("defense");l.text("phase",defensePhaseName(v.phase)).unsignedInteger("threat",v.threat)
+            .unsignedInteger("attacker",v.attacker).integer("sector",int(v.sector)).text("reason",defense.reason())
+            .number("energy",defense.energy()).number("heat",defense.heat());
+        auto* human=defenseHuman();auto* attacker=defenseAttacker();
+        if(human&&attacker)l.number("distanceM",(attacker->getXYZ()-human->getXYZ()).length());
+        if(human)l.number("humanSpeed",human->getSpeed()).flag("humanTransient",ScintillaDefensePhysics::humanTransient(human));
+        telemetryWrite(l);telemetryDefense=v;
+    }
+    if(defense.boostUntil()!=telemetryBoostUntil){
+        if(defense.boostUntil()>telemetryBoostUntil)telemetryWrite(telemetryLine("boost").number("energy",defense.energy()));
+        telemetryBoostUntil=defense.boostUntil();
+    }
+    if(mission.configured()){
+        const auto& crew=mission.crew();const auto live=mission.snapshots();
+        // Collected/expired capsules and a finished tether leave the snapshot list:
+        // record their final state once instead of losing the transition.
+        for(auto it=telemetryMission.begin();it!=telemetryMission.end();){
+            if(std::any_of(live.begin(),live.end(),[&](const ScintillaMission::Snapshot& s){return s.id==it->first&&s.instance==it->second.instance;})){++it;continue;}
+            const auto last=mission.snapshot(it->first);const bool same=last.id==it->first&&last.instance==it->second.instance;
+            telemetryWrite(telemetryLine("mission_entity").text("kind",it->second.kind==ScintillaMission::Kind::Capsule?"capsule":"tether")
+                .unsignedInteger("id",it->first).unsignedInteger("instance",it->second.instance).unsignedInteger("module",it->second.module)
+                .text("phase",same?missionPhaseName(last.phase):"gone").text("owner","").integer("slot",it->second.slot));
+            it=telemetryMission.erase(it);
+        }
+        for(const auto& s:live){
+            auto& previous=telemetryMission[s.id];
+            if(previous.phase!=s.phase||previous.instance!=s.instance||previous.owner!=s.owner)
+                telemetryWrite(telemetryLine("mission_entity").text("kind",s.kind==ScintillaMission::Kind::Capsule?"capsule":"tether")
+                    .unsignedInteger("id",s.id).unsignedInteger("instance",s.instance).unsignedInteger("module",s.module)
+                    .text("phase",missionPhaseName(s.phase)).text("owner",s.owner>=0&&size_t(s.owner)<crew.size()?crew[s.owner]:"")
+                    .integer("slot",s.slot));
+            previous=s;
+        }
+        const auto& slots=mission.slots();bool changed=false;
+        for(size_t i=0;i<slots.size();++i)changed=changed||slots[i].state!=telemetrySlots[i].state||slots[i].beaconLit!=telemetrySlots[i].beaconLit;
+        if(changed){
+            std::string states="[",beacons="[";
+            for(size_t i=0;i<slots.size();++i){states+=(i?",":"")+ScintillaTelemetry::escape(slotName(slots[i].state));beacons+=(i?",":"")+std::string(slots[i].beaconLit?"true":"false");}
+            telemetryWrite(telemetryLine("cargo").raw("slots",states+"]").raw("beacons",beacons+"]").integer("secured",mission.securedCount()));
+            telemetrySlots=slots;
+        }
+        const auto& result=mission.result();
+        if(result.valid&&!telemetryResult){
+            telemetryResult=true;
+            telemetryWrite(telemetryLine("mission_result").text("outcome",result.outcome).flag("natural",result.natural)
+                .integer("position",result.officialTeamRacePosition).integer("secured",result.securedCount)
+                .number("finishTime",result.nativeFinishTime).text("termination",result.terminationReason));
+        }
+    }
+    if(lastRoster!=telemetryRoster){telemetryRoster=lastRoster;telemetryWrite(telemetryLine("roster").raw("crew",jsonStrings(lastRoster)));}
+    const bool gameplay=RelaySessionController::get()->getSpatialGameplayState().m_active;
+    if(gameplay!=telemetryGameplay){telemetryGameplay=gameplay;
+        telemetryWrite(telemetryLine("gameplay").flag("active",gameplay).flag("held",RelaySessionController::get()->isWorldHeld()));}
+    if(auto* human=defenseHuman()){
+        auto* linear=dynamic_cast<LinearWorld*>(World::getWorld());
+        const int lap=linear?linear->getLapForKart(human->getWorldKartId()):-1;
+        if(lap!=telemetryLap){telemetryLap=lap;telemetryWrite(telemetryLine("lap").integer("lap",lap).integer("position",human->getPosition()));}
+        if(human->hasFinishedRace()&&!telemetryFinished){telemetryFinished=true;
+            telemetryWrite(telemetryLine("finish").integer("position",human->getPosition()).number("time",human->getFinishTime()));}
+    }
+    if(!telemetryFlashes.empty()||now>=telemetryNextPresentation){
+        const auto times=consumer.presentedTimes(now);
+        for(const auto& t:times){
+            for(auto it=telemetryFlashes.begin();it!=telemetryFlashes.end();)
+                if(it->frame==t.frame){
+                    telemetryWrite(telemetryLine("latency_presented").text("source",it->source).unsignedInteger("press",it->press)
+                        .unsignedInteger("frame",t.frame).integer("poseUs",it->poseUs).integer("receivedUs",it->pressedUs)
+                        .integer("captureUs",t.captureUs).integer("presentedLowUs",t.low).integer("presentedHighUs",t.high));
+                    it=telemetryFlashes.erase(it);
+                }else ++it;
+            if(t.frame>telemetryPresentedFrame){telemetryPresentedFrame=t.frame;telemetryPresentationMs.push_back((t.low-t.captureUs)/1000.0);}
+        }
+        if(now>=telemetryNextPresentation){
+            telemetryNextPresentation=now+1000000;
+            if(!telemetryPresentationMs.empty()){
+                std::sort(telemetryPresentationMs.begin(),telemetryPresentationMs.end());const auto& p=telemetryPresentationMs;
+                telemetryWrite(telemetryLine("presentation").integer("frames",p.size()).number("captureToPresentedP50Ms",p[p.size()/2])
+                    .number("captureToPresentedP90Ms",p[p.size()*9/10]).number("captureToPresentedMaxMs",p.back()));
+                telemetryPresentationMs.clear();
+            }
+        }
+    }
+    if(now>=telemetryNextSample){telemetryNextSample=now+500000;telemetrySample(now);}
+}
+}
+std::string telemetryStateJSON()
+{
+    return ScintillaTelemetry::Line("telemetry").flag("enabled",telemetryEnabled()).flag("open",telemetryWriter.isOpen())
+        .text("path",telemetryWriter.path()).text("error",telemetryError)
+        .unsignedInteger("dropped",telemetryWriter.dropped()).unsignedInteger("written",telemetryWriter.written()).str();
+}
 void loadTuning()
 {
     ScintillaTuning::Tuning loaded;std::string error,hash,bytes;
@@ -1676,7 +1950,8 @@ std::string tuningStateJSON()
      <<",\"source\":"<<ScintillaJSON::quote(tuningSource)<<",\"sha256\":"<<ScintillaJSON::quote(tuningHash)
      <<",\"error\":"<<ScintillaJSON::quote(tuningError)<<",\"raceEpoch\":\""<<raceEpoch<<'"'
      <<",\"locked\":"<<(combat.configured()||defense.configured()||mission.configured()?"true":"false")
-     <<",\"active\":"<<ScintillaTuning::effectiveJSON(tuning)<<",\"parameters\":"<<ScintillaTuning::parametersJSON(tuning)<<"}";
+     <<",\"active\":"<<ScintillaTuning::effectiveJSON(tuning)<<",\"parameters\":"<<ScintillaTuning::parametersJSON(tuning)
+     <<",\"telemetry\":"<<telemetryStateJSON()<<"}";
     return o.str();
 }
 Reply reloadTuning(const std::string& body)
@@ -1689,6 +1964,7 @@ Reply reloadTuning(const std::string& body)
 }
 void newWorld(bool preserveSpatialGrant)
 {
+    closeTelemetry("race_generation_changed");
     loadTuning();
     interruptMissionMeasurement("race_generation_changed");resetMissionMeasurementProofs();
     if(!preserveSpatialGrant)invalidateMissionQualificationCache();
@@ -1722,11 +1998,11 @@ void retireWorld()
 {
     interruptMissionMeasurement("world_destroyed");resetMissionMeasurementProofs();
     invalidateMissionQualificationCache();
-    terminateMission("world_destroyed");invalidateState("world_retired",false);
+    terminateMission("world_destroyed");closeTelemetry("world_retired");invalidateState("world_retired",false);
     combat.reset(true);defense.reset(true);humanPointer=nullptr;humanInstance=0;
     combatOwners.clear();lastRoster.clear();
 }
-void shutdown(){invalidateMissionQualificationCache();invalidate("output_closed");}
+void shutdown(){closeTelemetry("shutdown");invalidateMissionQualificationCache();invalidate("output_closed");}
 bool combatPolicyActive(){return combat.configured();}
 bool combatRequired(){return combat.required();}
 void refreshCombatInput()
@@ -1910,6 +2186,7 @@ void updateCombat(int ticks,bool gameplayActive)
         if(result.contributed&&(!result.requestEffect||applied))recordCrewCredit(e.participantId,Crew::ContributionKind::ComboContribution);
         if(applied)recordCrewCredit(e.participantId,Crew::ContributionKind::Stagger);
         consumer.combatFeedback(e,feedback,result.reason,nowUs());
+        telemetryCombatShot(e,result,applied);
     }
     updateDefense(admitted);
     // Crossing precedes new capsule collections: a collection in this step
@@ -1943,6 +2220,7 @@ void updateCombat(int ticks,bool gameplayActive)
             if(result.accepted&&result.changed)recordCrewCredit(e.participantId,Crew::ContributionKind::ShellOpened);
             consumer.combatFeedback(e,result.accepted?FeedbackKind::Hit:FeedbackKind::Rejected,
                 ScintillaMission::Runtime::statusReason(result.status),nowUs());
+            telemetryMissionShot(e,result);
         }
         const auto previousCrewModules=mission.snapshots();
         const auto previousCrewSlots=mission.slots();
@@ -1956,7 +2234,7 @@ void updateCombat(int ticks,bool gameplayActive)
     commitOptionalService(admitted&&!missionTerminal());
     updateCrewCoordination(admitted&&!missionTerminal());
     updateMissionCues();missionStepOpen=false;publishMissionSnapshot();
-    refreshCombatInput();
+    telemetryTick();refreshCombatInput();
 }
 #include "modes/immersive_relay/spatial/scintilla_crew_adapter.hpp"
 #include "modes/immersive_relay/spatial/scintilla_crew_wire.hpp"
@@ -2460,8 +2738,20 @@ void bindProjectionUniforms(unsigned int program)
         glUniform4fv(glGetUniformLocation(program,"scintilla_mission_targets[0]"),32,missionTargets);
         glUniform1fv(glGetUniformLocation(program,"scintilla_mission_owners[0]"),32,missionOwners);
         GLfloat reticles[20]={0};const auto& sources=consumer.reticles();
-        for(const auto& r:sources)if(r.slot<5 && r.valid){reticles[r.slot*4]=r.u;reticles[r.slot*4+1]=r.v;reticles[r.slot*4+2]=1;reticles[r.slot*4+3]=r.toolHeld?2:r.primaryHeld?1:0;}
+        // The drawn reticles become frame metadata for the drawn_reticle hit test.
+        current.drawnReticles.clear();
+        for(const auto& r:sources)if(r.slot<5 && r.valid){reticles[r.slot*4]=r.u;reticles[r.slot*4+1]=r.v;reticles[r.slot*4+2]=1;reticles[r.slot*4+3]=r.toolHeld?2:r.primaryHeld?1:0;
+            DrawnReticle drawn;drawn.sourceId=r.sourceId;drawn.u=r.u;drawn.v=r.v;current.drawnReticles.push_back(drawn);}
         glUniform4fv(glGetUniformLocation(program,"scintilla_reticles[0]"),5,reticles);
+        GLfloat flashes[20]={0};const int64_t flashNow=nowUs();
+        const int64_t flashUs=std::llround(tuning.diagnostics.latencyFlashS*1e6);
+        if(tuning.diagnostics.latencyProbe)for(const auto& r:sources)
+            if(r.slot<5&&r.presses&&flashNow>=r.pressedUs&&flashNow-r.pressedUs<=flashUs){
+                flashes[r.slot*4]=r.pressU;flashes[r.slot*4+1]=r.pressV;flashes[r.slot*4+2]=1;
+                flashes[r.slot*4+3]=.06*std::min(current.projection.width,current.projection.height);
+                noteLatencyFlash(r);
+            }
+        glUniform4fv(glGetUniformLocation(program,"scintilla_latency_flash[0]"),5,flashes);
         // Persistent tool status has its own channel: primary feedback cannot
         // replace it. Slots preserve source identity in both projection modes.
         GLfloat tools[20]={0};

@@ -106,6 +106,14 @@ struct Runtime::Impl
         std::shared_ptr<Pending> queuedAim;
         size_t recentEventCount=0;
         bool hasFeedbackPress=false,hasAnchor=false;
+        // Tolerated loss of a held beam (beamGraceS > 0): the last positive
+        // proof stands until a negative streak outlives the grace.
+        bool negativePending=false;
+        int64_t negativeSince=0;
+        // Host interval of the live cursor pose, and auto-fire identities.
+        Interval cursorHost;
+        std::string autoBase;
+        uint64_t autoCount=0;
         uint64_t feedbackSequence=0,feedbackRevision=0;
         double anchorU=0.5,anchorV=0.5;
     };
@@ -175,6 +183,9 @@ struct Runtime::Impl
     uint64_t retiredThrough=0;
     int64_t leaseUntil=0,clockLow=0,clockHigh=0,clockChecked=0,proofHostFrom=0,proofHostUntil=0,lastNow=0;
     ScintillaTuning::Input tuning;
+    bool telemetry=false;
+    std::deque<HitEvent> resolvedEvents;
+    std::deque<InputNote> notes;
     VisibilityOracle visibility;
     FramePinOracle pin;
     QueryLeaseOracle queryLease;
@@ -270,7 +281,7 @@ struct Runtime::Impl
         sources[i].toolReleaseSerial=sources[i].releaseInputEpoch=0;}
     void clearControls(size_t i,const std::string& reason)
     {
-        Source& s=sources[i];++s.toolEpoch;s.proofVisible=false;s.queuedAim.reset();for(unsigned k=0;k<3;++k){s.held[k]=false;s.rearmed[k]=false;}
+        Source& s=sources[i];++s.toolEpoch;s.proofVisible=false;s.negativePending=false;s.queuedAim.reset();for(unsigned k=0;k<3;++k){s.held[k]=false;s.rearmed[k]=false;}
         s.toolPressSerial=0;s.partyPressAuthority=ScintillaCrew::PartyAuthority();
         s.partyCapturedProposal=0;s.partyPressTick=0;s.partyPressEligible=false;
         s.pressMissionEligible=false;s.pressMission=ScintillaMission::Snapshot();s.proofMission=ScintillaMission::Snapshot();
@@ -281,7 +292,7 @@ struct Runtime::Impl
     }
     void disarm(size_t i,const std::string& reason)
     {
-        clearControls(i,reason);
+        note("disarm",i,"",reason);clearControls(i,reason);
         const Feedback feedback=reticles[i].feedback;
         if(feedback.kind==FeedbackKind::Pending&&feedback.actionSequence==sources[i].feedbackSequence)
             setFeedback(i,FeedbackKind::Rejected,feedback.actionSequence,lastNow,lastNow+500000,
@@ -335,27 +346,76 @@ struct Runtime::Impl
         if(originalHostTime){originalHostTime->lo=t-u;originalHostTime->hi=t+u;}return r;
     }
     void record(const HitEvent& event)
-    {events.push_back(event);if(events.size()>256)events.pop_front();}
+    {
+        events.push_back(event);if(events.size()>256)events.pop_front();
+        if(telemetry){resolvedEvents.push_back(event);if(resolvedEvents.size()>512)resolvedEvents.pop_front();}
+    }
+    void note(const char* kind,size_t i,const std::string& control,const std::string& reason)
+    {
+        if(!telemetry||i>=sources.size())return;
+        InputNote n;n.kind=kind;n.sourceId=sources[i].identity.source;n.participantId=sources[i].participant;
+        n.control=control;n.reason=reason;n.at=lastNow;notes.push_back(n);if(notes.size()>512)notes.pop_front();
+    }
+    int64_t graceUs()const{return std::llround(tuning.beamGraceS*1e6);}
+    bool interrupted(const Source& s,int64_t now)const
+    {return s.proofInterrupted||(s.negativePending&&now-s.negativeSince>graceUs());}
+    // Grace mode only. Returns false while the loss is still tolerated.
+    void noteNegative(Source& s,int64_t sample)
+    {
+        if(s.proofInterrupted)return;
+        if(!s.negativePending){s.negativePending=true;s.negativeSince=sample;}
+        else if(sample-s.negativeSince>graceUs())s.proofInterrupted=true;
+    }
+    void autoFire(size_t i,int64_t now)
+    {
+        const int64_t interval=std::llround(tuning.autoFireIntervalS*1e6);
+        Source& s=sources[i];Reticle& r=reticles[i];
+        if(interval<=0||!(combatEnabled||missionEnabled)||!prepared||!active||!historyReady||!participantBindingsValid||
+           !s.tracked||!s.held[0]||!r.valid||s.autoBase.empty())return;
+        // Every pulse carries its own newer admitted pose, never a frozen sample.
+        if(r.updatedUs<=s.lastPrimary||r.updatedUs-s.lastPrimary<interval||now-r.updatedUs>60000)return;
+        if(pending.size()>=64||combatShots.size()>=64||nextSerial==std::numeric_limits<uint64_t>::max())return;
+        Pending p;p.event.sourceId=s.identity.source;p.event.participantId=s.participant;p.event.control="primary";
+        p.event.eventId=s.autoBase+":auto:"+std::to_string(++s.autoCount);p.event.automatic=true;
+        p.toolEpoch=s.toolEpoch;p.feedbackRevision=s.feedbackRevision;p.actionSequence=s.feedbackSequence;
+        p.event.evaluatedUs=r.updatedUs;p.hostTime=s.cursorHost;p.u=r.u;p.v=r.v;
+        p.selectionDeadline=r.updatedUs+60000;p.deadline=now+PendingTimeoutUs;
+        p.event.serial=++nextSerial;p.event.inputEpoch=inputEpoch;p.event.raceEpoch=combatRaceEpoch;
+        p.event.actionSequence=s.feedbackSequence;p.event.admittedTick=simulationTick;p.event.admittedTargets=combatTargets;
+        p.event.missionRevision=missionRevision;p.event.admittedMissionTargets=missionTargets;
+        HitEvent slot=p.event;slot.result="pending";combatShots.push_back(slot);
+        s.lastPrimary=r.updatedUs;++r.autoShots;pending.push_back(p);
+    }
     void finish(Pending& p,const std::string& result,int64_t now,uint64_t target=0,uint64_t instance=0,uint64_t frame=0)
     {
-        p.event.result=result;p.event.targetId=target;p.event.targetInstance=instance;p.event.frameId=frame;
+        p.event.result=result;p.event.targetId=target;p.event.targetInstance=instance;p.event.frameId=frame;p.event.u=p.u;p.event.v=p.v;
         const size_t i=sourceIndex(p.event.sourceId);Source& source=sources[i];
         const bool secondary=p.event.control=="secondary";
         if(p.aim||secondary){
             if(p.toolEpoch==source.toolEpoch&&p.proofSerial>=source.proofSerial){
                 const bool visible=(result=="hit"&&p.event.historicalEligible)||result=="hud";
-                if((defenseEnabled||missionLayoutRequired||crewEnabled)&&source.held[1]&&source.pressLocked&&(p.surface.context!=source.pressSurface.context||p.surface.sector!=source.pressSurface.sector||p.threat!=source.pressThreat))source.proofInterrupted=true;
-                reticles[i].intent=p.surface;source.proofSurface=p.surface;source.proofThreat=p.threat;source.proofAdmitted=simulationTick;
+                const bool departed=(defenseEnabled||missionLayoutRequired||crewEnabled)&&source.held[1]&&source.pressLocked&&(p.surface.context!=source.pressSurface.context||p.surface.sector!=source.pressSurface.sector||p.threat!=source.pressThreat);
                 const uint64_t proofInstance=missionKind(p.event.kind)?p.event.historicalMission.instance:p.event.historical.instance;
-                if(source.proofVisible&&(!visible||source.proofTarget!=target||source.proofInstance!=proofInstance||source.proofKind!=p.event.kind||
-                   (missionKind(p.event.kind)&&!sameMission(source.proofMission,p.event.historicalMission))))
-                    source.proofInterrupted=true;
-                source.proofSerial=p.proofSerial;source.proofVisible=visible;
-                source.proofTarget=target;source.proofInstance=proofInstance;
-                source.proofKind=p.event.kind;source.proofMission=p.event.historicalMission;
-                reticles[i].targetKind=target==0&&source.pressLocked&&missionKind(source.pressKind)&&
-                    p.surface.context==ScintillaDefense::Context::WorldOffense?source.pressKind:p.event.kind;
-                source.proofHostLow=p.hostTime.lo;
+                const bool lost=source.proofVisible&&(!visible||source.proofTarget!=target||source.proofInstance!=proofInstance||source.proofKind!=p.event.kind||
+                   (missionKind(p.event.kind)&&!sameMission(source.proofMission,p.event.historicalMission)));
+                if(graceUs()>0&&(departed||lost)){
+                    // Tolerated: keep the last positive proof, only advance ordering.
+                    noteNegative(source,p.event.evaluatedUs);source.proofSerial=p.proofSerial;
+                }else{
+                    if(source.negativePending){
+                        if(p.event.evaluatedUs-source.negativeSince>graceUs())source.proofInterrupted=true;
+                        source.negativePending=false;
+                    }
+                    if(departed)source.proofInterrupted=true;
+                    reticles[i].intent=p.surface;source.proofSurface=p.surface;source.proofThreat=p.threat;source.proofAdmitted=simulationTick;
+                    if(lost)source.proofInterrupted=true;
+                    source.proofSerial=p.proofSerial;source.proofVisible=visible;
+                    source.proofTarget=target;source.proofInstance=proofInstance;
+                    source.proofKind=p.event.kind;source.proofMission=p.event.historicalMission;
+                    reticles[i].targetKind=target==0&&source.pressLocked&&missionKind(source.pressKind)&&
+                        p.surface.context==ScintillaDefense::Context::WorldOffense?source.pressKind:p.event.kind;
+                    source.proofHostLow=p.hostTime.lo;
+                }
                 setToolFeedback(i,reticles[i].toolFeedback);
                 setMissionFeedback(i,reticles[i].missionFeedback);
                 setPartyToolFeedback(i,reticles[i].partyFeedback);
@@ -439,17 +499,24 @@ struct Runtime::Impl
                 }
                 if(!fail)p.frames=std::move(candidates);
             }
+            // drawn_reticle: each plausible frame is judged at the reticle it
+            // actually showed, i.e. what the player saw when pressing.
+            double firstU=p.u,firstV=p.v;bool firstPoint=true;
             for(const Frame& candidate:p.frames)
             {
                 if(fail)break;
                 const Frame* f=&candidate;const uint64_t frameID=f->id;
+                double pu=p.u,pv=p.v;
+                if(tuning.hitTest==ScintillaTuning::HitTest::DrawnReticle)
+                    for(const auto& drawn:f->drawnReticles)if(drawn.sourceId==p.event.sourceId){pu=drawn.u;pv=drawn.v;break;}
+                if(firstPoint){firstU=pu;firstV=pv;firstPoint=false;}
                 if(f->routeRevision!=routeRevision||f->projectionContextId!=context||!sameProjection(f->projection,projection))
                 {fail=true;reason="frame_context_changed";break;}
                 ScintillaDefense::Surface surface;surface.context=ScintillaDefense::Context::WorldOffense;
                 if(defenseEnabled||missionLayoutRequired||crewEnabled){
                     if((defenseEnabled&&!f->defense.enabled)||!layoutMatches(*f)){fail=true;reason="layout_unavailable";break;}
                     if(crewEnabled&&p.crewAuthority!=crewAuthority()){fail=true;reason="crew_context_changed";break;}
-                    surface=f->layout.classify(p.u,p.v);
+                    surface=f->layout.classify(pu,pv);
                     // World offense belongs to the target/control epoch, independent
                     // of an AI warning. Only SC3 surfaces bind the threat identity.
                     const uint64_t contextThreat=surface.context==ScintillaDefense::Context::WorldOffense||surface.context==ScintillaDefense::Context::PartyBoost?0:f->defense.threat;
@@ -460,7 +527,7 @@ struct Runtime::Impl
                     else if(!p.aim&&surface.context==ScintillaDefense::Context::PartyBoost&&p.crewProposal!=f->crewProposalId){fail=true;reason="ambiguous_party_proposal";break;}
                     if(surface.context!=ScintillaDefense::Context::WorldOffense){representative=frameID;continue;}
                 }else p.surface=surface;
-                Vec3 local;if(!Runtime::projectionDirection(f->projection,p.u,p.v,&local)){fail=true;reason="outside_projection";break;}
+                Vec3 local;if(!Runtime::projectionDirection(f->projection,pu,pv,&local)){fail=true;reason="outside_projection";break;}
                 Vec3 d=add(add(mul(f->cameraRight,local.x),mul(f->cameraUp,local.y)),mul(f->cameraForward,local.z));
                 const Target* selected=nullptr;
                 double contact=std::numeric_limits<double>::infinity(),runnerUp=contact;
@@ -522,6 +589,8 @@ struct Runtime::Impl
                 else if(agreed!=id||agreedInstance!=instance){fail=true;reason="ambiguous_presentation";break;}
             }
             if(wait){++it;continue;}
+            p.event.poseU=p.u;p.event.poseV=p.v;
+            p.u=firstU;p.v=firstV; // Feedback appears where the judged reticle was.
             const bool hud=(defenseEnabled||missionLayoutRequired||crewEnabled)&&p.surface.context!=ScintillaDefense::Context::WorldOffense&&p.surface.context!=ScintillaDefense::Context::None;
             if(!fail&&hud){finish(p,p.aim||(p.event.control=="secondary"&&(p.surface.context==ScintillaDefense::Context::DefenseSector||p.surface.context==ScintillaDefense::Context::ServiceBoost||(partyEnabled&&p.surface.context==ScintillaDefense::Context::PartyBoost)))?"hud":"non_targetable_surface",now,0,0,representative);it=queue.erase(it);continue;}
             if(!fail&&agreed&&(!live||!live(agreed,agreedInstance))){fail=true;reason="target_instance_retired";}
@@ -549,7 +618,8 @@ struct Runtime::Impl
         if((defenseEnabled||missionLayoutRequired||crewEnabled)&&source.held[1]){
             const auto surface=ScintillaDefense::Layout::create(projection.width,projection.height,missionLayoutRequired,false,crewEnabled).classify(u,v);
             if(surface.context!=source.pressSurface.context||surface.sector!=source.pressSurface.sector){
-                source.proofInterrupted=true;setToolFeedback(i,reticles[i].toolFeedback);setMissionFeedback(i,reticles[i].missionFeedback);setPartyToolFeedback(i,reticles[i].partyFeedback);
+                if(graceUs()>0)noteNegative(source,sampleLow);else source.proofInterrupted=true;
+                setToolFeedback(i,reticles[i].toolFeedback);setMissionFeedback(i,reticles[i].missionFeedback);setPartyToolFeedback(i,reticles[i].partyFeedback);
             }
         }
         if(nextProof==std::numeric_limits<uint64_t>::max()){source.proofVisible=false;return;}
@@ -571,6 +641,9 @@ const std::string& Runtime::activeRouteRevision()const{return m->routeRevision;}
 const std::string& Runtime::activeProjectionContextId()const{return m->context;}
 void Runtime::setVisibilityOracle(const VisibilityOracle& o){m->visibility=o;}
 void Runtime::setTuning(const ScintillaTuning::Input& t){m->tuning=t;}
+void Runtime::setTelemetry(bool enabled){m->telemetry=enabled;if(!enabled){m->resolvedEvents.clear();m->notes.clear();}}
+std::vector<HitEvent> Runtime::drainResolved(){std::vector<HitEvent> out(m->resolvedEvents.begin(),m->resolvedEvents.end());m->resolvedEvents.clear();return out;}
+std::vector<InputNote> Runtime::drainNotes(){std::vector<InputNote> out(m->notes.begin(),m->notes.end());m->notes.clear();return out;}
 const ScintillaTuning::Input& Runtime::tuning()const{return m->tuning;}
 void Runtime::setFramePinOracle(const FramePinOracle& o){m->pin=o;}
 void Runtime::setQueryLeaseOracle(const QueryLeaseOracle& o){m->queryLease=o;}
@@ -846,7 +919,7 @@ std::vector<BeamProof> Runtime::beamProofs(int64_t now)const
             (!m->defenseEnabled||(s.pressLocked&&s.proofSurface.context==ScintillaDefense::Context::WorldOffense));b.target=s.proofTarget;b.instance=s.proofInstance;
         const int64_t drift=now>=m->clockChecked?(now-m->clockChecked+9999)/10000:0;
         const int64_t low=s.proofHostLow+m->clockLow-drift;
-        b.visible=b.held&&!s.proofInterrupted&&s.proofVisible&&low>=m->issuedAt&&low<=now&&now-low<=60000;
+        b.visible=b.held&&!m->interrupted(s,now)&&s.proofVisible&&low>=m->issuedAt&&low<=now&&now-low<=60000+m->graceUs();
         out.push_back(b);
     }
     return out;
@@ -879,7 +952,7 @@ std::vector<ScintillaMission::Beam> Runtime::missionBeams(int64_t now)const
         b.held=true;b.serial=s.toolPressSerial;
         b.kind=s.pressKind==TargetKind::MissionTether?ScintillaMission::Kind::Tether:ScintillaMission::Kind::Capsule;
         b.entity=s.pressMission.id;b.instance=s.pressMission.instance;b.phaseRevision=s.pressMission.phaseRevision;
-        b.interrupted=s.proofInterrupted||!missionKind(s.pressKind)||
+        b.interrupted=m->interrupted(s,now)||!missionKind(s.pressKind)||
             s.pressKind!=s.proofKind||!sameMission(s.pressMission,s.proofMission);
         const bool current=std::any_of(m->missionTargets.begin(),m->missionTargets.end(),[&](const ScintillaMission::Snapshot& target){
             return target.eligible&&sameMission(target,s.pressMission);
@@ -889,7 +962,7 @@ std::vector<ScintillaMission::Beam> Runtime::missionBeams(int64_t now)const
         const int64_t low=s.proofHostLow+m->clockLow-drift;
         b.visible=b.historicalEligible&&!b.interrupted&&s.proofVisible&&
             s.proofSurface.context==ScintillaDefense::Context::WorldOffense&&
-            low>=m->issuedAt&&low<=now&&now-low<=60000;
+            low>=m->issuedAt&&low<=now&&now-low<=60000+m->graceUs();
         out.push_back(b);
     }
     return out;
@@ -909,7 +982,7 @@ std::vector<ScintillaDefense::Beam> Runtime::defenseBeams(int64_t now)const
         b.context=s.proofSurface.context;b.sector=s.proofSurface.sector;b.threat=s.proofThreat;b.admitted=s.proofAdmitted;
         b.held=m->prepared&&m->active&&s.tracked&&s.held[1]&&s.pressLocked&&s.proofSerial>0;
         const int64_t drift=now>=m->clockChecked?(now-m->clockChecked+9999)/10000:0,low=s.proofHostLow+m->clockLow-drift;
-        b.visible=b.held&&s.pressLocked&&(b.context==ScintillaDefense::Context::DefenseSector||b.context==ScintillaDefense::Context::ServiceBoost||b.context==ScintillaDefense::Context::WorldOffense)&&!s.proofInterrupted&&s.proofVisible&&low>=m->issuedAt&&low<=now&&now-low<=60000;
+        b.visible=b.held&&s.pressLocked&&(b.context==ScintillaDefense::Context::DefenseSector||b.context==ScintillaDefense::Context::ServiceBoost||b.context==ScintillaDefense::Context::WorldOffense)&&!m->interrupted(s,now)&&s.proofVisible&&low>=m->issuedAt&&low<=now&&now-low<=60000+m->graceUs();
         out.push_back(b);
     }return out;
 }
@@ -930,6 +1003,17 @@ bool Runtime::defenseVideoReady(int64_t now,bool allowHeld)const
     if((m->defenseEnabled||m->missionLayoutRequired)&&presentedDefenseFrames(now,allowHeld).empty())return false;
     for(size_t i=1;i<m->presented.size();++i)if(m->presented[i].hostLo>m->presented[i-1].hostHi+1&&m->presented[i].hostLo+m->clockHigh>=now-150000)return false;
     return true;
+}
+std::vector<PresentedTime> Runtime::presentedTimes(int64_t now)const
+{
+    std::vector<PresentedTime> out;if(!m->prepared||!m->historyReady||now<m->clockChecked)return out;
+    const int64_t drift=(now-m->clockChecked+9999)/10000;
+    for(const auto& run:m->presented){
+        auto f=std::find_if(m->frames.begin(),m->frames.end(),[&](const Frame& frame){return frame.id==run.id&&frame.stream==m->stream;});
+        if(f==m->frames.end())continue;
+        PresentedTime t;t.frame=run.id;t.captureUs=f->captureUs;t.low=run.hostLo+m->clockLow-drift;t.high=run.hostHi+m->clockHigh+drift;out.push_back(t);
+    }
+    return out;
 }
 std::vector<PresentedFrame> Runtime::presentedDefenseFrames(int64_t now,bool allowHeld)const
 {
@@ -1121,8 +1205,8 @@ void Runtime::tick(int64_t now,bool gameplayActive,uint64_t resumeRevision,int64
     }
     if(m->active&&!gameplayActive)m->stop("gameplay_suspended");
     m->hasGameplayObservation=true;m->active=gameplayActive;
-    for(size_t i=0;i<m->reticles.size();++i)if(m->reticles[i].valid&&now-m->reticles[i].updatedUs>60000)m->disarm(i,"aim_stale");
-    if(m->prepared&&m->active)m->resolve(now);
+    for(size_t i=0;i<m->reticles.size();++i)if(m->reticles[i].valid&&now-m->reticles[i].updatedUs>60000+m->graceUs())m->disarm(i,"aim_stale");
+    if(m->prepared&&m->active){for(size_t i=0;i<m->sources.size();++i)m->autoFire(i,now);m->resolve(now);}
 }
 std::string Runtime::stateJSON()const
 {
@@ -1422,7 +1506,7 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
             if(acquired<=source.cursorHostUs)return ok("aim_superseded");
             if(!timeFailure.empty()){m->disarm(i,timeFailure);return error(409,timeFailure);}
             if(!source.tracked||!m->active||!m->historyReady||!point){m->disarm(i,!m->historyReady?"history_unavailable":!point?"point_unavailable":"source_or_gameplay_unavailable");return error(409,reticle.result);}
-            source.cursorHostUs=acquired;
+            source.cursorHostUs=acquired;source.cursorHost=originalHostTime;
             source.hasAnchor=true;source.anchorU=u;source.anchorV=v;
             reticle.u=u;reticle.v=v;reticle.valid=true;reticle.updatedUs=time.lo;reticle.result="aim";
             // Resolve now, as presses do: a later aim must not overwrite an
@@ -1442,6 +1526,7 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
         {
             if(feedbackAuthoritative)m->setFeedback(i,FeedbackKind::Rejected,sequence,now,now+500000,
                                                     feedbackHasPoint,feedbackU,feedbackV,reason);
+            m->note("rejected",i,control,reason);
             return error(status,reason);
         };
         m->pruneEvents(now);
@@ -1474,7 +1559,7 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
                     }
                     source.toolReleaseSerial=++m->nextSerial;source.releaseInputEpoch=m->inputEpoch;
                 }
-                ++source.toolEpoch;source.proofVisible=false;source.queuedAim.reset();source.pressLocked=false;
+                ++source.toolEpoch;source.proofVisible=false;source.negativePending=false;source.queuedAim.reset();source.pressLocked=false;
                 source.pressMissionEligible=false;source.pressMission=ScintillaMission::Snapshot();
                 reticle.defenseFeedback=ScintillaDefense::ToolFeedback();reticle.toolFeedback=ScintillaCombat::ToolSnapshot();
                 reticle.missionFeedback=ScintillaMission::Feedback();reticle.toolEpoch=source.toolEpoch;
@@ -1487,13 +1572,13 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
         if(!wasRearmed||!source.tracked||!m->active||!point)return reject(409,!wasRearmed?"release_required":!point?"point_unavailable":"source_or_gameplay_unavailable");
         const bool reservedParty=m->crewEnabled&&ScintillaDefense::Layout::create(m->projection.width,m->projection.height,m->missionLayoutRequired,false,true).classify(u,v).context==ScintillaDefense::Context::PartyBoost;
         if(controlIndex==0&&!reservedParty&&time.lo-source.lastPrimary<std::llround(m->tuning.fireIntervalS*1e6))
-            return m->tuning.fireRateFeedback?reject(409,"fire_rate_limited"):error(409,"fire_rate_limited");
+            return m->tuning.fireRateFeedback?reject(409,"fire_rate_limited"):(m->note("rejected",i,control,"fire_rate_limited"),error(409,"fire_rate_limited"));
         if(m->pending.size()>=64||((m->combatEnabled||m->missionEnabled)&&controlIndex==0&&!reservedParty&&m->combatShots.size()>=64)){m->disarm(i,"input_backpressure");return reject(429,"input_backpressure");}
         if(controlIndex==1&&m->nextProof==std::numeric_limits<uint64_t>::max()){
             m->disarm(i,"proof_serial_exhausted");return reject(409,"proof_serial_exhausted");
         }
         source.held[controlIndex]=true;if(controlIndex==1){
-            ++source.toolEpoch;source.proofVisible=false;source.proofInterrupted=false;source.pressLocked=false;source.proofSerial=0;
+            ++source.toolEpoch;source.proofVisible=false;source.proofInterrupted=false;source.negativePending=false;source.pressLocked=false;source.proofSerial=0;
             source.pressMissionEligible=false;source.pressMission=ScintillaMission::Snapshot();
             source.partyPressAuthority=m->crewAuthority();source.partyCapturedProposal=0;
             source.partyPressTick=m->simulationTick;source.partyPressEligible=false;
@@ -1504,7 +1589,10 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
             reticle.missionFeedback=ScintillaMission::Feedback();
             reticle.partyFeedback=ScintillaCrew::PartyFeedback();
             reticle.toolEpoch=source.toolEpoch;
-        }if(controlIndex==0&&!reservedParty)source.lastPrimary=time.lo;
+        }if(controlIndex==0&&!reservedParty){
+            source.lastPrimary=time.lo;source.autoBase=event.substr(0,96);source.autoCount=0;
+            ++reticle.presses;reticle.pressedUs=now;reticle.pressPoseUs=time.lo;reticle.pressU=u;reticle.pressV=v;
+        }
         if(feedbackAuthoritative)m->setFeedback(i,FeedbackKind::Pending,sequence,now,now+PendingTimeoutUs,true,u,v,"queued");
         reticle.primaryHeld=source.held[0];reticle.toolHeld=source.held[1];
         const int64_t acquired=num(at(message,"time"),"evaluatedAtHostUs");
@@ -1512,7 +1600,7 @@ Reply Runtime::route(const std::string& path,const std::string& body,int64_t now
         // aim remains the live cursor. Equal-time event poses win over aims.
         if(acquired>=source.cursorHostUs)
         {
-            source.cursorHostUs=acquired;source.hasAnchor=true;source.anchorU=u;source.anchorV=v;
+            source.cursorHostUs=acquired;source.cursorHost=originalHostTime;source.hasAnchor=true;source.anchorU=u;source.anchorV=v;
             reticle.u=u;reticle.v=v;reticle.valid=true;reticle.updatedUs=time.lo;
         }
         Impl::Pending pending;pending.event.sourceId=id.source;pending.event.participantId=source.participant;pending.event.eventId=event;pending.event.control=control;
