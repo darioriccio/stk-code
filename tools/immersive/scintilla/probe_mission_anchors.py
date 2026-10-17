@@ -145,8 +145,10 @@ def window(profile, activation, required):
     if not crossing:
         return 0., 0, None
     # The runtime decides at the crossing with the proof read back just before.
+    # Profiles keep only frames near the capsule: a gap here means the capsule
+    # was still out of range at the crossing, so nothing could prove it.
     before = profile[crossing - 1]
-    if not (before[2] and before[3] and before[4]):
+    if profile[crossing][0] - before[0] > v.MAX_GAP_US or not (before[2] and before[3] and before[4]):
         return 0., 0, None
     last, probes, reached = None, before[4], None
     for i in range(crossing, len(profile)):
