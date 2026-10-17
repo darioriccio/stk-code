@@ -162,7 +162,7 @@ def main(argv=None):
     process, producer_log = sim.launch(launch_args, token, port)
     api = sim.Api(f'http://127.0.0.1:{port}/immersive/v1', token)
     try:
-        until(lambda: process.poll() is None and sim_state(api), 120, 'producer API unavailable', interval=1)
+        until(lambda: process.poll() is None and sim_state(api), 300, 'producer API unavailable', interval=1)
         traces = []
         for race in range(1, args.races_per_phase + 1):
             for phase in PHASES:

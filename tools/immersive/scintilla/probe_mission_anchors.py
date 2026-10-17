@@ -120,34 +120,45 @@ class Seen:
         return self.samples[lo:hi]
 
 
-def lap_profile(frames, center, fingerprint, speed, seen):
+def admissible(center, camera, fingerprint, inflate):
+    """Capsule range, and its silhouette grown by `inflate` clear of the HUD:
+    a centre near a reserved edge flips with small camera differences."""
+    distance = geo.norm(geo.sub(center, camera['position']))
+    return geo.RANGE_M[0] <= distance <= geo.RANGE_M[1] and \
+        v.rectangle_free(center, geo.CAPSULE_RADIUS * inflate, camera, fingerprint)
+
+
+def lap_profile(frames, center, fingerprint, speed, seen, inflate=1.):
     """Per frame: admissible at race speed, every nearby probe visible, probe count."""
     profile = []
     for time, fraction, minimum, continuous, camera in frames:
         near = seen.near(fraction)
-        profile.append((time, fraction, continuous and minimum >= speed and geo.admissible(center, camera, fingerprint),
+        profile.append((time, fraction, continuous and minimum >= speed and admissible(center, camera, fingerprint, inflate),
                         all(s[1] for s in near), len(near)))
     return profile
 
 
-def window(profile, activation):
-    """(seconds, probes) from the activation crossing in one lap."""
+def window(profile, activation, required):
+    """(seconds, probes, fraction where `required` seconds were reached) from
+    the activation crossing in one lap. The group's expiry must come later."""
     crossing = next((i for i, p in enumerate(profile) if p[1] >= activation), None)
     if not crossing:
-        return 0., 0
+        return 0., 0, None
     # The runtime decides at the crossing with the proof read back just before.
     before = profile[crossing - 1]
     if not (before[2] and before[3] and before[4]):
-        return 0., 0
-    last, probes = None, before[4]
+        return 0., 0, None
+    last, probes, reached = None, before[4], None
     for i in range(crossing, len(profile)):
-        time, _, admissible, seen, count = profile[i]
+        time, fraction, admissible_now, seen, count = profile[i]
         if last is not None and time - profile[last][0] > v.MAX_GAP_US:
             break
-        if not (admissible and seen):
+        if not (admissible_now and seen):
             break
         probes += count; last = i
-    return (0., 0) if last is None else ((profile[last][0] - profile[crossing][0]) / 1e6, probes)
+        if reached is None and time - profile[crossing][0] >= required * 1e6:
+            reached = fraction
+    return (0., 0, None) if last is None else ((profile[last][0] - profile[crossing][0]) / 1e6, probes, reached)
 
 
 def place(args):
@@ -174,17 +185,21 @@ def place(args):
         profiles = []
         for key, frames in sequences.items():
             close = numpy.nonzero(numpy.linalg.norm(positions[key] - numpy.array(entry['center']), axis=1) <= geo.RANGE_M[1] + 5)[0]
-            profiles.append((key[1], lap_profile([frames[i] for i in close], entry['center'], fingerprint, speed, seen)))
+            profiles.append((key[1], lap_profile([frames[i] for i in close], entry['center'], fingerprint, speed, seen, args.inflate)))
         for activation in nodes:
             if not node['fraction'] - args.lead <= activation['fraction'] < node['fraction']:
                 continue
             per_lap, probes = {}, 0
             for lap, profile in profiles:
-                seconds, count = window(profile, activation['fraction'])
-                per_lap[lap] = max(per_lap.get(lap, 0.), seconds); probes += count
-            worst = min(per_lap.values()) if per_lap else 0.
+                seconds, count, reached = window(profile, activation['fraction'], geo.WINDOW_S + args.margin)
+                if seconds > per_lap.get(lap, (0., None))[0]:
+                    per_lap[lap] = (seconds, reached)
+                probes += count
+            worst = min(w[0] for w in per_lap.values()) if per_lap else 0.
             if worst >= geo.WINDOW_S + args.margin and probes >= args.min_probes:
-                singles.setdefault(activation['node'], []).append((worst, index, probes))
+                # Each lap's best window must fit before the expiry.
+                need = max(w[1] for w in per_lap.values())
+                singles.setdefault(activation['node'], []).append((worst, index, probes, need))
     # Every pair among an activation's ten best capsules: an earlier expiry
     # can leave room for the next group.
     pairs = []
@@ -195,8 +210,12 @@ def place(args):
             for second in options[i + 1:]:
                 if geo.norm(geo.sub(listed[first[1]]['center'], listed[second[1]]['center'])) < 2 * geo.CAPSULE_RADIUS + .5:
                     continue
-                expiry = min(max(listed[first[1]]['node'], listed[second[1]]['node']) + 1, len(nodes) - 1)
-                if nodes[expiry]['fraction'] > last_fraction or nodes[expiry]['fraction'] <= nodes[activation]['fraction']:
+                # Capsules live until the kart has passed them (more time to
+                # play), and at least until every lap's window is complete.
+                need = max(first[3], second[3]) + .002
+                passed = nodes[min(max(listed[first[1]]['node'], listed[second[1]]['node']) + 1, len(nodes) - 1)]['fraction']
+                expiry = next((n['node'] for n in nodes if n['fraction'] >= max(need, passed)), None)
+                if expiry is None or nodes[expiry]['fraction'] > last_fraction:
                     continue
                 pairs.append((min(first[0], second[0]), activation, expiry, first, second))
     # Most groups first (the qualification needs four per lap and each one
@@ -257,7 +276,7 @@ def record(args):
     process, log = sim.launch(launch, token, port)
     api = sim.Api(f'http://127.0.0.1:{port}/immersive/v1', token)
     try:
-        qualify.until(lambda: process.poll() is None and qualify.sim_state(api), 120, 'producer API unavailable', interval=1)
+        qualify.until(lambda: process.poll() is None and qualify.sim_state(api), 300, 'producer API unavailable', interval=1)
         for race in range(1, args.races + 1):
             exported = qualify.record(api, args.players, 'shell', staging / f'probe-{race}.ndjson', args.race_timeout)
             qualify.log(f'probe-{race}.ndjson: {exported["byteCount"]} bytes')
@@ -297,6 +316,7 @@ def main(argv=None):
     p.add_argument('--spacing', type=float, default=.04, help='lap fraction between two groups')
     p.add_argument('--keep', nargs='*', default=[], help='group ids of --anchors that stay as they are')
     p.add_argument('--margin', type=float, default=MARGIN_S, help='seconds a worst lap must exceed the window by')
+    p.add_argument('--inflate', type=float, default=1.5, help='capsule radius factor for the HUD clearance')
     p.add_argument('--output', type=Path, required=True)
     r = sub.add_parser('record', help='record natively driven races that measure the candidates')
     r.add_argument('--build-dir', type=Path, required=True)
