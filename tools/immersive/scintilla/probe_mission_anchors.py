@@ -79,8 +79,8 @@ def candidates(args):
         for key, frames in sequences.items():
             close = numpy.nonzero(numpy.linalg.norm(positions[key] - numpy.array(center), axis=1) <= geo.RANGE_M[1] + 5)[0]
             near = [frames[i] for i in close]
-            good += longest_run_us(near, center, fingerprint, speed) >= (geo.WINDOW_S + MARGIN_S) * 1e6
-        if good * 2 >= len(sequences):
+            good += longest_run_us(near, center, fingerprint, speed) >= args.min_run * 1e6
+        if good >= args.min_share * len(sequences):
             kept.append(dict(node=n, lateralM=lateral, heightM=height, center=center))
     with open(args.output, 'w') as stream:
         for entry in kept:
@@ -162,10 +162,13 @@ def place(args):
     probed = probe_samples(args.probe)
     positions = {key: numpy.array([f[4]['position'] for f in frames]) for key, frames in sequences.items()}
     last_fraction = nodes[-2]['fraction']
+    manifest = json.loads(args.anchors.read_text())
+    kept = [g for g in manifest['groups'] if g['id'] in args.keep]
     singles = {}  # activation node -> [(worst, candidate index, probes)]
     for index, entry in enumerate(listed):
         node = nodes[entry['node']]
-        if index not in probed or not .01 <= node['fraction'] <= last_fraction:
+        if index not in probed or not .01 <= node['fraction'] <= last_fraction or \
+                any(g['activationFraction'] - args.spacing < node['fraction'] < g['expiryFraction'] + args.spacing for g in kept):
             continue
         seen = Seen(probed[index])
         profiles = []
@@ -180,7 +183,7 @@ def place(args):
                 seconds, count = window(profile, activation['fraction'])
                 per_lap[lap] = max(per_lap.get(lap, 0.), seconds); probes += count
             worst = min(per_lap.values()) if per_lap else 0.
-            if worst >= geo.WINDOW_S + MARGIN_S and probes >= args.min_probes:
+            if worst >= geo.WINDOW_S + args.margin and probes >= args.min_probes:
                 singles.setdefault(activation['node'], []).append((worst, index, probes))
     # Every pair among an activation's ten best capsules: an earlier expiry
     # can leave room for the next group.
@@ -199,33 +202,39 @@ def place(args):
     # Most groups first (the qualification needs four per lap and each one
     # is an opportunity), then the best worst window; windows stay apart so
     # opportunities spread over the lap.
+    # Groups verified natively stay; new ones fit around them.
+    pairs = [p for p in pairs if all(nodes[p[2]]['fraction'] + args.spacing <= g['activationFraction'] or
+                                     g['expiryFraction'] + args.spacing <= nodes[p[1]]['fraction'] for g in kept)]
     pairs.sort(key=lambda p: nodes[p[2]]['fraction'])
+    for pair in pairs:
+        print(f"pair: activation {nodes[pair[1]]['fraction']:.3f} expiry {nodes[pair[2]]['fraction']:.3f} worst {pair[0]:.2f} s, "
+              + ', '.join(f"{listed[c[1]]['lateralM']:+} x {listed[c[1]]['heightM']} at node {listed[c[1]]['node']}" for c in pair[3:]), file=sys.stderr)
     best = []  # per pair: best chain ending with it, as (count, worst, chain)
     for i, pair in enumerate(pairs):
         start = nodes[pair[1]]['fraction']
         chain = (1, pair[0], [pair])
         for j in range(i):
-            if nodes[pairs[j][2]]['fraction'] + args.spacing <= start and best[j][0] < args.groups:
+            if nodes[pairs[j][2]]['fraction'] + args.spacing <= start and best[j][0] < args.groups - len(kept):
                 candidate = (best[j][0] + 1, min(best[j][1], pair[0]), best[j][2] + [pair])
                 if candidate[:2] > chain[:2]:
                     chain = candidate
         best.append(chain)
     chosen = max(best, key=lambda c: c[:2])[2] if best else []
-    chosen.sort(key=lambda p: nodes[p[1]]['fraction'])
-    manifest = json.loads(args.anchors.read_text())
     template = manifest['groups'][0]
     groups = []
-    for number, (quality, activation, expiry, first, second) in enumerate(chosen, 1):
-        group = copy.deepcopy(manifest['groups'][number - 1] if number <= len(manifest['groups']) else template)
-        group['id'] = f'snow_supply_{number}'
+    for quality, activation, expiry, first, second in chosen:
+        group = copy.deepcopy(template)
         group['activationNode'], group['activationFraction'] = activation, nodes[activation]['fraction']
         group['expiryNode'], group['expiryFraction'] = expiry, nodes[expiry]['fraction']
         for capsule, pick in zip(group['capsules'], (first, second)):
             capsule['center'] = [round(x, 8) for x in listed[pick[1]]['center']]
         groups.append(group)
-        print(f"{group['id']}: activation node {activation} ({nodes[activation]['fraction']:.3f}), expiry {expiry}, worst windows "
+        print(f"new group: activation node {activation} ({nodes[activation]['fraction']:.3f}), expiry {expiry}, worst windows "
               f"{first[0]:.2f}/{second[0]:.2f} s, " + ', '.join(f"{listed[p[1]]['lateralM']:+} m x {listed[p[1]]['heightM']} m at node "
               f"{listed[p[1]]['node']} ({p[2]} probes)" for p in (first, second)), file=sys.stderr)
+    groups = sorted(groups + copy.deepcopy(kept), key=lambda g: g['activationFraction'])
+    for number, group in enumerate(groups, 1):
+        group['id'] = f'snow_supply_{number}'
     manifest['groups'] = groups
     manifest['author'] = manifest['author'].split(';')[0] + '; capsules placed from native probe visibility'
     args.output.write_text(json.dumps(manifest, indent=2) + '\n')
@@ -272,6 +281,8 @@ def main(argv=None):
     c.add_argument('--output', type=Path, required=True)
     c.add_argument('--laterals', type=float, nargs='+', help='metres right of the driveline (default: a side grid)')
     c.add_argument('--heights', type=float, nargs='+', help='metres above the driveline')
+    c.add_argument('--min-run', type=float, default=geo.WINDOW_S + MARGIN_S, help='seconds of admissible geometry')
+    c.add_argument('--min-share', type=float, default=.5, help='share of recorded laps with such a run')
     c.add_argument('--start', type=float, default=0., help='first lap fraction of the nodes')
     c.add_argument('--end', type=float, default=1., help='lap fraction after the last node')
     p = sub.add_parser('place', help='place capsules from probe traces')
@@ -284,6 +295,8 @@ def main(argv=None):
     p.add_argument('--lead', type=float, default=.12, help='longest lap fraction from activation to a capsule')
     p.add_argument('--groups', type=int, default=6, choices=range(4, 13))
     p.add_argument('--spacing', type=float, default=.04, help='lap fraction between two groups')
+    p.add_argument('--keep', nargs='*', default=[], help='group ids of --anchors that stay as they are')
+    p.add_argument('--margin', type=float, default=MARGIN_S, help='seconds a worst lap must exceed the window by')
     p.add_argument('--output', type=Path, required=True)
     r = sub.add_parser('record', help='record natively driven races that measure the candidates')
     r.add_argument('--build-dir', type=Path, required=True)
