@@ -60,7 +60,7 @@ Test nuovi **scritti/registrati, non eseguiti**: 71 casi nei sette target C++ cr
 
 Gli strumenti e le istruzioni per completare la qualifica sono [QUALIFICA_SC5.md](../../../../tools/immersive/scintilla/QUALIFICA_SC5.md) e [QUALIFICA_ZONE_PARTY_SC5.md](../../../../tools/immersive/scintilla/QUALIFICA_ZONE_PARTY_SC5.md). Si congela prima il manifest authored; le prove successive ne legano hash, eseguibile, asset pista, FPS e artefatti nativi. Il loader nativo rilegge e verifica gli artefatti proof prima di ammettere la qualifica. Il validator verifica schema/provenienza dichiarata/integrità, non può dimostrare da solo che un operatore abbia realmente eseguito una prova.
 
-Anche il profilo standard richiede nuove misure native di layout v3. Descriptor v2/SC4 non viene rinominato o accettato come qualifica v3. Disponibilità ottica resta `[readbackUs,captureUs+50000]`; latenza GPU90ms, buchi e prefetch futuro non diventano prove ammesse.
+Anche il profilo standard richiede nuove misure native di layout v3. Descriptor v2/SC4 non viene rinominato o accettato come qualifica v3. Disponibilità ottica `[readbackUs,captureUs+100000]` dal 17 ottobre (prima 50000); buchi e prefetch futuro non diventano prove ammesse.
 
 ## Limiti e consegna
 

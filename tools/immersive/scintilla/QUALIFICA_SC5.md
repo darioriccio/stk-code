@@ -37,8 +37,11 @@ Il fingerprint comprende profilo, regole SC5, arrotondamenti dei parametri
 Party alla frequenza fisica effettiva, hash eseguibile/asset/shader e hash del
 manifest zone. `qualification_v1` e `qualification_v2` sono esclusi dall'hash
 degli asset per evitare autoreferenze. Ogni cambio di contenuto applicato
-richiede nuove prove. La disponibilità delle capsule resta esattamente
-`[readbackUs, captureUs + 50000]`; il cavo conserva il proprio contratto.
+richiede nuove prove. La disponibilità delle capsule è esattamente
+`[readbackUs, captureUs + 100000]` (un gap di cattura più la lettura delle
+query: con 50 ms nessuna prova reale restava viva fino alla successiva); il
+cavo conserva il proprio contratto. Con l'autopilota l'intera procedura è
+`qualify_mission_autopilot.py --crew-profile sc5_crew_standard_v1`.
 
 Il preflight operativo avviene dopo il latch `crew/intent`, prima della
 preparazione: seleziona il report installato dello stesso profilo. La qualifica

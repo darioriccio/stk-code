@@ -30,6 +30,7 @@ from pathlib import Path
 
 SPATIAL = 'tholus.stk-spatial/1'
 MISSION = 'tholus.stk-scintilla-mission/1'
+MEASUREMENT = 'tholus.stk-scintilla-measurement/1'
 MISSION_IDENTITY = ('producerUUID', 'raceEpoch', 'intentRevision', 'missionRevision', 'rosterRevision', 'inputSessionID',
                     'inputEpoch', 'routeRevision', 'projectionContextId', 'anchorManifestHash', 'introManifestHash',
                     'layoutProfile', 'layoutRevision')
@@ -250,6 +251,9 @@ class Simulation:
                       difficulty=a.difficulty, crew_mode='disabled', output='syphon', countdown_seconds=2,
                       handoff_policy='lap_based_handoff', handoff_seconds=6, min_handoff_seconds=6,
                       handoff_operator_confirm=True, auto_confirm_handoff=False))
+        if a.mission:
+            # Before any spatial preparation, which a preflight would retire.
+            self.preflight_mission()
         self.api.call('/spatial/enable', {})
         if a.mission:
             # SC4 intent also makes SC2 and SC3 required, in one commit.
@@ -317,6 +321,22 @@ class Simulation:
         if not reply.get('ok'):
             raise RuntimeError(f'mission {operation}: {reply.get("error")}')
         return reply
+
+    def preflight_mission(self, timeout=300):
+        """As the host does in a held pre-race world, before preparing SC1-SC3:
+        admit the installed qualification (it hashes the asset trees)."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            state = self.api.call('/scintilla/mission/measurement/state')
+            body = dict(contract=MEASUREMENT, schemaVersion=1, requestId=str(uuid.uuid4()),
+                        producerUUID=state['producerUUID'], raceEpoch=state['raceEpoch'])
+            reply = self.api.call('/scintilla/mission/measurement/preflight', body, expect=None)
+            if reply.get('ok'):
+                if not reply.get('qualified'):
+                    raise RuntimeError(f'mission preflight: {reply.get("reason")}')
+                return
+            time.sleep(2)
+        raise RuntimeError('mission preflight unavailable')
 
     def prepare_mission(self, timeout=20):
         """SC4 prepare needs SC1-SC3 prepared and fresh presented cargo-layout frames."""
