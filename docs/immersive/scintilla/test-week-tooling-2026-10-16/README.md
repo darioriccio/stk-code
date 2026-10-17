@@ -30,6 +30,40 @@ modalità equipaggio (prima non sarebbe comparso proprio con SC5), e il reset
 del freno Party è stato conservato accanto a quello dell'autopilota. Suite
 finale: **378/378**, tutti i controlli sorgente e i test degli strumenti.
 
+### SC5 faceva scendere il dome da 60 a 20 fps
+
+Con SC5 la stessa gara simulata (fisheye 1536, cubemap 768) girava a 16–21
+fps invece di 52–68, anche senza misura e a GPU libera. A quella cadenza la
+qualifica SC4 non può riuscire, perché le catture devono distare al massimo
+50 ms, e in sala il gioco sarebbe stato a scatti.
+
+Il campionamento mostrava il thread principale fermo per il 66% del tempo ad
+aspettare la GPU. Gli A/B si fanno senza ricompilare, perché gli shader si
+leggono da `data/` a ogni avvio:
+
+| Shader di proiezione | fps |
+|---|---|
+| overlay SC5 com'era | 19–21 |
+| senza overlay | 70,8 |
+| overlay pre-SC5 | 69,0 |
+| SC5 senza il ramo equipaggio nel percorso spaziale | 61,6 |
+| **SC5 corretto (ogni passata HUD inlinata una volta)** | **66,2** |
+
+SC5 aveva aggiunto una seconda copia di feedback, pannelli, HUD missione e HUD
+equipaggio dentro il percorso spaziale. Su GL Apple lo shader più grande
+costava circa 35 ms di GPU a fotogramma su tutti i pixel, anche dove quel ramo
+non veniva mai eseguito.
+
+Ora il corpo spaziale sta in `scintillaSpatialOverlay`, che restituisce i
+puntatori come un unico strato premoltiplicato, matematicamente uguale ai
+`mix` in sequenza. `scintillaOverlay` compone ogni passata HUD una volta sola
+e mette i puntatori sotto l'HUD classico o sopra quello dell'equipaggio, come
+prima. I checker verificano lo stesso ordine e che ogni passata compaia una
+volta sola.
+
+Durante la diagnosi anche Safari aveva occupato circa il 29% della GPU a STK
+fermo. **In sala sul Mac del dome non deve girare altro che usi la GPU.**
+
 ## 1. Profili di bilanciamento
 
 Un profilo `tholus.stk-scintilla-tuning/1` sostituisce i valori scelti; quelli
@@ -141,7 +175,7 @@ servono gare guidate fino al traguardo.
 
 `tools/immersive/scintilla/qualify_mission_autopilot.py` esegue da solo la
 procedura di [OPERATORE.md](../sc4-implementation-2026-10-16/OPERATORE.md):
-1. due gare complete guidate dall'autopilota, una per fase;
+1. gare complete guidate dall'autopilota, due per fase (`--races-per-phase`);
 2. esportazione e verifica delle tracce grezze, e validazione offline;
 3. installazione di report e tracce in `data/immersive_relay/scintilla/qualification_v1/`
    (cartella ignorata da git; un'installazione precedente viene spostata da parte);
@@ -156,7 +190,7 @@ python3 tools/immersive/scintilla/qualify_mission_autopilot.py --build-dir <buil
 proiezione, risoluzioni, P/C e giri.** Va rifatta dopo ogni ricompilazione
 (compreso il merge con SC5) e per ogni configurazione di sala diversa, per
 esempio un altro numero di giocatori. Con 3 giocatori sono 6 giri per gara,
-circa 15 minuti in tutto.
+circa 30 minuti in tutto per quattro gare.
 
 Mettere in pratica la procedura ha fatto emergere quattro difetti, tutti
 corretti:
@@ -216,8 +250,120 @@ per la simulazione), con la tolleranza di velocità al 95% decisa:
   dall'attivazione nel giro peggiore (migliore delle gare registrate per
   giro, come fa il validatore). Con l'HUD attuale le capsule finiscono
   **16–40 m ai lati e 6–12 m in alto**, con 2,7–5,9 s di finestra geometrica.
+  *Superata:* la geometria non vede il terreno, e quasi tutte queste capsule
+  finivano dietro pendii e alberi (vedi la sezione seguente).
 - **Due gare per fase.** Un rallentamento casuale in un giro di una gara non
   deve far fallire tutto: il validatore tiene per ogni giro la gara migliore.
+
+### Seconda qualifica: prova viva troppo corta e capsule dietro il terreno
+
+Dopo la correzione delle prestazioni (sopra), la qualifica con questi
+ancoraggi non dava ancora **nessuna** finestra per le capsule. Le cause erano
+due, e nessuna geometrica.
+
+**1. La prova di visibilità scadeva prima di essere sostituita.** Le query di
+occlusione si campionano a 30 Hz e sul Mac si leggono circa 28 ms dopo la
+cattura. Una prova restava valida 50 ms, ma quella in mano aveva fino a
+33 + 28 = 61 ms prima che arrivasse la successiva. La catena continua più
+lunga durava 0,3 s, mentre ne servono 2. Lo stesso limite valeva in gioco:
+all'attraversamento d'attivazione circa **una capsula su tre** sarebbe stata
+saltata anche se perfettamente visibile.
+
+Inoltre il validatore provava l'attivazione solo con il campione precedente,
+che a quel punto è quasi sempre ancora in volo: provata nel 15% dei casi.
+
+Correzione (validatore Python, lettore nativo e gioco insieme):
+
+- `LiveProofMaxAgeUs` = 100 ms, cioè un gap di cattura (50 ms) più la
+  lettura delle query (fino a 50 ms);
+- l'attivazione si prova con la prova che il gioco ha davvero
+  all'attraversamento, cioè l'ultima già letta, che deve mostrare la capsula
+  ed essere ancora viva. Lettore e validatore tengono una breve storia delle
+  prove per capsula.
+
+**2. Le capsule finivano dietro il terreno.** La geometria (portata,
+proiezione, HUD) non vede pendii, pareti e alberi. Nelle tracce: g0, g1, g2 e
+una capsula di g4 erano sempre coperte (visibilità 0%).
+
+Per vedere il terreno serve il rendering vero. Con
+`STK_RELAY_SCINTILLA_PROBES` una registrazione misura **posizioni candidate**
+invece degli ancoraggi: quattro per campione, a rotazione, con le stesse
+query, maschere e profondità della qualifica. Le sonde sono scritte come
+`group:-2`, che lettore e validatore rifiutano, quindi una traccia di
+esplorazione non può mai qualificare.
+
+`tools/immersive/scintilla/probe_mission_anchors.py` ha tre comandi:
+
+1. `candidates`: genera i centri che la geometria ammette;
+2. `record`: registra gare con l'autopilota che li misurano;
+3. `place`: sceglie le finestre dall'attraversamento, se la capsula era
+   vista appena prima, finché tengono geometria, velocità e ogni sonda
+   vicina. Poi tiene il maggior numero di gruppi non sovrapposti, con la
+   migliore finestra peggiore.
+
+Risultato su snowtuxpeak, tre gare di sonde (circa 145.000 misure):
+
+- **la prima metà del giro corre fra pareti e bosco:** dal 70 all'84% delle
+  posizioni laterali basse è coperto. Anche le posizioni alte (20–36 m) lo
+  sono per più della metà;
+- **posizioni valide** esistono solo da circa 0,37 del giro in poi;
+- **ne escono 4 gruppi** non sovrapposti, il minimo per la qualifica.
+
+Ogni proposta è stata poi verificata con una qualifica nativa. Tre
+correzioni sono venute da lì:
+
+- le finestre non devono superare la scadenza del gruppo (una coppia durava
+  21 m, cioè 1,4 s);
+- la sagoma deve stare lontana dai bordi dell'HUD (raggio gonfiato di 1,5);
+- all'attivazione la capsula deve essere già a portata.
+
+Il gruppo 1 è stato rifinito sulle tracce native: attivazione spostata dove
+entrambe le capsule sono provate in ogni giro, scadenza subito prima del
+gruppo 2.
+
+| Gruppo | Attivazione | Scadenza | Capsule (lato × altezza, m) |
+|---|---|---|---|
+| 1 | 0,384 | 0,511 | −30 × 30, −18 × 25 |
+| 2 | 0,512 | 0,594 | +24 × 3, +24 × 9 |
+| 3 | 0,635 | 0,738 | +30 × 12, +24 × 16 |
+| 4 | 0,855 | 0,955 | +30 × 25, +30 × 30 |
+
+**Esito: SC4 qualificata** su questa build. Qualifica con l'autopilota, P=3,
+6 giri, 3 gare per fase:
+
+- `qualified_geometry` senza motivi residui (73.780 fotogrammi);
+- preflight nativo `qualified=True`;
+- prove in `qualification_v1/`.
+
+Le gare prima di questa hanno insegnato due cose per la sala:
+
+- **non far girare altro di pesante sul Mac durante una qualifica:** gli
+  scatti oltre 50 ms spezzano le finestre di un giro intero;
+- **non lasciare che i display si spengano:** con i display in stop STK si
+  blocca alla schermata di caricamento.
+
+**Gara con equipaggio simulato e missione** (`crew_simulator.py --mission`,
+che ora esegue il preflight come l'host prima di preparare SC1–SC3).
+Snowtuxpeak, 408 s, arrivo naturale:
+
+| Metrica | Valore |
+|---|---|
+| Capsule offerte | 34 su 48 possibili |
+| Capsule aperte | 17 (17 colpi su 17, tutti oltre 20 m, raggio angolare 3,0°) |
+| Capsule prese con l'attrezzo e raccolte | 2 |
+| Esito | gara vinta, 2 slot di carico su 3 |
+| Tempo dell'equipaggio sulle capsule | 22% |
+
+Le capsule mancanti sono saltate per regola: all'attraversamento il kart era
+in salto o sopra la velocità qualificata (in boost il 24% del tempo).
+
+Per il bilanciamento in sala:
+
+- le capsule vivono 2,5–8 s e sono piccole, 3° di raggio angolare;
+- aprirle è alla portata, raccoglierle con l'attrezzo nel tempo che resta è
+  difficile;
+- le leve sono nel profilo di tuning: ritiro sopra la velocità qualificata,
+  marker più grandi, durata delle prese.
 
 Spostare l'HUD darebbe un gioco migliore: senza griglia di icone e barre
 sopra la strada le capsule possono stare **4–9 m accanto alla carreggiata, 3–7 m
@@ -395,15 +541,17 @@ Cosa dicono, con i limiti di un Mac sovraccarico:
 - **Il modello di equipaggio resta un modello:** questi dati verificano
   sessione, protocollo e regole; non sono una previsione della bravura dei
   giocatori.
-- **Capsule e minacce a zero:** il simulatore non prepara la missione SC4, che
-  richiede gli ancoraggi qualificati, e le minacce richiedono un rivale dietro
-  tra 8 e 24 m.
+- **Capsule:** fino a sim-24 erano a zero, perché la missione SC4 non era
+  qualificabile. Ora sono qualificate e giocate dall'equipaggio simulato:
+  vedi «Seconda qualifica».
+- **Minacce a zero:** richiedono un rivale dietro, tra 8 e 24 m.
 
 ## Verifiche
 
 | Verifica | Esito |
 |---|---|
-| Suite `tools/immersive/tests` (C++, Bullet, Python offline) | **378/378** (sopra SC5) |
+| Suite `tools/immersive/tests` (C++, Bullet, Python offline) | **379/379** (sopra SC5, con il caso nuovo della prova viva) |
+| Test Python del validatore (`test_mission_qualification.py`) | 40/40 |
 | Checker dei sorgenti `check_*.py` e test Python degli strumenti | tutti superati |
 | Build Relay incrementale | riuscita |
 | TholusOS (`scintilla/test-week-tooling` del worktree host) | **non compilato**: `swiftc -parse` e checker `test_scintilla_input_maintenance.py` superati |
@@ -421,7 +569,14 @@ bersaglio e risposte che il vecchio TholusOS avrebbe rifiutato.
 - Unire `scintilla/test-week-sc5` in `main` (fast-forward: il branch parte da
   `main`).
 - Spostare griglia di icone e barre dalla fascia sopra la strada (vedi
-  «Correzione scelta»), poi riposizionare le capsule vicino alla carreggiata.
+  «Correzione scelta»), poi rifare l'esplorazione con le sonde: le capsule
+  potrebbero tornare vicino alla carreggiata e anche nella prima metà del giro.
+- **Sul Mac della sala disattivare lo spegnimento dei display** (o tenere
+  attivo `caffeinate -d` durante lo spettacolo): con i display spenti STK si
+  blocca alla schermata di caricamento, durante la compilazione degli shader.
+  Visto alle 3 di notte, a qualifica avviata con lo schermo in stop.
+- Rifare la qualifica SC4 sul Mac della sala, con la build e la configurazione
+  definitive (l'impronta comprende binario, shader, ancoraggi e risoluzione).
 - Decidere la regola di velocità di SC5 Party su neve.
 - Verificare con persone vere `non_targetable_surface` (rivali dietro zone HUD)
   e `ambiguous_presentation`.
