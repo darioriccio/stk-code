@@ -335,6 +335,18 @@ gruppo 2.
 - preflight nativo `qualified=True`;
 - prove in `qualification_v1/`.
 
+**Qualificata anche SC5 standard**, con le stesse capsule:
+
+- `--crew-profile sc5_crew_standard_v1`, maschere v3: `qualified_geometry`
+  (72.834 fotogrammi);
+- prove in `qualification_v2/sc5_crew_standard_v1/`.
+
+Serve perché la sessione relay ha la modalità equipaggio attiva di default.
+Margine minimo: con le maschere v3 la seconda capsula del gruppo 4 ha
+finestre di 2,0–2,2 s in una singola gara, e passa grazie alla gara migliore
+per giro. Il preflight SC5 nativo (dopo il latch `crew/intent`) non è stato
+eseguito, perché il simulatore non gioca in modalità equipaggio.
+
 Le gare prima di questa hanno insegnato due cose per la sala:
 
 - **non far girare altro di pesante sul Mac durante una qualifica:** gli
@@ -552,6 +564,10 @@ Cosa dicono, con i limiti di un Mac sovraccarico:
 |---|---|
 | Suite `tools/immersive/tests` (C++, Bullet, Python offline) | **379/379** (sopra SC5, con il caso nuovo della prova viva) |
 | Test Python del validatore (`test_mission_qualification.py`) | 40/40 |
+| Test Python degli strumenti (simulatore, raccolta, report, zone, intro) | tutti superati |
+| Qualifica SC4 nativa con l'autopilota (`qualification_v1`) | **qualified_geometry**, preflight nativo superato |
+| Qualifica SC5 standard nativa (`qualification_v2/sc5_crew_standard_v1`) | **qualified_geometry** |
+| Gara simulata con missione SC4 | 408 s, arrivo naturale, capsule offerte, aperte e raccolte |
 | Checker dei sorgenti `check_*.py` e test Python degli strumenti | tutti superati |
 | Build Relay incrementale | riuscita |
 | TholusOS (`scintilla/test-week-tooling` del worktree host) | **non compilato**: `swiftc -parse` e checker `test_scintilla_input_maintenance.py` superati |
@@ -575,8 +591,13 @@ bersaglio e risposte che il vecchio TholusOS avrebbe rifiutato.
   attivo `caffeinate -d` durante lo spettacolo): con i display spenti STK si
   blocca alla schermata di caricamento, durante la compilazione degli shader.
   Visto alle 3 di notte, a qualifica avviata con lo schermo in stop.
-- Rifare la qualifica SC4 sul Mac della sala, con la build e la configurazione
-  definitive (l'impronta comprende binario, shader, ancoraggi e risoluzione).
+- Rifare le qualifiche SC4 e SC5 sul Mac della sala, con la build e la
+  configurazione definitive: l'impronta comprende binario, shader, ancoraggi,
+  risoluzione e P. Qui valgono solo per P=3 (6 giri).
+- SC5 Party: non qualificabile su neve con la regola attuale (finestre a
+  velocità base + 1 m/s, mentre il kart è limitato a 15 m/s).
+- Bilanciamento capsule: sono piccole (3°) e vivono 2,5–8 s. La raccolta con
+  l'attrezzo è il passo difficile (2 su 17 aperte nella gara simulata).
 - Decidere la regola di velocità di SC5 Party su neve.
 - Verificare con persone vere `non_targetable_surface` (rivali dietro zone HUD)
   e `ambiguous_presentation`.
