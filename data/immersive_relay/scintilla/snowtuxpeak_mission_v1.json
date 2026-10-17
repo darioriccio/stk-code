@@ -6,15 +6,15 @@
   "direction": "forward",
   "trackHash": "8f05689ecf910cc595d57aa08b43b15a35e87fbf3bd79e892f9370464dec27e5",
   "authoringStatus": "development_unqualified",
-  "author": "Immersive Relay contributors, SC4 authored geometry 2026-10-16; capsules placed from measured camera paths",
+  "author": "Immersive Relay contributors, SC4 authored geometry 2026-10-16; capsules placed from native probe visibility",
   "license": "GPL-3.0-or-later",
   "groups": [
     {
       "id": "snow_supply_1",
-      "activationNode": 6,
-      "expiryNode": 11,
-      "activationFraction": 0.07364560064735394,
-      "expiryFraction": 0.13479114756908356,
+      "activationNode": 27,
+      "expiryNode": 36,
+      "activationFraction": 0.3835656231507854,
+      "expiryFraction": 0.510457,
       "laps": [
         0,
         1,
@@ -32,18 +32,18 @@
       "capsules": [
         {
           "center": [
-            -297.94660726,
-            16.65142243,
-            31.25857879
+            -254.22343498,
+            55.53811501,
+            -68.18716586
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -282.77890381,
-            17.38684387,
-            111.13338368
+            -261.47379401,
+            57.37562975,
+            -65.23445911
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -52,10 +52,10 @@
     },
     {
       "id": "snow_supply_2",
-      "activationNode": 19,
-      "expiryNode": 22,
-      "activationFraction": 0.2546934481602467,
-      "expiryFraction": 0.30594757359500846,
+      "activationNode": 37,
+      "expiryNode": 42,
+      "activationFraction": 0.5124566791330069,
+      "expiryFraction": 0.5940125921967131,
       "laps": [
         0,
         1,
@@ -73,18 +73,18 @@
       "capsules": [
         {
           "center": [
-            -310.87061064,
-            25.31225214,
-            -64.67690891
+            -279.58759289,
+            39.04771582,
+            2.85409506
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -305.9246253,
-            27.24232548,
-            -63.77577303
+            -279.58655685,
+            45.04060762,
+            2.56212453
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -93,10 +93,10 @@
     },
     {
       "id": "snow_supply_3",
-      "activationNode": 29,
-      "expiryNode": 38,
-      "activationFraction": 0.39870358889824314,
-      "expiryFraction": 0.5278720516833749,
+      "activationNode": 45,
+      "expiryNode": 55,
+      "activationFraction": 0.6348505799179717,
+      "expiryFraction": 0.737726303938725,
       "laps": [
         0,
         1,
@@ -114,18 +114,18 @@
       "capsules": [
         {
           "center": [
-            -249.81694395,
-            36.24222841,
-            -64.11716999
+            -243.62635285,
+            33.03811856,
+            1.22920285
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -280.20213562,
-            41.87604463,
-            -39.32180094
+            -239.24758949,
+            29.9824565,
+            -37.49492189
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
@@ -134,10 +134,10 @@
     },
     {
       "id": "snow_supply_4",
-      "activationNode": 40,
-      "expiryNode": 46,
-      "activationFraction": 0.5564512254936417,
-      "expiryFraction": 0.6524988829036067,
+      "activationNode": 68,
+      "expiryNode": 79,
+      "activationFraction": 0.854672124092171,
+      "expiryFraction": 0.9545274008971574,
       "laps": [
         0,
         1,
@@ -155,100 +155,18 @@
       "capsules": [
         {
           "center": [
-            -256.33249091,
-            39.04245888,
-            6.32507283
+            -165.85568928,
+            24.944,
+            -16.13231821
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
         },
         {
           "center": [
-            -256.71294884,
-            38.9492519,
-            11.30970563
-          ],
-          "radius": 2,
-          "asset": "relay_capsule_sphere_v1"
-        }
-      ]
-    },
-    {
-      "id": "snow_supply_5",
-      "activationNode": 50,
-      "expiryNode": 60,
-      "activationFraction": 0.6970468215570632,
-      "expiryFraction": 0.7867507757169875,
-      "laps": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11
-      ],
-      "capsules": [
-        {
-          "center": [
-            -183.15743446,
-            22.32300456,
-            -6.94017465
-          ],
-          "radius": 2,
-          "asset": "relay_capsule_sphere_v1"
-        },
-        {
-          "center": [
-            -173.81424592,
-            11.59143229,
-            -8.95759897
-          ],
-          "radius": 2,
-          "asset": "relay_capsule_sphere_v1"
-        }
-      ]
-    },
-    {
-      "id": "snow_supply_6",
-      "activationNode": 73,
-      "expiryNode": 82,
-      "activationFraction": 0.9042842805114475,
-      "expiryFraction": 0.9903986610814196,
-      "laps": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11
-      ],
-      "capsules": [
-        {
-          "center": [
-            -161.90448375,
-            11.944,
-            19.29709369
-          ],
-          "radius": 2,
-          "asset": "relay_capsule_sphere_v1"
-        },
-        {
-          "center": [
-            -166.52044596,
-            11.944,
-            7.77593105
+            -165.85568928,
+            29.944,
+            -16.13231821
           ],
           "radius": 2,
           "asset": "relay_capsule_sphere_v1"
