@@ -9,6 +9,7 @@
 #ifdef ENABLE_IMMERSIVE_RELAY
 
 #include "modes/immersive_relay/relay_main_hooks.hpp"
+#include "modes/immersive_relay/mouse_debug.hpp"
 
 #include "modes/immersive_relay/relay_session_controller.hpp"
 #include "modes/immersive_relay/render/immersive_render_pipeline.hpp"
@@ -41,6 +42,8 @@ bool readFloatOption(const char* option, float* value)
 
 void handleCommandLineOptions()
 {
+    if (TholusMouseDebug::configureRaceIfEnabled())
+        return;
     std::string s;
     int n = 0;
     ImmersiveRelay::ImmersiveRenderConfig render_config =

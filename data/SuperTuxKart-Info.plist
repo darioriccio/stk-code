@@ -28,5 +28,7 @@
 	<string>10.9</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>TholusMouseDebugProtocolVersion</key>
+	<integer>${THOLUS_MOUSE_DEBUG_PROTOCOL_VERSION}</integer>
 </dict>
 </plist>

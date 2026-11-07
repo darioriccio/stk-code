@@ -39,6 +39,9 @@
 #include "karts/controller/controller.hpp"
 #include "modes/demo_world.hpp"
 #include "modes/world.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/mouse_debug.hpp"
+#endif
 // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: selected device and local ready command
 #ifdef ENABLE_RELAY_LOCAL_API
 #include "modes/immersive_relay/remote/relay_input_control.hpp"
@@ -271,6 +274,9 @@ void InputManager::update(float dt)
 #ifndef SERVER_ONLY
     for (auto& controller : m_sdl_controller)
         controller.second->checkPowerLevel();
+#endif
+#ifdef ENABLE_IMMERSIVE_RELAY
+    TholusMouseDebug::updateInput(m_mode == INGAME);
 #endif
 }
 

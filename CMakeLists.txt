@@ -673,6 +673,10 @@ if(APPLE AND NOT IOS)
     target_link_libraries(supertuxkart ${APPKIT_LIBRARY})
 
     # configure CMake to use a custom Info.plist
+    set(THOLUS_MOUSE_DEBUG_PROTOCOL_VERSION 0)
+    if(ENABLE_IMMERSIVE_RELAY)
+        set(THOLUS_MOUSE_DEBUG_PROTOCOL_VERSION 1)
+    endif()
     set_target_properties(supertuxkart PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/data/SuperTuxKart-Info.plist)
 

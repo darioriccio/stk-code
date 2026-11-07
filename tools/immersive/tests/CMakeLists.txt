@@ -12,6 +12,12 @@ endif()
 
 enable_testing()
 get_filename_component(STK_REGRESSION_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+add_executable(tholus_mouse_debug_regression mouse_debug_regression.cpp)
+target_include_directories(tholus_mouse_debug_regression PRIVATE "${STK_REGRESSION_ROOT}/src")
+set_target_properties(tholus_mouse_debug_regression PROPERTIES
+    CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+add_test(NAME tholus_mouse_debug.controls COMMAND tholus_mouse_debug_regression)
+set_tests_properties(tholus_mouse_debug.controls PROPERTIES LABELS "relay;mouse;core" TIMEOUT 10)
 add_executable(scintilla_input_regression
     scintilla_input_regression.cpp
     "${STK_REGRESSION_ROOT}/src/modes/immersive_relay/spatial/scintilla_input.cpp"

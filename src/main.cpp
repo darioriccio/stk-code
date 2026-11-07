@@ -247,6 +247,7 @@ extern "C" {
 // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay main hooks include
 #ifdef ENABLE_IMMERSIVE_RELAY
 #include "modes/immersive_relay/relay_main_hooks.hpp"
+#include "modes/immersive_relay/mouse_debug.hpp"
 #endif
 // THOLUS_IMMERSIVE_RELAY_HOOK_END
 #include "network/protocols/connect_to_server.hpp"
@@ -684,6 +685,8 @@ void cmdLineHelp()
 // THOLUS_IMMERSIVE_RELAY_HOOK_BEGIN: relay command-line help
 #ifdef ENABLE_IMMERSIVE_RELAY
     "       --immersive-relay  Enable Immersive Relay race/session mode.\n"
+    "       --tholus-mouse-debug  Standalone window: cursor steers; hold left to accelerate,\n"
+    "                           hold right to brake; middle mouse uses an item.\n"
     "       --relay-presentation-required  Hold play until receiver declares presentation ready.\n"
     "       --relay-operator-controlled  Hold physics until operator countdown ends.\n"
     "       --relay-arcade-ui  Hide venue-controlled race settings from players.\n"
@@ -979,6 +982,10 @@ int handleCmdLinePreliminary()
 
     if(CommandLine::has("--windowed") || CommandLine::has("-w"))
         UserConfigParams::m_fullscreen = false;
+
+#ifdef ENABLE_IMMERSIVE_RELAY
+    TholusMouseDebug::readEarlyCommandLine();
+#endif
 
     // toggle graphical options
     if (CommandLine::has("--enable-glow"))
