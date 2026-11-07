@@ -211,6 +211,9 @@ foreach(MEASUREMENT_CASE crewHeaderRequiresDistinctClosedV3Contract capsuleWindo
     set_tests_properties("scintilla.mission.measurement.${MEASUREMENT_CASE}" PROPERTIES LABELS "relay;scintilla;mission;measurement" TIMEOUT 120)
 endforeach()
 find_package(Python3 3.10 COMPONENTS Interpreter REQUIRED)
+add_test(NAME tholus_mouse_debug.source_isolation
+    COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_LIST_DIR}/check_mouse_debug_source.py")
+set_tests_properties(tholus_mouse_debug.source_isolation PROPERTIES LABELS "relay;mouse;source" TIMEOUT 10)
 if(Python3_Interpreter_FOUND)
     add_test(NAME scintilla.mission.qualification.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_mission_qualification.py")
     add_test(NAME scintilla.mission.collector.offline COMMAND "${Python3_EXECUTABLE}" -B "${STK_REGRESSION_ROOT}/tools/immersive/scintilla/test_collect_mission_measurement.py")

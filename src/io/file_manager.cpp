@@ -26,6 +26,9 @@
 #include "guiengine/engine.hpp"
 #include "guiengine/skin.hpp"
 #include "karts/kart_properties_manager.hpp"
+#ifdef ENABLE_IMMERSIVE_RELAY
+#include "modes/immersive_relay/mouse_debug.hpp"
+#endif
 #include "tracks/track_manager.hpp"
 #include "utils/command_line.hpp"
 #include "utils/extract_mobile_assets.hpp"
@@ -44,6 +47,7 @@
 #endif
 
 #include <stdio.h>
+#include <cstdlib>
 #include <stdexcept>
 #include <sstream>
 #include <sys/stat.h>
@@ -65,6 +69,7 @@ namespace irr {
 #  include <sys/types.h>
 #  include <dirent.h>
 #  include <unistd.h>
+#  include <limits.h>
 #else
 #  define WIN32_LEAN_AND_MEAN
 #  include <direct.h>
@@ -965,12 +970,42 @@ bool FileManager::checkAndCreateDirectoryP(const std::string &path)
 }   // checkAndCreateDirectory
 
 //-----------------------------------------------------------------------------
-/** Checks if the config directory exists, and it not, tries to create it.
- *  It will set m_user_config_dir to the path to which user-specific config
- *  files are stored.
+/** Selects a debug directory without falling back to normal game data. */
+bool FileManager::useMouseDebugDirectory(std::string& directory, const char* child)
+{
+#ifdef ENABLE_IMMERSIVE_RELAY
+    const std::string& root = TholusMouseDebug::dataRoot();
+    if (!root.empty())
+    {
+        const std::string path = root + "/" + child;
+        if (!checkAndCreateDirectory(path))
+            throw std::runtime_error("Cannot create isolated mouse debug data directory.");
+#ifndef WIN32
+        struct stat attributes;
+        char canonical[PATH_MAX];
+        if (lstat(path.c_str(), &attributes) != 0 || !S_ISDIR(attributes.st_mode) ||
+            attributes.st_uid != getuid() || !realpath(path.c_str(), canonical) ||
+            path != canonical || access(path.c_str(), W_OK | X_OK) != 0)
+            throw std::runtime_error("Unsafe isolated mouse debug data directory.");
+#endif
+        directory = path + "/";
+        return true;
+    }
+#endif
+    return false;
+}
+
+/** Checks if the config directory exists, and if not, tries to create it.
+ *  Sets m_user_config_dir to the directory for user-specific configuration.
  */
 void FileManager::checkAndCreateConfigDir()
 {
+    if (useMouseDebugDirectory(m_user_config_dir, "config-0.10"))
+    {
+        m_stdout_dir = m_user_config_dir;
+        m_stdout_filename = "stdout.log";
+        return;
+    }
     if(getenv("SUPERTUXKART_SAVEDIR") &&
         checkAndCreateDirectory(getenv("SUPERTUXKART_SAVEDIR")) )
     {
@@ -1097,6 +1132,8 @@ void FileManager::checkAndCreateConfigDir()
  */
 void FileManager::checkAndCreateAddonsDir()
 {
+    if (useMouseDebugDirectory(m_addons_dir, "addons"))
+        return;
 #if defined(WIN32)
     m_addons_dir  = m_user_config_dir+"../addons/";
 #elif defined(__HAIKU__)
@@ -1138,6 +1175,8 @@ void FileManager::checkAndCreateAddonsDir()
  */
 void FileManager::checkAndCreateScreenshotDir()
 {
+    if (useMouseDebugDirectory(m_screenshot_dir, "screenshots"))
+        return;
 #if defined(WIN32) || defined(__HAIKU__)
     m_screenshot_dir  = m_user_config_dir+"screenshots/";
 #elif defined(__APPLE__)
@@ -1164,6 +1203,8 @@ void FileManager::checkAndCreateScreenshotDir()
  */
 void FileManager::checkAndCreateReplayDir()
 {
+    if (useMouseDebugDirectory(m_replay_dir, "replay"))
+        return;
 #if defined(WIN32) || defined(__HAIKU__)
     m_replay_dir = m_user_config_dir + "replay/";
 #elif defined(__APPLE__)
@@ -1190,6 +1231,8 @@ void FileManager::checkAndCreateReplayDir()
 */
 void FileManager::checkAndCreateCachedTexturesDir()
 {
+    if (useMouseDebugDirectory(m_cached_textures_dir, "cached-textures"))
+        return;
 #if defined(WIN32) || defined(__HAIKU__)
     m_cached_textures_dir = m_user_config_dir + "cached-textures/";
 #elif defined(__APPLE__)
@@ -1215,6 +1258,8 @@ void FileManager::checkAndCreateCachedTexturesDir()
  */
 void FileManager::checkAndCreateGPDir()
 {
+    if (useMouseDebugDirectory(m_gp_dir, "grandprix"))
+        return;
 #if defined(WIN32) || defined(__HAIKU__)
     m_gp_dir = m_user_config_dir + "grandprix/";
 #elif defined(__APPLE__)

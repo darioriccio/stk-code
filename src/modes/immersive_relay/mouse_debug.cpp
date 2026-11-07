@@ -14,6 +14,13 @@
 #include "states_screens/state_manager.hpp"
 #include "utils/command_line.hpp"
 #include "utils/log.hpp"
+#include <cstdlib>
+#include <stdexcept>
+#ifndef WIN32
+#include <limits.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 #ifndef SERVER_ONLY
 #include <SDL.h>
 #include <IrrlichtDevice.h>
@@ -21,13 +28,44 @@
 
 namespace TholusMouseDebug
 {
-namespace { bool enabled = false; }
+namespace
+{
+bool enabled = false;
+std::string private_data_root;
+}
 
 void readEarlyCommandLine()
 {
     enabled = CommandLine::has("--tholus-mouse-debug");
+    private_data_root.clear();
+    if (!enabled)
+        return;
+#ifdef WIN32
+    throw std::runtime_error("Native mouse debug data isolation is unavailable on this platform.");
+#else
+    const char* root = std::getenv("THOLUS_MOUSE_DEBUG_DATA_ROOT");
+    struct stat attributes;
+    char canonical[PATH_MAX];
+    if (!root || root[0] != '/' || !realpath(root, canonical) ||
+        std::string(root) != canonical || lstat(root, &attributes) != 0 ||
+        !S_ISDIR(attributes.st_mode) || attributes.st_uid != getuid() ||
+        (attributes.st_mode & 077) != 0 || access(root, W_OK | X_OK) != 0)
+    {
+        throw std::runtime_error("Mouse debug requires THOLUS_MOUSE_DEBUG_DATA_ROOT to name an existing canonical private writable folder owned by your account.");
+    }
+    private_data_root = canonical;
+#endif
+}
+
+void applyWindowSettings()
+{
     if (enabled)
         UserConfigParams::m_fullscreen = false;
+}
+
+const std::string& dataRoot()
+{
+    return private_data_root;
 }
 
 bool configureRaceIfEnabled()

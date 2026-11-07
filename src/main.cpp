@@ -984,7 +984,7 @@ int handleCmdLinePreliminary()
         UserConfigParams::m_fullscreen = false;
 
 #ifdef ENABLE_IMMERSIVE_RELAY
-    TholusMouseDebug::readEarlyCommandLine();
+    TholusMouseDebug::applyWindowSettings();
 #endif
 
     // toggle graphical options
@@ -2275,6 +2275,10 @@ int main(int argc, char *argv[])
     try
     {
         std::string s, server_config;
+
+#ifdef ENABLE_IMMERSIVE_RELAY
+        TholusMouseDebug::readEarlyCommandLine();
+#endif
 
         handleCmdLineOutputModifier();
 

@@ -124,6 +124,7 @@ private:
                                const std::string& fname) const;
     io::path          createAbsoluteFilename(const std::string &f);
     void              checkAndCreateConfigDir();
+    bool              useMouseDebugDirectory(std::string& directory, const char* child);
     void              checkAndCreateAddonsDir();
     void              checkAndCreateScreenshotDir();
     void              checkAndCreateReplayDir();
