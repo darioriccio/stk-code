@@ -9,6 +9,7 @@
 #ifdef ENABLE_IMMERSIVE_RELAY
 
 #include "modes/immersive_relay/relay_race_mode.hpp"
+#include "modes/immersive_relay/render/immersive_render_pipeline.hpp"
 #include "modes/immersive_relay/spatial/scintilla_engine.hpp"
 
 #include "config/stk_config.hpp"
@@ -49,6 +50,10 @@ RelayRaceMode::RelayRaceMode()
 
 RelayRaceMode::~RelayRaceMode()
 {
+    // The capture cameras are nodes of this world's scene. World::~World
+    // unloads that scene, so release them first on every exit path
+    // (operator reconfigure, return to menu, SIGTERM shutdown).
+    ImmersiveRelay::ImmersiveRenderPipeline::get()->shutdown();
     ImmersiveRelay::ScintillaEngine::retireWorld();
     RelaySessionController::get()->detachRace();
 }

@@ -1277,6 +1277,21 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
                 RelayStatePublisher::errorJson(reject_reason,
                                                snapshot.m_state_version));
         }
+        // Apply audio settings before the world reload. Both calls walk every
+        // registered sound; after exitRace the old world's sounds stay
+        // registered until the SFX thread executes their queued deletion, so
+        // commands queued for them then reach freed objects. New sounds take
+        // the master gain and enable state when they are created.
+        UserConfigParams::m_music = config.m_music_enabled;
+        UserConfigParams::m_sfx = config.m_sfx_enabled;
+        UserConfigParams::m_music_volume = config.m_music_volume;
+        UserConfigParams::m_sfx_volume = config.m_sfx_volume;
+        if (music_manager) music_manager->setMasterMusicVolume(config.m_music_enabled ? config.m_music_volume : 0.0f);
+        if (SFXManager::get())
+        {
+            SFXManager::get()->toggleSound(config.m_sfx_enabled);
+            SFXManager::get()->setMasterSFXVolume(config.m_sfx_volume);
+        }
         try
         {
             if (!config.m_test_accelerated_progress &&
@@ -1290,16 +1305,6 @@ RelayHttpResponse RelayCommandRouter::route(const std::string& method,
             snapshot = controller->getSnapshot();
             return RelayHttpResponse(500, RelayStatePublisher::errorJson(
                 "race_load_failed", snapshot.m_state_version));
-        }
-        UserConfigParams::m_music = config.m_music_enabled;
-        UserConfigParams::m_sfx = config.m_sfx_enabled;
-        UserConfigParams::m_music_volume = config.m_music_volume;
-        UserConfigParams::m_sfx_volume = config.m_sfx_volume;
-        if (music_manager) music_manager->setMasterMusicVolume(config.m_music_enabled ? config.m_music_volume : 0.0f);
-        if (SFXManager::get())
-        {
-            SFXManager::get()->toggleSound(config.m_sfx_enabled);
-            SFXManager::get()->setMasterSFXVolume(config.m_sfx_volume);
         }
         snapshot = controller->getSnapshot();
         return RelayHttpResponse(200,
