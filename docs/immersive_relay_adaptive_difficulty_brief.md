@@ -1,18 +1,11 @@
 # Immersive Relay Adaptive Difficulty Director Brief
 
-Questo documento e' un brief operativo per una chat/agente che deve progettare
-e implementare la difficolta' adattiva di Immersive Relay / modalita'
-salagiochi.
-
-## Leggere Prima
-
-Prima di modificare codice, leggere questi documenti del progetto:
-
-- `docs/AGENTS.md`
-- `docs/supertuxkart_immersive_relay_master_spec.md`
-- `docs/immersive_relay_upstream_sync.md`
-- `docs/immersive_relay_phase2_api_contract.md`
-- `docs/immersive/repo_audit.md`
+Questo brief conserva la proposta originale della difficoltà adattiva.
+Lo stato implementato è descritto in
+[immersive_relay_adaptive_difficulty.md](immersive_relay_adaptive_difficulty.md).
+Le proposte qui presenti non autorizzano funzionalità aggiuntive e non prevalgono
+sui contratti correnti. Per un intervento leggere [../AGENTS.md](../AGENTS.md)
+e i riferimenti pertinenti indicati lì.
 
 In particolare:
 
@@ -305,7 +298,10 @@ Regole indicative:
 - `final_lap_lock`: niente grandi cambi negli ultimi tratti, per evitare furia
   da "mi ha rubato la vittoria".
 
-## Test Minimi
+## Verifiche della funzionalità completa
+
+Selezionare i controlli pertinenti alla modifica; l’intero elenco riguarda
+l’accettazione della funzionalità completa. Verificare i percorsi di build locali.
 
 Build:
 
@@ -335,7 +331,7 @@ Test logici:
 
 ## Acceptance Criteria
 
-La PR/patch e' accettabile solo se:
+L'implementazione completa della funzionalità è accettabile quando:
 
 - vanilla build passa;
 - relay build passa;
@@ -347,14 +343,7 @@ La PR/patch e' accettabile solo se:
 - decisioni del director sono loggate in modo leggibile;
 - documentazione aggiornata con configurazione e rischi noti.
 
-## Output Atteso Dalla Chat Implementatrice
+## Resoconto
 
-Alla fine, rispondere con:
-
-- summary;
-- files changed;
-- build/test commands run;
-- API fields added;
-- behavior verified;
-- known risks;
-- follow-up tuning/playtest checklist.
+Seguire il formato sintetico di `../AGENTS.md`, includendo gli eventuali campi API
+modificati e distinguendo test automatici da tuning e playtest ancora necessari.

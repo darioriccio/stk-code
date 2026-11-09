@@ -1,4 +1,10 @@
-# SuperTuxKart Immersive Relay — Master Spec definitivo per agente AI
+# SuperTuxKart Immersive Relay — Specifica di prodotto
+
+**Uso:** obiettivi e roadmap; questo documento non è un incarico esecutivo né
+una certificazione delle funzionalità disponibili. Le istruzioni operative sono
+in [../AGENTS.md](../AGENTS.md); per l'integrazione corrente consultare il
+[contratto TholusOS](immersive_relay_tholustos_integration.md). I target descritti
+qui, incluso 2048×2048, non sostituiscono i preset correnti o le verifiche hardware.
 
 **Versione:** 3.0 — crew gameplay + arcade/LBE + multi-ambiente
 **Data:** 2026-06-08
@@ -2392,21 +2398,11 @@ consultare legale per distribuzione/uso commerciale
 
 ---
 
-## 24. Prompt operativo breve per l'agente
+## 24. Applicazione della roadmap
 
-L'agente deve trattare questo come mandato di prodotto:
-
-```text
-Implementa SuperTuxKart Immersive Relay come fork sottile.
-Prima milestone: macOS, pilota con volante, fino a 5 telefoni crew via app Swift, modalità Relay con cambio pilota a checkpoint, sessione arcade 7 minuti, crew actions reali, output fisheye 2048×2048 via Syphon.
-
-Non costruire una gara normale con bonus telefono.
-Costruisci una attrazione arcade cooperativa: il pilota guida, la crew rende possibile guidare bene.
-
-Mantieni gameplay, proiezione e output separati.
-Mantieni vanilla SuperTuxKart funzionante.
-Progetta per aggiungere equirect, Windows/Spout e altri profili dopo l'MVP.
-```
+Implementare solo il perimetro richiesto, preservando i vincoli di prodotto.
+Le fasi successive richiedono un incarico esplicito; le checklist MVP seguenti
+valutano la release completa, non la conclusione di ogni singola modifica.
 
 ---
 
